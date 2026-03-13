@@ -184,6 +184,13 @@ function createTab(directory, customName = null, originalDir = null) {
   electronAPI.trackWorkspace(directory);
   updateEmptyState();
   switchTab(id);
+  // Extra delayed refit for first tab after empty state (container was display:none)
+  setTimeout(() => {
+    if (tab.id === activeTabId) {
+      tab.fitAddon.fit();
+      electronAPI.resizePty(tab.id, tab.terminal.cols, tab.terminal.rows);
+    }
+  }, 100);
   scheduleSave();
   return tab;
 }
