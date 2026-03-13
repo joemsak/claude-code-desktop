@@ -32,11 +32,11 @@ describe('pty-manager', () => {
   });
 
   describe('spawn', () => {
-    it('spawns a PTY process with correct arguments', () => {
+    it('spawns a PTY with interactive login shell flags', () => {
       manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
       expect(mock.mockSpawn).toHaveBeenCalledWith(
         expect.any(String),
-        ['-l', '-c', 'claude'],
+        ['-il', '-c', 'claude'],
         expect.objectContaining({
           name: 'xterm-256color',
           cols: 80,

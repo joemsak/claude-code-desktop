@@ -60,6 +60,23 @@ describe('session-store', () => {
       expect(store.load()).toEqual(data);
     });
 
+    it('does not persist _originalDir from a previous load into saved data', () => {
+      // Simulate: load finds a missing dir, adds _originalDir
+      const data = {
+        version: 1,
+        tabs: [{ directory: '/nonexistent/path/xyz', customName: 'old-project' }],
+        activeTabIndex: 0,
+      };
+      fs.writeFileSync(sessionFile, JSON.stringify(data));
+      const loaded = store.load();
+      expect(loaded.tabs[0]._originalDir).toBe('/nonexistent/path/xyz');
+
+      // Now save the loaded data back — _originalDir should be stripped
+      store.save(loaded);
+      const reloaded = JSON.parse(fs.readFileSync(sessionFile, 'utf-8'));
+      expect(reloaded.tabs[0]._originalDir).toBeUndefined();
+    });
+
     it('falls back to home dir when tab directory does not exist', () => {
       const data = {
         version: 1,

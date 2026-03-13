@@ -7,7 +7,7 @@ function createManager(ptyModule) {
 
   function spawn(tabId, directory, onData, onExit) {
     const shell = process.env.SHELL || "/bin/zsh";
-    const ptyProcess = ptyLib.spawn(shell, ["-l", "-c", "claude"], {
+    const ptyProcess = ptyLib.spawn(shell, ["-il", "-c", "claude"], {
       name: "xterm-256color",
       cols: 80,
       rows: 24,

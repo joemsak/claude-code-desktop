@@ -41,8 +41,13 @@ function createStore(homeDir) {
 
   function save(sessionData) {
     try {
+      // Strip internal-only fields before persisting
+      const clean = {
+        ...sessionData,
+        tabs: (sessionData.tabs || []).map(({ _originalDir, ...tab }) => tab),
+      };
       fs.mkdirSync(configDir, { recursive: true });
-      fs.writeFileSync(sessionFile, JSON.stringify(sessionData, null, 2));
+      fs.writeFileSync(sessionFile, JSON.stringify(clean, null, 2));
     } catch (err) {
       console.error("Failed to save session:", err.message);
     }

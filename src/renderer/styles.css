@@ -75,6 +75,10 @@ body {
   -webkit-app-region: no-drag;
 }
 
+.tab-entry.tab-warning .tab-name {
+  color: #f9e2af;
+}
+
 .tab-entry:hover {
   background: #1e1e2e;
   color: #bac2de;
@@ -133,11 +137,30 @@ body {
   border-radius: 3px;
 }
 
-.warning-indicator {
+/* Instant hover tooltip for tab directory path */
+.tab-tooltip {
+  display: none;
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #313244;
+  color: #cdd6f4;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 50;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.tab-tooltip-warning {
   color: #f9e2af;
-  font-size: 11px;
-  margin-right: 4px;
-  flex-shrink: 0;
+}
+
+.tab-entry:hover .tab-tooltip {
+  display: block;
 }
 
 #new-tab-btn {

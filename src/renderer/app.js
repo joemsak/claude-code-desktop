@@ -50,22 +50,24 @@ function renderSidebar() {
     const el = document.createElement("div");
     el.className = "tab-entry" + (tab.id === activeTabId ? " active" : "");
     el.dataset.tabId = tab.id;
-    el.title = tab.directory;
     el.draggable = true;
-
-    // Warning indicator for missing directory fallback
-    if (tab._originalDir) {
-      const warn = document.createElement("span");
-      warn.className = "warning-indicator";
-      warn.textContent = "\u26a0";
-      warn.title = `Original directory missing: ${tab._originalDir}`;
-      el.appendChild(warn);
-    }
 
     const nameSpan = document.createElement("span");
     nameSpan.className = "tab-name";
     nameSpan.textContent = getDisplayName(tab);
     el.appendChild(nameSpan);
+
+    // Instant tooltip with directory path (or warning for missing dirs)
+    const tooltip = document.createElement("span");
+    tooltip.className = "tab-tooltip";
+    if (tab._originalDir) {
+      el.classList.add("tab-warning");
+      tooltip.textContent = `Missing: ${tab._originalDir}`;
+      tooltip.classList.add("tab-tooltip-warning");
+    } else {
+      tooltip.textContent = tab.directory;
+    }
+    el.appendChild(tooltip);
 
     const closeBtn = document.createElement("button");
     closeBtn.className = "close-btn";
