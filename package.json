@@ -1,6 +1,6 @@
 {
   "name": "claude-code-desktop",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Desktop app for managing multiple Claude Code terminal sessions",
   "main": "src/main/main.js",
   "scripts": {
@@ -29,7 +29,10 @@
     "productName": "Claude Code Desktop",
     "mac": {
       "category": "public.app-category.developer-tools",
-      "target": ["dir", "dmg"]
+      "target": [
+        "dir",
+        "dmg"
+      ]
     },
     "files": [
       "src/main/**/*",
