@@ -191,6 +191,12 @@ function switchTab(tabId) {
 async function closeTab(tabId) {
   if (tabs.length === 1) {
     if (!confirm("Close the last tab and quit?")) return;
+    // Kill the tab and save empty state so next launch shows picker
+    const lastTab = tabs[0];
+    electronAPI.killPty(lastTab.id);
+    lastTab.terminal.dispose();
+    lastTab.wrapper.remove();
+    tabs.splice(0, 1);
     await saveSessionsNow();
     window.close();
     return;

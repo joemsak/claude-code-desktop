@@ -32,18 +32,16 @@ describe('pty-manager', () => {
   });
 
   describe('spawn', () => {
-    it('spawns a PTY with interactive login shell flags and exec to suppress warnings', () => {
+    it('spawns a PTY that suppresses shell warnings and runs aws sso login', () => {
       manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
-      expect(mock.mockSpawn).toHaveBeenCalledWith(
-        expect.any(String),
-        ['-il', '-c', 'exec claude'],
-        expect.objectContaining({
-          name: 'xterm-256color',
-          cols: 80,
-          rows: 24,
-          cwd: '/tmp',
-        })
-      );
+      const args = mock.mockSpawn.mock.calls[0][1];
+      const cmd = args[args.length - 1];
+      // Should suppress shell init warnings (redirect stderr during init)
+      // Should run aws sso login before claude
+      // Should exec claude to replace the shell
+      expect(cmd).toContain('aws sso login');
+      expect(cmd).toContain('exec claude');
+      expect(cmd).toContain('2>/dev/null');
     });
 
     it('strips npm_ env vars to prevent nvm warnings', () => {

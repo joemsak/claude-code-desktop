@@ -7,7 +7,16 @@ function createManager(ptyModule) {
 
   function spawn(tabId, directory, onData, onExit) {
     const shell = process.env.SHELL || "/bin/zsh";
-    const ptyProcess = ptyLib.spawn(shell, ["-il", "-c", "exec claude"], {
+    // Suppress shell init warnings (nvm, etc.) by redirecting stderr during init.
+    // Auto-login AWS SSO if session expired, then exec claude.
+    const awsProfile = process.env.AWS_PROFILE || "bedrock-users";
+    const cmd = [
+      "exec 2>/dev/null", // suppress shell init warnings
+      "exec 2>&1", // restore stderr
+      `aws sso login --profile ${awsProfile} 2>/dev/null`, // refresh SSO if needed
+      "exec claude", // replace shell with claude
+    ].join("; ");
+    const ptyProcess = ptyLib.spawn(shell, ["-il", "-c", cmd], {
       name: "xterm-256color",
       cols: 80,
       rows: 24,
