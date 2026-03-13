@@ -32,16 +32,17 @@ describe('pty-manager', () => {
   });
 
   describe('spawn', () => {
-    it('spawns a PTY that suppresses shell warnings and runs aws sso login', () => {
+    it('spawns a PTY that suppresses shell warnings and checks AWS auth', () => {
       manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
       const args = mock.mockSpawn.mock.calls[0][1];
       const cmd = args[args.length - 1];
-      // Should suppress shell init warnings (redirect stderr during init)
-      // Should run aws sso login before claude
-      // Should exec claude to replace the shell
+      // Should suppress all shell init output (stdout and stderr)
+      expect(cmd).toContain('>/dev/null 2>&1');
+      // Should check AWS auth first, only login if expired
+      expect(cmd).toContain('aws sts get-caller-identity');
       expect(cmd).toContain('aws sso login');
+      // Should exec claude
       expect(cmd).toContain('exec claude');
-      expect(cmd).toContain('2>/dev/null');
     });
 
     it('strips npm_ env vars to prevent nvm warnings', () => {

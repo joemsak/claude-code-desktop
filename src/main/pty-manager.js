@@ -11,10 +11,10 @@ function createManager(ptyModule) {
     // Auto-login AWS SSO if session expired, then exec claude.
     const awsProfile = process.env.AWS_PROFILE || "bedrock-users";
     const cmd = [
-      "exec 2>/dev/null", // suppress shell init warnings
-      "exec 2>&1", // restore stderr
-      `aws sso login --profile ${awsProfile} 2>/dev/null`, // refresh SSO if needed
-      "exec claude", // replace shell with claude
+      "exec >/dev/null 2>&1", // suppress all shell init output
+      "exec >/dev/tty 2>&1", // restore stdout/stderr for claude
+      `aws sts get-caller-identity --profile ${awsProfile} >/dev/null 2>&1 || aws sso login --profile ${awsProfile} >/dev/null 2>&1`,
+      "exec claude",
     ].join("; ");
     const ptyProcess = ptyLib.spawn(shell, ["-il", "-c", cmd], {
       name: "xterm-256color",
