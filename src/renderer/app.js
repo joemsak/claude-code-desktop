@@ -286,6 +286,13 @@ function getFilteredDirs(filter) {
   );
 }
 
+function updatePickerSelection() {
+  const items = pickerList.querySelectorAll("li");
+  items.forEach((li, i) =>
+    li.classList.toggle("selected", i === pickerSelectedIndex),
+  );
+}
+
 function renderPickerList(filter) {
   const filtered = getFilteredDirs(filter);
   pickerList.innerHTML = "";
@@ -300,7 +307,7 @@ function renderPickerList(filter) {
     li.addEventListener("click", () => selectPickerItem(dir));
     li.addEventListener("mouseenter", () => {
       pickerSelectedIndex = i;
-      renderPickerList(pickerSearch.value);
+      updatePickerSelection();
     });
     pickerList.appendChild(li);
   });

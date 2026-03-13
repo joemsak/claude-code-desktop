@@ -27,6 +27,7 @@
   "build": {
     "appId": "com.claudecode.desktop",
     "productName": "Claude Code Desktop",
+    "artifactName": "Claude-Code-Desktop-${arch}.${ext}",
     "mac": {
       "category": "public.app-category.developer-tools",
       "target": [
