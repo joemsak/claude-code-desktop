@@ -1,0 +1,50 @@
+{
+  "name": "claude-code-desktop",
+  "version": "1.0.0",
+  "description": "Desktop app for managing multiple Claude Code terminal sessions",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "npm run rebuild && npm run bundle && electron .",
+    "dev": "npm run bundle && electron .",
+    "bundle": "node esbuild.config.js",
+    "rebuild": "electron-rebuild -f -w node-pty",
+    "dist": "npm run bundle && electron-builder"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joemsak/claude-code-desktop.git"
+  },
+  "author": "Joe Sak",
+  "license": "MIT",
+  "type": "commonjs",
+  "build": {
+    "appId": "com.claudecode.desktop",
+    "productName": "Claude Code Desktop",
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": "dmg"
+    },
+    "files": [
+      "src/main/**/*",
+      "src/preload/**/*",
+      "src/renderer/index.html",
+      "src/renderer/styles.css",
+      "src/renderer/bundle.js",
+      "node_modules/**/*"
+    ],
+    "asarUnpack": [
+      "**/node_modules/node-pty/**"
+    ]
+  },
+  "dependencies": {
+    "@xterm/addon-fit": "^0.11.0",
+    "electron": "^41.0.2",
+    "node-pty": "^1.1.0",
+    "xterm": "^5.3.0"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.0.3",
+    "electron-builder": "^26.8.1",
+    "esbuild": "^0.27.4"
+  }
+}

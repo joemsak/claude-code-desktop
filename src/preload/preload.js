@@ -1,0 +1,36 @@
+const { contextBridge, ipcRenderer } = require("electron");
+
+contextBridge.exposeInMainWorld("electronAPI", {
+  // PTY management
+  spawnPty: (tabId, directory) =>
+    ipcRenderer.send("pty:spawn", tabId, directory),
+  writePty: (tabId, data) => ipcRenderer.send("pty:write", tabId, data),
+  resizePty: (tabId, cols, rows) =>
+    ipcRenderer.send("pty:resize", tabId, cols, rows),
+  killPty: (tabId) => ipcRenderer.send("pty:kill", tabId),
+
+  // PTY events (main -> renderer)
+  onPtyData: (callback) =>
+    ipcRenderer.on("pty:data", (_event, tabId, data) => callback(tabId, data)),
+  onPtyExit: (callback) =>
+    ipcRenderer.on("pty:exit", (_event, tabId, exitCode) =>
+      callback(tabId, exitCode),
+    ),
+
+  // Menu events (main -> renderer)
+  onNewTab: (callback) => ipcRenderer.on("menu:new-tab", () => callback()),
+  onCloseTab: (callback) => ipcRenderer.on("menu:close-tab", () => callback()),
+
+  // Session persistence
+  saveSessions: (sessionData) =>
+    ipcRenderer.invoke("sessions:save", sessionData),
+  loadSessions: () => ipcRenderer.invoke("sessions:load"),
+
+  // Directory picker
+  listWorkspaceDirs: () => ipcRenderer.invoke("dirs:list-workspace"),
+  openDirectoryDialog: () => ipcRenderer.invoke("dirs:open-dialog"),
+
+  // Utility
+  getHomePath: () => ipcRenderer.invoke("util:home-path"),
+  getWindowBounds: () => ipcRenderer.invoke("util:window-bounds"),
+});

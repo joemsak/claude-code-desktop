@@ -1,0 +1,154 @@
+const { app, BrowserWindow, ipcMain, dialog, Menu } = require("electron");
+const path = require("path");
+const fs = require("fs");
+const os = require("os");
+const ptyManager = require("./pty-manager");
+const sessionStore = require("./session-store");
+
+let mainWindow;
+
+function createWindow(sessionData) {
+  const win = sessionData?.window || sessionStore.DEFAULT_SESSION.window;
+
+  mainWindow = new BrowserWindow({
+    x: win.x,
+    y: win.y,
+    width: win.width || 1200,
+    height: win.height || 800,
+    minWidth: 600,
+    minHeight: 400,
+    backgroundColor: "#1e1e2e",
+    titleBarStyle: "hiddenInset",
+    trafficLightPosition: { x: 12, y: 12 },
+    webPreferences: {
+      preload: path.join(__dirname, "..", "preload", "preload.js"),
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  });
+
+  mainWindow.loadFile(path.join(__dirname, "..", "renderer", "index.html"));
+}
+
+// IPC: PTY management
+ipcMain.on("pty:spawn", (event, tabId, directory) => {
+  ptyManager.spawn(
+    tabId,
+    directory,
+    (id, data) => {
+      if (!event.sender.isDestroyed()) {
+        event.sender.send("pty:data", id, data);
+      }
+    },
+    (id, exitCode) => {
+      if (!event.sender.isDestroyed()) {
+        event.sender.send("pty:exit", id, exitCode);
+      }
+    },
+  );
+});
+
+ipcMain.on("pty:write", (_event, tabId, data) => {
+  ptyManager.write(tabId, data);
+});
+
+ipcMain.on("pty:resize", (_event, tabId, cols, rows) => {
+  ptyManager.resize(tabId, cols, rows);
+});
+
+ipcMain.on("pty:kill", (_event, tabId) => {
+  ptyManager.kill(tabId);
+});
+
+// IPC: Session persistence
+ipcMain.handle("sessions:save", (_event, sessionData) => {
+  sessionStore.save(sessionData);
+});
+
+ipcMain.handle("sessions:load", () => {
+  return sessionStore.load();
+});
+
+// IPC: Directory picker
+ipcMain.handle("dirs:list-workspace", () => {
+  const workspaceDir = path.join(os.homedir(), "workspace");
+  try {
+    const entries = fs.readdirSync(workspaceDir, { withFileTypes: true });
+    return entries
+      .filter((e) => e.isDirectory())
+      .map((e) => ({ name: e.name, path: path.join(workspaceDir, e.name) }))
+      .sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+      );
+  } catch {
+    return [];
+  }
+});
+
+ipcMain.handle("dirs:open-dialog", async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ["openDirectory"],
+    defaultPath: os.homedir(),
+  });
+  if (result.canceled || result.filePaths.length === 0) return null;
+  return result.filePaths[0];
+});
+
+// IPC: Utility
+ipcMain.handle("util:home-path", () => os.homedir());
+
+ipcMain.handle("util:window-bounds", () => {
+  if (!mainWindow) return null;
+  const bounds = mainWindow.getBounds();
+  return {
+    x: bounds.x,
+    y: bounds.y,
+    width: bounds.width,
+    height: bounds.height,
+  };
+});
+
+// Save session on quit (main process captures bounds directly)
+function saveSessionFromMain() {
+  if (mainWindow) {
+    mainWindow.webContents.send("session:save-now");
+  }
+}
+
+// App lifecycle
+app.whenReady().then(() => {
+  const sessionData = sessionStore.load() || sessionStore.DEFAULT_SESSION;
+  createWindow(sessionData);
+
+  const template = [
+    { role: "appMenu" },
+    {
+      label: "File",
+      submenu: [
+        {
+          label: "New Tab",
+          accelerator: "CmdOrCtrl+T",
+          click: () => mainWindow?.webContents.send("menu:new-tab"),
+        },
+        {
+          label: "Close Tab",
+          accelerator: "CmdOrCtrl+W",
+          click: () => mainWindow?.webContents.send("menu:close-tab"),
+        },
+      ],
+    },
+    { role: "editMenu" },
+    { role: "windowMenu" },
+  ];
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+});
+
+app.on("window-all-closed", () => {
+  ptyManager.killAll();
+  app.quit();
+});
+
+app.on("before-quit", () => {
+  saveSessionFromMain();
+  ptyManager.killAll();
+});
