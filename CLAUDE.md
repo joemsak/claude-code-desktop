@@ -11,9 +11,9 @@
 
 ## Releasing
 
-**When to bump version:** After any user-facing change is committed to main (new features, bug fixes, UI changes). Do NOT bump for internal-only changes (test additions, CI config, docs, refactors with no behavior change).
+**NEVER cut a release unless the user explicitly asks for one.** Committing code and releasing are separate actions. Do not run `npm run release:*` on your own initiative, even after fixing bugs or adding features. The user decides when a release happens.
 
-**How to release:**
+**How to release (only when asked):**
 ```bash
 npm run release:patch   # bug fixes, small tweaks (1.0.0 → 1.0.1)
 npm run release:minor   # new features (1.0.0 → 1.1.0)
