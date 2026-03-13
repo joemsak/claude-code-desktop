@@ -13,9 +13,51 @@ body {
   width: 100vw;
 }
 
+/* --- Top Bar --- */
+#topbar {
+  height: 36px;
+  background: #181825;
+  border-bottom: 1px solid #313244;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 0 80px; /* 80px left for traffic lights */
+  -webkit-app-region: drag;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+#topbar-path {
+  color: #585b70;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+#topbar-new-tab {
+  -webkit-app-region: no-drag;
+  background: none;
+  border: none;
+  color: #585b70;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+  border-radius: 4px;
+  transition: color 0.1s, background 0.1s;
+}
+
+#topbar-new-tab:hover {
+  color: #cdd6f4;
+  background: #313244;
+}
+
 #app {
   display: flex;
-  height: 100vh;
+  height: calc(100vh - 37px); /* subtract topbar height + border */
   width: 100vw;
 }
 
@@ -29,13 +71,6 @@ body {
   display: flex;
   flex-direction: column;
   user-select: none;
-  -webkit-app-region: drag;
-}
-
-#sidebar-header {
-  height: 40px;
-  flex-shrink: 0;
-  -webkit-app-region: drag;
 }
 
 #tab-list {

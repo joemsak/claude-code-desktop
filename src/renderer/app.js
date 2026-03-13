@@ -21,6 +21,8 @@ const pickerList = document.getElementById("picker-list");
 const sidebarEl = document.getElementById("sidebar");
 const resizeHandle = document.getElementById("sidebar-resize-handle");
 const emptyStateEl = document.getElementById("empty-state");
+const topbarPathEl = document.getElementById("topbar-path");
+const topbarNewTabBtn = document.getElementById("topbar-new-tab");
 
 // ===========================
 // Tab Display Name
@@ -44,6 +46,11 @@ function getDisplayName(tab) {
 // ===========================
 // Sidebar Rendering
 // ===========================
+
+function updateTopbar() {
+  const activeTab = tabs.find((t) => t.id === activeTabId);
+  topbarPathEl.textContent = activeTab ? activeTab.directory : "";
+}
 
 function updateEmptyState() {
   if (tabs.length === 0) {
@@ -196,6 +203,7 @@ function switchTab(tabId) {
     }
   }
   renderSidebar();
+  updateTopbar();
 }
 
 async function closeTab(tabId) {
@@ -223,6 +231,7 @@ async function closeTab(tabId) {
   if (tabs.length === 0) {
     activeTabId = null;
     renderSidebar();
+    updateTopbar();
   } else if (activeTabId === tabId) {
     const newIndex = Math.min(index, tabs.length - 1);
     switchTab(tabs[newIndex].id);
@@ -574,8 +583,9 @@ window.addEventListener("resize", () => {
   }
 });
 
-// New tab button
+// New tab buttons
 newTabBtn.addEventListener("click", openPicker);
+topbarNewTabBtn.addEventListener("click", openPicker);
 
 // Empty state button
 const emptyStateOpenBtn = document.getElementById("empty-state-open-btn");
@@ -617,6 +627,19 @@ async function init() {
     if (data.activeTabIndex >= 0 && data.activeTabIndex < tabs.length) {
       switchTab(tabs[data.activeTabIndex].id);
     }
+
+    // Delayed refit — ensures terminal fills the restored window size
+    setTimeout(() => {
+      const activeTab = tabs.find((t) => t.id === activeTabId);
+      if (activeTab) {
+        activeTab.fitAddon.fit();
+        electronAPI.resizePty(
+          activeTab.id,
+          activeTab.terminal.cols,
+          activeTab.terminal.rows,
+        );
+      }
+    }, 200);
   }
 }
 

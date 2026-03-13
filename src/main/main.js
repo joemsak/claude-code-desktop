@@ -19,7 +19,7 @@ function createWindow(sessionData) {
     minHeight: 400,
     backgroundColor: "#1e1e2e",
     titleBarStyle: "hiddenInset",
-    trafficLightPosition: { x: 12, y: 12 },
+    trafficLightPosition: { x: 12, y: 10 },
     webPreferences: {
       preload: path.join(__dirname, "..", "preload", "preload.js"),
       nodeIntegration: false,
