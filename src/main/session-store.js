@@ -37,8 +37,15 @@ function createStore(homeDir) {
 
   function save(sessionData) {
     try {
-      // Strip internal-only fields before persisting
+      // Merge with existing data to preserve fields like recentWorkspaces
+      let existing = {};
+      try {
+        existing = JSON.parse(fs.readFileSync(sessionFile, "utf-8"));
+      } catch {
+        // No existing file
+      }
       const clean = {
+        ...existing,
         ...sessionData,
         tabs: (sessionData.tabs || []).map(({ _originalDir, ...tab }) => tab),
       };
@@ -54,7 +61,7 @@ function createStore(homeDir) {
     try {
       data = JSON.parse(fs.readFileSync(sessionFile, "utf-8"));
     } catch {
-      data = { ...DEFAULT_SESSION };
+      data = JSON.parse(JSON.stringify(DEFAULT_SESSION));
     }
     const recents = data.recentWorkspaces || [];
     const existingIdx = recents.findIndex((r) => r.path === dirPath);

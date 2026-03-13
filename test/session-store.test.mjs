@@ -123,6 +123,19 @@ describe('session-store', () => {
       expect(written).toEqual(data);
     });
 
+    it('preserves recentWorkspaces when saving tabs', () => {
+      // trackWorkspace writes recentWorkspaces to the file
+      store.trackWorkspace('/path/preserve-test');
+      const before = JSON.parse(fs.readFileSync(sessionFile, 'utf-8'));
+      expect(before.recentWorkspaces).toHaveLength(1);
+
+      // save() writes tabs — should not lose recentWorkspaces
+      store.save({ version: 1, tabs: [{ directory: tmpDir }], activeTabIndex: 0 });
+      const after = JSON.parse(fs.readFileSync(sessionFile, 'utf-8'));
+      expect(after.recentWorkspaces).toHaveLength(1);
+      expect(after.recentWorkspaces[0].path).toBe('/path/preserve-test');
+    });
+
     it('overwrites existing session file', () => {
       store.save({ version: 1, tabs: [{ directory: '/a' }], activeTabIndex: 0 });
       store.save({ version: 1, tabs: [{ directory: '/b' }], activeTabIndex: 0 });
