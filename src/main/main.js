@@ -69,6 +69,16 @@ ipcMain.handle("sessions:load", () => {
   return sessionStore.load();
 });
 
+// IPC: Workspace tracking
+ipcMain.handle("workspace:track", (_event, dirPath) => {
+  sessionStore.trackWorkspace(dirPath);
+});
+
+ipcMain.handle("workspace:recent", () => {
+  const data = sessionStore.load();
+  return (data && data.recentWorkspaces) || [];
+});
+
 // IPC: Directory picker
 ipcMain.handle("dirs:list-workspace", () => {
   const workspaceDir = path.join(os.homedir(), "workspace");

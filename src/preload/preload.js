@@ -29,6 +29,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // Directory picker
   listWorkspaceDirs: () => ipcRenderer.invoke("dirs:list-workspace"),
   openDirectoryDialog: () => ipcRenderer.invoke("dirs:open-dialog"),
+  trackWorkspace: (dirPath) => ipcRenderer.invoke("workspace:track", dirPath),
+  getRecentWorkspaces: () => ipcRenderer.invoke("workspace:recent"),
 
   // Utility
   getHomePath: () => ipcRenderer.invoke("util:home-path"),

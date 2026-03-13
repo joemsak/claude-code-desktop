@@ -202,6 +202,54 @@ body {
   min-width: 0;
 }
 
+/* --- Empty State (no tabs) --- */
+#empty-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1e1e2e;
+}
+
+.empty-state-content {
+  text-align: center;
+}
+
+.empty-state-content h2 {
+  color: #cdd6f4;
+  font-size: 22px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.empty-state-content p {
+  color: #6c7086;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+#empty-state-open-btn {
+  background: #313244;
+  color: #cdd6f4;
+  border: 1px solid #45475a;
+  padding: 10px 24px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+#empty-state-open-btn:hover {
+  background: #45475a;
+}
+
+.empty-state-hint {
+  display: block;
+  color: #585b70;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
 .terminal-wrapper {
   position: absolute;
   inset: 0;
@@ -293,6 +341,23 @@ body {
   color: #6c7086;
   font-size: 11px;
   margin-left: 8px;
+}
+
+#picker-list li.picker-separator {
+  height: 1px;
+  background: #313244;
+  padding: 0;
+  margin: 4px 16px;
+  cursor: default;
+  pointer-events: none;
+}
+
+#picker-list li.picker-separator:hover {
+  background: #313244;
+}
+
+#picker-list li.picker-recent {
+  color: #89b4fa;
 }
 
 .hidden {

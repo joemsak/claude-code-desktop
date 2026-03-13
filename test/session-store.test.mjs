@@ -134,5 +134,40 @@ describe('session-store', () => {
       expect(store.DEFAULT_SESSION.activeTabIndex).toBe(0);
       expect(store.DEFAULT_SESSION.sidebarWidth).toBe(200);
     });
+
+    it('has empty recentWorkspaces array', () => {
+      expect(store.DEFAULT_SESSION.recentWorkspaces).toEqual([]);
+    });
+  });
+
+  describe('trackWorkspace', () => {
+    it('adds a new workspace with count 1', () => {
+      store.trackWorkspace('/path/add-test');
+      const data = JSON.parse(fs.readFileSync(sessionFile, 'utf-8'));
+      expect(data.recentWorkspaces).toHaveLength(1);
+      expect(data.recentWorkspaces[0].path).toBe('/path/add-test');
+      expect(data.recentWorkspaces[0].count).toBe(1);
+      expect(data.recentWorkspaces[0].lastUsed).toBeDefined();
+    });
+
+    it('increments count for an existing workspace', () => {
+      store.trackWorkspace('/path/incr-test');
+      store.trackWorkspace('/path/incr-test');
+      const data = JSON.parse(fs.readFileSync(sessionFile, 'utf-8'));
+      const entry = data.recentWorkspaces.find((r) => r.path === '/path/incr-test');
+      expect(entry.count).toBe(2);
+    });
+
+    it('most recently tracked workspace is first', () => {
+      store.trackWorkspace('/path/sort-a');
+      store.trackWorkspace('/path/sort-b');
+      const data = JSON.parse(fs.readFileSync(sessionFile, 'utf-8'));
+      // sort-b was tracked last, so it should be first (or tied)
+      const paths = data.recentWorkspaces.map((r) => r.path);
+      expect(paths).toContain('/path/sort-a');
+      expect(paths).toContain('/path/sort-b');
+      // The last-tracked item should be at index 0 or tied at same timestamp
+      expect(data.recentWorkspaces[0].path).toBe('/path/sort-b');
+    });
   });
 });

@@ -20,6 +20,7 @@ const pickerSearch = document.getElementById("picker-search");
 const pickerList = document.getElementById("picker-list");
 const sidebarEl = document.getElementById("sidebar");
 const resizeHandle = document.getElementById("sidebar-resize-handle");
+const emptyStateEl = document.getElementById("empty-state");
 
 // ===========================
 // Tab Display Name
@@ -43,6 +44,16 @@ function getDisplayName(tab) {
 // ===========================
 // Sidebar Rendering
 // ===========================
+
+function updateEmptyState() {
+  if (tabs.length === 0) {
+    emptyStateEl.classList.remove("hidden");
+    terminalContainer.classList.add("hidden");
+  } else {
+    emptyStateEl.classList.add("hidden");
+    terminalContainer.classList.remove("hidden");
+  }
+}
 
 function renderSidebar() {
   tabListEl.innerHTML = "";
@@ -153,6 +164,8 @@ function createTab(directory, customName = null, originalDir = null) {
   });
 
   electronAPI.spawnPty(id, directory);
+  electronAPI.trackWorkspace(directory);
+  updateEmptyState();
   switchTab(id);
   scheduleSave();
   return tab;
@@ -189,8 +202,12 @@ async function closeTab(tabId) {
   tab.terminal.dispose();
   tab.wrapper.remove();
   tabs.splice(index, 1);
+  updateEmptyState();
 
-  if (activeTabId === tabId) {
+  if (tabs.length === 0) {
+    activeTabId = null;
+    renderSidebar();
+  } else if (activeTabId === tabId) {
     const newIndex = Math.min(index, tabs.length - 1);
     switchTab(tabs[newIndex].id);
   } else {
@@ -260,12 +277,38 @@ let pickerDirs = [];
 let pickerSelectedIndex = 0;
 
 async function openPicker() {
-  const workspaceDirs = await electronAPI.listWorkspaceDirs();
+  const [workspaceDirs, recentWorkspaces] = await Promise.all([
+    electronAPI.listWorkspaceDirs(),
+    electronAPI.getRecentWorkspaces(),
+  ]);
+
+  // Build recent items (up to 5), excluding home
+  const recentPaths = new Set();
+  const recentItems = [];
+  for (const r of recentWorkspaces.slice(0, 5)) {
+    const name = r.path.split("/").pop() || r.path;
+    recentItems.push({ name, path: r.path, isRecent: true });
+    recentPaths.add(r.path);
+  }
+
+  // All workspace dirs, excluding those already in recents
+  const allItems = workspaceDirs
+    .filter((d) => !recentPaths.has(d.path))
+    .map((d) => ({ name: d.name, path: d.path }));
+
   pickerDirs = [
+    ...recentItems,
+    { name: "---", path: null, isSeparator: true },
     { name: "~ (Home)", path: homePath, isHome: true },
-    ...workspaceDirs.map((d) => ({ name: d.name, path: d.path })),
+    ...allItems,
     { name: "Browse...", path: null, isBrowse: true },
   ];
+
+  // Remove separator if no recents
+  if (recentItems.length === 0) {
+    pickerDirs = pickerDirs.filter((d) => !d.isSeparator);
+  }
+
   pickerSearch.value = "";
   pickerSelectedIndex = 0;
   renderPickerList("");
@@ -275,42 +318,62 @@ async function openPicker() {
 
 function closePicker() {
   pickerOverlay.classList.add("hidden");
-  // If no tabs exist (first launch, user escaped), create a home dir tab
-  if (tabs.length === 0) {
-    createTab(homePath);
-  }
+  updateEmptyState();
   // Refocus active terminal
   const activeTab = tabs.find((t) => t.id === activeTabId);
   if (activeTab) activeTab.terminal.focus();
 }
 
 function getFilteredDirs(filter) {
-  return pickerDirs.filter((d) =>
-    d.name.toLowerCase().includes(filter.toLowerCase()),
-  );
+  if (!filter) return pickerDirs;
+  // When filtering, flatten all items (no separators, no duplicates)
+  const lf = filter.toLowerCase();
+  const seen = new Set();
+  return pickerDirs.filter((d) => {
+    if (d.isSeparator) return false;
+    if (!d.name.toLowerCase().includes(lf)) return false;
+    if (d.path && seen.has(d.path)) return false;
+    if (d.path) seen.add(d.path);
+    return true;
+  });
 }
 
 function updatePickerSelection() {
+  let idx = 0;
   const items = pickerList.querySelectorAll("li");
-  items.forEach((li, i) =>
-    li.classList.toggle("selected", i === pickerSelectedIndex),
-  );
+  items.forEach((li) => {
+    if (li.classList.contains("picker-separator")) return;
+    li.classList.toggle("selected", idx === pickerSelectedIndex);
+    idx++;
+  });
 }
 
 function renderPickerList(filter) {
   const filtered = getFilteredDirs(filter);
   pickerList.innerHTML = "";
-  // Clamp selected index
-  if (pickerSelectedIndex >= filtered.length)
-    pickerSelectedIndex = Math.max(0, filtered.length - 1);
 
-  filtered.forEach((dir, i) => {
+  // Clamp selected index, skip separators
+  const selectableCount = filtered.filter((d) => !d.isSeparator).length;
+  if (pickerSelectedIndex >= selectableCount)
+    pickerSelectedIndex = Math.max(0, selectableCount - 1);
+
+  let selectableIndex = 0;
+  filtered.forEach((dir) => {
+    if (dir.isSeparator) {
+      const li = document.createElement("li");
+      li.className = "picker-separator";
+      pickerList.appendChild(li);
+      return;
+    }
+
+    const idx = selectableIndex++;
     const li = document.createElement("li");
     li.textContent = dir.name;
-    li.classList.toggle("selected", i === pickerSelectedIndex);
+    if (dir.isRecent) li.classList.add("picker-recent");
+    li.classList.toggle("selected", idx === pickerSelectedIndex);
     li.addEventListener("click", () => selectPickerItem(dir));
     li.addEventListener("mouseenter", () => {
-      pickerSelectedIndex = i;
+      pickerSelectedIndex = idx;
       updatePickerSelection();
     });
     pickerList.appendChild(li);
@@ -326,19 +389,6 @@ async function selectPickerItem(dir) {
   } else {
     directory = dir.path;
   }
-  // If the only open tab is the home dir (default fallback), replace it
-  if (
-    tabs.length === 1 &&
-    tabs[0].directory === homePath &&
-    !tabs[0].customName &&
-    directory !== homePath
-  ) {
-    const old = tabs[0];
-    electronAPI.killPty(old.id);
-    old.terminal.dispose();
-    old.wrapper.remove();
-    tabs.splice(0, 1);
-  }
   createTab(directory);
 }
 
@@ -349,11 +399,12 @@ pickerSearch.addEventListener("input", () => {
 
 pickerSearch.addEventListener("keydown", (e) => {
   const filtered = getFilteredDirs(pickerSearch.value);
+  const selectable = filtered.filter((d) => !d.isSeparator);
   if (e.key === "ArrowDown") {
     e.preventDefault();
     pickerSelectedIndex = Math.min(
       pickerSelectedIndex + 1,
-      filtered.length - 1,
+      selectable.length - 1,
     );
     renderPickerList(pickerSearch.value);
   } else if (e.key === "ArrowUp") {
@@ -362,8 +413,8 @@ pickerSearch.addEventListener("keydown", (e) => {
     renderPickerList(pickerSearch.value);
   } else if (e.key === "Enter") {
     e.preventDefault();
-    if (filtered[pickerSelectedIndex]) {
-      selectPickerItem(filtered[pickerSelectedIndex]);
+    if (selectable[pickerSelectedIndex]) {
+      selectPickerItem(selectable[pickerSelectedIndex]);
     }
   } else if (e.key === "Escape") {
     e.preventDefault();
@@ -510,19 +561,16 @@ window.addEventListener("resize", () => {
 // New tab button
 newTabBtn.addEventListener("click", openPicker);
 
+// Empty state button
+const emptyStateOpenBtn = document.getElementById("empty-state-open-btn");
+emptyStateOpenBtn.addEventListener("click", openPicker);
+
 // ===========================
 // Initialization
 // ===========================
 
-function shouldShowPicker(tabList, home) {
-  if (!tabList || tabList.length === 0) return true;
-  if (
-    tabList.length === 1 &&
-    tabList[0].directory === home &&
-    !tabList[0].customName
-  )
-    return true;
-  return false;
+function shouldShowPicker(tabList) {
+  return !tabList || tabList.length === 0;
 }
 
 async function init() {
@@ -537,7 +585,9 @@ async function init() {
   sidebarWidth = data.sidebarWidth || 200;
   sidebarEl.style.width = `${sidebarWidth}px`;
 
-  if (shouldShowPicker(data.tabs, homePath)) {
+  updateEmptyState();
+
+  if (shouldShowPicker(data.tabs)) {
     openPicker();
   } else {
     for (const tabData of data.tabs) {

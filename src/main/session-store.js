@@ -13,6 +13,7 @@ function createStore(homeDir) {
     sidebarWidth: 200,
     tabs: [],
     activeTabIndex: 0,
+    recentWorkspaces: [],
   };
 
   function load() {
@@ -53,7 +54,31 @@ function createStore(homeDir) {
     }
   }
 
-  return { load, save, DEFAULT_SESSION };
+  function trackWorkspace(dirPath) {
+    let data;
+    try {
+      data = JSON.parse(fs.readFileSync(sessionFile, "utf-8"));
+    } catch {
+      data = { ...DEFAULT_SESSION };
+    }
+    const recents = data.recentWorkspaces || [];
+    const existingIdx = recents.findIndex((r) => r.path === dirPath);
+    let entry;
+    if (existingIdx >= 0) {
+      entry = recents.splice(existingIdx, 1)[0];
+      entry.count += 1;
+      entry.lastUsed = Date.now();
+    } else {
+      entry = { path: dirPath, count: 1, lastUsed: Date.now() };
+    }
+    // Most recent always goes to front
+    recents.unshift(entry);
+    data.recentWorkspaces = recents;
+    fs.mkdirSync(configDir, { recursive: true });
+    fs.writeFileSync(sessionFile, JSON.stringify(data, null, 2));
+  }
+
+  return { load, save, trackWorkspace, DEFAULT_SESSION };
 }
 
 // Default instance for production use

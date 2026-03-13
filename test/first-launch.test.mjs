@@ -16,27 +16,26 @@ describe('first launch behavior', () => {
     expect(initCode).not.toMatch(/tabs:\s*\[\s*\{\s*directory:\s*homePath/);
   });
 
-  it('closePicker creates a home tab when no tabs exist (escape fallback)', () => {
-    // When user escapes the picker on first launch, closePicker should
-    // create a home dir tab if there are none
+  it('closePicker never auto-creates tabs', () => {
     const closeBlock = appSource.match(/function closePicker\(\)\s*\{[\s\S]*?\n\}/);
     expect(closeBlock).not.toBeNull();
     const closeCode = closeBlock[0];
 
-    expect(closeCode).toContain('tabs.length === 0');
-    expect(closeCode).toContain('createTab');
+    // Should NOT create tabs — just close the overlay and show empty state
+    expect(closeCode).not.toContain('createTab');
   });
 
-  it('selectPickerItem replaces the lone home tab instead of adding', () => {
-    // When picker was opened because only tab is ~, selecting a workspace
-    // should replace that tab, not add a second one
-    const selectBlock = appSource.match(/async function selectPickerItem[\s\S]*?\n\}/);
-    expect(selectBlock).not.toBeNull();
-    const selectCode = selectBlock[0];
+  it('shows an empty state when no tabs are open', () => {
+    // An empty-state element should exist in the HTML
+    const htmlSource = fs.readFileSync(
+      path.join(__dirname, '..', 'src', 'renderer', 'index.html'), 'utf-8'
+    );
+    expect(htmlSource).toContain('id="empty-state"');
+  });
 
-    // Should check for lone home tab and remove it before creating new one
-    expect(selectCode).toContain('tabs.length === 1');
-    expect(selectCode).toContain('homePath');
-    expect(selectCode).toContain('killPty');
+  it('empty state is shown/hidden based on tab count', () => {
+    // renderSidebar or a helper should toggle empty state visibility
+    expect(appSource).toContain('empty-state');
+    expect(appSource).toContain('emptyStateEl');
   });
 });
