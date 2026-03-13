@@ -194,11 +194,13 @@ function switchTab(tabId) {
     const isActive = tab.id === tabId;
     tab.wrapper.classList.toggle("active", isActive);
     if (isActive) {
-      // Small delay to let the DOM render before fitting
+      // Double rAF — first lets display:block apply, second lets layout compute
       requestAnimationFrame(() => {
-        tab.fitAddon.fit();
-        electronAPI.resizePty(tab.id, tab.terminal.cols, tab.terminal.rows);
-        tab.terminal.focus();
+        requestAnimationFrame(() => {
+          tab.fitAddon.fit();
+          electronAPI.resizePty(tab.id, tab.terminal.cols, tab.terminal.rows);
+          tab.terminal.focus();
+        });
       });
     }
   }
