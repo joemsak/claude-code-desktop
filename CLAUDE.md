@@ -11,7 +11,7 @@
 
 ## Releasing
 
-**NEVER cut a release unless the user explicitly asks for one.** Committing code and releasing are separate actions. Do not run `npm run release:*` on your own initiative, even after fixing bugs or adding features. The user decides when a release happens.
+**NEVER cut a release without user approval.** Committing code and releasing are separate actions. Do not run `npm run release:*` on your own initiative. You may recommend a release and ask the user if they're ready, but wait for confirmation before executing.
 
 **How to release (only when asked):**
 ```bash
