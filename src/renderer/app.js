@@ -497,11 +497,22 @@ newTabBtn.addEventListener("click", openPicker);
 // Initialization
 // ===========================
 
+function shouldShowPicker(tabList, home) {
+  if (!tabList || tabList.length === 0) return true;
+  if (
+    tabList.length === 1 &&
+    tabList[0].directory === home &&
+    !tabList[0].customName
+  )
+    return true;
+  return false;
+}
+
 async function init() {
   homePath = await electronAPI.getHomePath();
   const sessionData = await electronAPI.loadSessions();
   const data = sessionData || {
-    tabs: [{ directory: homePath, customName: null }],
+    tabs: [],
     activeTabIndex: 0,
     sidebarWidth: 200,
   };
@@ -509,16 +520,20 @@ async function init() {
   sidebarWidth = data.sidebarWidth || 200;
   sidebarEl.style.width = `${sidebarWidth}px`;
 
-  for (const tabData of data.tabs) {
-    createTab(
-      tabData.directory,
-      tabData.customName,
-      tabData._originalDir || null,
-    );
-  }
+  if (shouldShowPicker(data.tabs, homePath)) {
+    openPicker();
+  } else {
+    for (const tabData of data.tabs) {
+      createTab(
+        tabData.directory,
+        tabData.customName,
+        tabData._originalDir || null,
+      );
+    }
 
-  if (data.activeTabIndex >= 0 && data.activeTabIndex < tabs.length) {
-    switchTab(tabs[data.activeTabIndex].id);
+    if (data.activeTabIndex >= 0 && data.activeTabIndex < tabs.length) {
+      switchTab(tabs[data.activeTabIndex].id);
+    }
   }
 }
 

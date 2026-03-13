@@ -11,7 +11,7 @@ function createStore(homeDir) {
     version: 1,
     window: { x: undefined, y: undefined, width: 1200, height: 800 },
     sidebarWidth: 200,
-    tabs: [{ directory: home, customName: null }],
+    tabs: [],
     activeTabIndex: 0,
   };
 

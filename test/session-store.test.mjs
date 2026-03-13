@@ -128,11 +128,9 @@ describe('session-store', () => {
   });
 
   describe('DEFAULT_SESSION', () => {
-    it('has correct structure', () => {
+    it('has empty tabs array so first launch opens the picker', () => {
       expect(store.DEFAULT_SESSION.version).toBe(1);
-      expect(store.DEFAULT_SESSION.tabs).toHaveLength(1);
-      expect(store.DEFAULT_SESSION.tabs[0].directory).toBe(tmpDir);
-      expect(store.DEFAULT_SESSION.tabs[0].customName).toBeNull();
+      expect(store.DEFAULT_SESSION.tabs).toEqual([]);
       expect(store.DEFAULT_SESSION.activeTabIndex).toBe(0);
       expect(store.DEFAULT_SESSION.sidebarWidth).toBe(200);
     });
