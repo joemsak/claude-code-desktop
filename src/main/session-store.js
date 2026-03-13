@@ -2,52 +2,56 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 
-const CONFIG_DIR = path.join(os.homedir(), ".config", "claude-code-desktop");
-const SESSION_FILE = path.join(CONFIG_DIR, "sessions.json");
+function createStore(homeDir) {
+  const home = homeDir || os.homedir();
+  const configDir = path.join(home, ".config", "claude-code-desktop");
+  const sessionFile = path.join(configDir, "sessions.json");
 
-const DEFAULT_SESSION = {
-  version: 1,
-  window: { x: undefined, y: undefined, width: 1200, height: 800 },
-  sidebarWidth: 200,
-  tabs: [{ directory: os.homedir(), customName: null }],
-  activeTabIndex: 0,
-};
+  const DEFAULT_SESSION = {
+    version: 1,
+    window: { x: undefined, y: undefined, width: 1200, height: 800 },
+    sidebarWidth: 200,
+    tabs: [{ directory: home, customName: null }],
+    activeTabIndex: 0,
+  };
 
-function load() {
-  try {
-    const data = fs.readFileSync(SESSION_FILE, "utf-8");
-    const parsed = JSON.parse(data);
-    if (
-      parsed &&
-      parsed.version === 1 &&
-      Array.isArray(parsed.tabs) &&
-      parsed.tabs.length > 0
-    ) {
-      parsed.tabs = parsed.tabs.map((tab) => {
-        if (!fs.existsSync(tab.directory)) {
-          return {
-            ...tab,
-            directory: os.homedir(),
-            _originalDir: tab.directory,
-          };
-        }
-        return tab;
-      });
-      return parsed;
+  function load() {
+    try {
+      const data = fs.readFileSync(sessionFile, "utf-8");
+      const parsed = JSON.parse(data);
+      if (
+        parsed &&
+        parsed.version === 1 &&
+        Array.isArray(parsed.tabs) &&
+        parsed.tabs.length > 0
+      ) {
+        parsed.tabs = parsed.tabs.map((tab) => {
+          if (!fs.existsSync(tab.directory)) {
+            return { ...tab, directory: home, _originalDir: tab.directory };
+          }
+          return tab;
+        });
+        return parsed;
+      }
+    } catch {
+      // Corrupted or missing — use defaults
     }
-  } catch {
-    // Corrupted or missing — use defaults
+    return null;
   }
-  return null;
+
+  function save(sessionData) {
+    try {
+      fs.mkdirSync(configDir, { recursive: true });
+      fs.writeFileSync(sessionFile, JSON.stringify(sessionData, null, 2));
+    } catch (err) {
+      console.error("Failed to save session:", err.message);
+    }
+  }
+
+  return { load, save, DEFAULT_SESSION };
 }
 
-function save(sessionData) {
-  try {
-    fs.mkdirSync(CONFIG_DIR, { recursive: true });
-    fs.writeFileSync(SESSION_FILE, JSON.stringify(sessionData, null, 2));
-  } catch (err) {
-    console.error("Failed to save session:", err.message);
-  }
-}
+// Default instance for production use
+const defaultStore = createStore();
 
-module.exports = { load, save, DEFAULT_SESSION };
+module.exports = { ...defaultStore, createStore };

@@ -8,7 +8,10 @@
     "dev": "npm run bundle && electron .",
     "bundle": "node esbuild.config.js",
     "rebuild": "electron-rebuild -f -w node-pty",
-    "dist": "npm run bundle && electron-builder"
+    "dist": "npm run bundle && electron-builder",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "repository": {
     "type": "git",
@@ -44,7 +47,9 @@
   },
   "devDependencies": {
     "@electron/rebuild": "^4.0.3",
+    "@vitest/coverage-v8": "^4.1.0",
     "electron-builder": "^26.8.1",
-    "esbuild": "^0.27.4"
+    "esbuild": "^0.27.4",
+    "vitest": "^4.1.0"
   }
 }
