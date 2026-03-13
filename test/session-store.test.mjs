@@ -38,9 +38,13 @@ describe('session-store', () => {
       expect(store.load()).toBeNull();
     });
 
-    it('returns null when session has empty tabs array', () => {
-      fs.writeFileSync(sessionFile, JSON.stringify({ version: 1, tabs: [] }));
-      expect(store.load()).toBeNull();
+    it('loads session with empty tabs (preserves recentWorkspaces)', () => {
+      const data = { version: 1, tabs: [], recentWorkspaces: [{ path: '/foo', count: 3, lastUsed: 1 }] };
+      fs.writeFileSync(sessionFile, JSON.stringify(data));
+      const result = store.load();
+      expect(result).not.toBeNull();
+      expect(result.tabs).toEqual([]);
+      expect(result.recentWorkspaces).toHaveLength(1);
     });
 
     it('returns null when tabs is not an array', () => {

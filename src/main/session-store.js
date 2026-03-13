@@ -20,12 +20,7 @@ function createStore(homeDir) {
     try {
       const data = fs.readFileSync(sessionFile, "utf-8");
       const parsed = JSON.parse(data);
-      if (
-        parsed &&
-        parsed.version === 1 &&
-        Array.isArray(parsed.tabs) &&
-        parsed.tabs.length > 0
-      ) {
+      if (parsed && parsed.version === 1 && Array.isArray(parsed.tabs)) {
         parsed.tabs = parsed.tabs.map((tab) => {
           if (!fs.existsSync(tab.directory)) {
             return { ...tab, directory: home, _originalDir: tab.directory };
