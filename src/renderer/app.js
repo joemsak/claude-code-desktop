@@ -91,8 +91,18 @@ function renderSidebar() {
 
     el.addEventListener("click", () => switchTab(tab.id));
 
+    // Click on name: switch tab but stop propagation so we keep
+    // focus on the sidebar (allows dblclick to register for rename)
+    nameSpan.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (tab.id !== activeTabId) {
+        switchTab(tab.id);
+      }
+    });
+
     nameSpan.addEventListener("dblclick", (e) => {
       e.stopPropagation();
+      e.preventDefault();
       startRename(tab, nameSpan);
     });
 
