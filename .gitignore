@@ -3,3 +3,4 @@ dist/
 out/
 src/renderer/bundle.js
 src/renderer/bundle.js.map
+src/renderer/xterm.css

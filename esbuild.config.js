@@ -1,4 +1,6 @@
 const esbuild = require("esbuild");
+const fs = require("fs");
+const path = require("path");
 
 esbuild.buildSync({
   entryPoints: ["src/renderer/app.js"],
@@ -8,3 +10,8 @@ esbuild.buildSync({
   platform: "browser",
   sourcemap: true,
 });
+
+// Copy xterm.css to renderer directory so it works in packaged app
+const xtermCssSrc = path.join("node_modules", "xterm", "css", "xterm.css");
+const xtermCssDst = path.join("src", "renderer", "xterm.css");
+fs.copyFileSync(xtermCssSrc, xtermCssDst);
