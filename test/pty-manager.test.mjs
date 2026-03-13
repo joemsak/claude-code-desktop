@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
@@ -24,25 +24,59 @@ function createMockPty() {
 }
 
 describe('pty-manager', () => {
-  let mock, manager;
+  let mock, mockExec, manager;
 
   beforeEach(() => {
     mock = createMockPty();
-    manager = createManager(mock.module);
+    mockExec = vi.fn(); // succeeds by default (auth is valid)
+    manager = createManager(mock.module, mockExec);
   });
 
   describe('spawn', () => {
-    it('spawns a PTY that suppresses shell warnings and checks AWS auth', () => {
+    it('sources .zshrc for PATH and execs claude without -i flag', () => {
       manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
       const args = mock.mockSpawn.mock.calls[0][1];
       const cmd = args[args.length - 1];
-      // Should suppress all shell init output (stdout and stderr)
-      expect(cmd).toContain('>/dev/null 2>&1');
-      // Should check AWS auth first, only login if expired
-      expect(cmd).toContain('aws sts get-caller-identity');
-      expect(cmd).toContain('aws sso login');
+      // Should source .zshrc for PATH setup
+      expect(cmd).toContain('source ~/.zshrc');
+      // Should suppress .zshrc warnings
+      expect(cmd).toContain('2>/dev/null');
       // Should exec claude
       expect(cmd).toContain('exec claude');
+      // Should use -l (login) but NOT -i (interactive)
+      expect(args).toContain('-l');
+      expect(args).not.toContain('-il');
+    });
+
+    it('checks AWS auth before spawning PTY', () => {
+      manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
+      // Should call execSync with aws sts get-caller-identity
+      expect(mockExec).toHaveBeenCalledWith(
+        expect.stringContaining('aws sts get-caller-identity'),
+        expect.any(Object),
+      );
+    });
+
+    it('runs aws sso login if auth check fails', () => {
+      mockExec
+        .mockImplementationOnce(() => { throw new Error('expired'); }) // sts fails
+        .mockImplementationOnce(() => {}); // sso login succeeds
+      manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
+      expect(mockExec).toHaveBeenCalledTimes(2);
+      expect(mockExec.mock.calls[1][0]).toContain('aws sso login');
+    });
+
+    it('skips sso login if auth check succeeds', () => {
+      manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
+      expect(mockExec).toHaveBeenCalledTimes(1);
+      expect(mockExec.mock.calls[0][0]).toContain('get-caller-identity');
+    });
+
+    it('still spawns claude if both auth checks fail', () => {
+      mockExec.mockImplementation(() => { throw new Error('fail'); });
+      manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
+      // Should still spawn PTY despite auth failures
+      expect(mock.mockSpawn).toHaveBeenCalled();
     });
 
     it('strips npm_ env vars to prevent nvm warnings', () => {
@@ -130,7 +164,6 @@ describe('pty-manager', () => {
 
   describe('killAll', () => {
     it('kills all PTY processes', () => {
-      // Need separate mocks for two spawns
       let killCount = 0;
       const mockModule = {
         spawn: vi.fn(() => ({
@@ -141,7 +174,7 @@ describe('pty-manager', () => {
           kill: vi.fn(() => { killCount++; }),
         })),
       };
-      const mgr = createManager(mockModule);
+      const mgr = createManager(mockModule, vi.fn());
       mgr.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
       mgr.spawn('tab-2', '/tmp', vi.fn(), vi.fn());
       mgr.killAll();

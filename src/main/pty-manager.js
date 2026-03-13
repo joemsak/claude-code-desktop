@@ -1,31 +1,52 @@
 const pty = require("node-pty");
 const os = require("os");
+const { execSync } = require("child_process");
 
-function createManager(ptyModule) {
+function createManager(ptyModule, execModule) {
   const ptyLib = ptyModule || pty;
+  const execFn = execModule || execSync;
   const ptys = new Map();
+
+  function ensureAwsAuth(env) {
+    const profile = env.AWS_PROFILE || "bedrock-users";
+    try {
+      execFn(`aws sts get-caller-identity --profile ${profile}`, {
+        stdio: "ignore",
+        env,
+        timeout: 10000,
+      });
+    } catch {
+      try {
+        execFn(`aws sso login --profile ${profile}`, {
+          stdio: "ignore",
+          env,
+          timeout: 30000,
+        });
+      } catch {
+        // Best effort — claude will show its own auth prompt if needed
+      }
+    }
+  }
 
   function spawn(tabId, directory, onData, onExit) {
     const shell = process.env.SHELL || "/bin/zsh";
-    // Suppress shell init warnings (nvm, etc.) by redirecting stderr during init.
-    // Auto-login AWS SSO if session expired, then exec claude.
-    const awsProfile = process.env.AWS_PROFILE || "bedrock-users";
-    const cmd = [
-      "exec >/dev/null 2>&1", // suppress all shell init output
-      "exec >/dev/tty 2>&1", // restore stdout/stderr for claude
-      `aws sts get-caller-identity --profile ${awsProfile} >/dev/null 2>&1 || aws sso login --profile ${awsProfile} >/dev/null 2>&1`,
-      "exec claude",
-    ].join("; ");
-    const ptyProcess = ptyLib.spawn(shell, ["-il", "-c", cmd], {
+    const cleanEnv = Object.fromEntries(
+      Object.entries({ ...process.env, HOME: os.homedir() }).filter(
+        ([k]) => !k.startsWith("npm_config_") && !k.startsWith("npm_"),
+      ),
+    );
+
+    ensureAwsAuth(cleanEnv);
+
+    // Source .zshrc for PATH (mise, nvm, etc.) but non-interactive to avoid
+    // shell init output. Then exec claude to replace the shell.
+    const cmd = "source ~/.zshrc 2>/dev/null; exec claude";
+    const ptyProcess = ptyLib.spawn(shell, ["-l", "-c", cmd], {
       name: "xterm-256color",
       cols: 80,
       rows: 24,
       cwd: directory,
-      env: Object.fromEntries(
-        Object.entries({ ...process.env, HOME: os.homedir() }).filter(
-          ([k]) => !k.startsWith("npm_config_") && !k.startsWith("npm_"),
-        ),
-      ),
+      env: cleanEnv,
     });
 
     ptyProcess.onData((data) => onData(tabId, data));
