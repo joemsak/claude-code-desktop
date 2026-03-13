@@ -12,7 +12,11 @@ function createManager(ptyModule) {
       cols: 80,
       rows: 24,
       cwd: directory,
-      env: { ...process.env, HOME: os.homedir() },
+      env: Object.fromEntries(
+        Object.entries({ ...process.env, HOME: os.homedir() }).filter(
+          ([k]) => !k.startsWith("npm_config_") && !k.startsWith("npm_"),
+        ),
+      ),
     });
 
     ptyProcess.onData((data) => onData(tabId, data));

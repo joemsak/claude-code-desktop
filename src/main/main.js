@@ -28,6 +28,10 @@ function createWindow(sessionData) {
   });
 
   mainWindow.loadFile(path.join(__dirname, "..", "renderer", "index.html"));
+
+  mainWindow.on("close", () => {
+    saveSessionFromMain();
+  });
 }
 
 // IPC: PTY management
@@ -118,10 +122,22 @@ ipcMain.handle("util:window-bounds", () => {
   };
 });
 
-// Save session on quit (main process captures bounds directly)
+// Save session from main process (captures bounds before window is destroyed)
 function saveSessionFromMain() {
-  if (mainWindow) {
-    mainWindow.webContents.send("session:save-now");
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  try {
+    const bounds = mainWindow.getBounds();
+    // Read current session and update window bounds
+    const existing = sessionStore.load() || sessionStore.DEFAULT_SESSION;
+    existing.window = {
+      x: bounds.x,
+      y: bounds.y,
+      width: bounds.width,
+      height: bounds.height,
+    };
+    sessionStore.save(existing);
+  } catch {
+    // Window already destroyed — nothing to save
   }
 }
 
@@ -159,6 +175,5 @@ app.on("window-all-closed", () => {
 });
 
 app.on("before-quit", () => {
-  saveSessionFromMain();
   ptyManager.killAll();
 });

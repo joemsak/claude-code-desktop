@@ -46,6 +46,24 @@ describe('pty-manager', () => {
       );
     });
 
+    it('strips npm_ env vars to prevent nvm warnings', () => {
+      const origPrefix = process.env.npm_config_prefix;
+      const origCommand = process.env.npm_command;
+      process.env.npm_config_prefix = '/some/mise/path';
+      process.env.npm_command = 'test';
+      try {
+        manager.spawn('tab-env', '/tmp', vi.fn(), vi.fn());
+        const envArg = mock.mockSpawn.mock.calls[0][2].env;
+        expect(envArg.npm_config_prefix).toBeUndefined();
+        expect(envArg.npm_command).toBeUndefined();
+      } finally {
+        if (origPrefix !== undefined) process.env.npm_config_prefix = origPrefix;
+        else delete process.env.npm_config_prefix;
+        if (origCommand !== undefined) process.env.npm_command = origCommand;
+        else delete process.env.npm_command;
+      }
+    });
+
     it('registers onData and onExit callbacks', () => {
       manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
       expect(mock.mockProcess.onData).toHaveBeenCalledWith(expect.any(Function));
