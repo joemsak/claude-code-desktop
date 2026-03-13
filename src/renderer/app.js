@@ -23,10 +23,22 @@ const resizeHandle = document.getElementById("sidebar-resize-handle");
 const emptyStateEl = document.getElementById("empty-state");
 const topbarPathEl = document.getElementById("topbar-path");
 const topbarNewTabBtn = document.getElementById("topbar-new-tab");
+const emptyStateOpenBtn = document.getElementById("empty-state-open-btn");
 
 // ===========================
-// Tab Display Name
+// Helpers
 // ===========================
+
+function getActiveTab() {
+  return tabs.find((t) => t.id === activeTabId);
+}
+
+function refitActiveTerminal() {
+  const tab = getActiveTab();
+  if (!tab) return;
+  tab.fitAddon.fit();
+  electronAPI.resizePty(tab.id, tab.terminal.cols, tab.terminal.rows);
+}
 
 function basename(dir) {
   return dir.split("/").pop() || dir;
@@ -44,12 +56,12 @@ function getDisplayName(tab) {
 }
 
 // ===========================
-// Sidebar Rendering
+// UI State Updates
 // ===========================
 
 function updateTopbar() {
-  const activeTab = tabs.find((t) => t.id === activeTabId);
-  topbarPathEl.textContent = activeTab ? activeTab.directory : "";
+  const tab = getActiveTab();
+  topbarPathEl.textContent = tab ? tab.directory : "";
 }
 
 function updateEmptyState() {
@@ -61,6 +73,10 @@ function updateEmptyState() {
     terminalContainer.classList.remove("hidden");
   }
 }
+
+// ===========================
+// Sidebar Rendering
+// ===========================
 
 function renderSidebar() {
   tabListEl.innerHTML = "";
@@ -75,7 +91,6 @@ function renderSidebar() {
     nameSpan.textContent = getDisplayName(tab);
     el.appendChild(nameSpan);
 
-    // Instant tooltip with directory path (or warning for missing dirs)
     const tooltip = document.createElement("span");
     tooltip.className = "tab-tooltip";
     if (tab._originalDir) {
@@ -98,13 +113,9 @@ function renderSidebar() {
 
     el.addEventListener("click", () => switchTab(tab.id));
 
-    // Click on name: switch tab but stop propagation so we keep
-    // focus on the sidebar (allows dblclick to register for rename)
     nameSpan.addEventListener("click", (e) => {
       e.stopPropagation();
-      if (tab.id !== activeTabId) {
-        switchTab(tab.id);
-      }
+      if (tab.id !== activeTabId) switchTab(tab.id);
     });
 
     nameSpan.addEventListener("dblclick", (e) => {
@@ -113,7 +124,6 @@ function renderSidebar() {
       startRename(tab, nameSpan);
     });
 
-    // Drag events
     el.addEventListener("dragstart", (e) => {
       e.dataTransfer.setData("text/plain", tab.id);
       el.classList.add("dragging");
@@ -127,8 +137,7 @@ function renderSidebar() {
     el.addEventListener("drop", (e) => {
       e.preventDefault();
       el.classList.remove("drag-over");
-      const fromId = e.dataTransfer.getData("text/plain");
-      reorderTabs(fromId, tab.id);
+      reorderTabs(e.dataTransfer.getData("text/plain"), tab.id);
     });
 
     tabListEl.appendChild(el);
@@ -138,6 +147,14 @@ function renderSidebar() {
 // ===========================
 // Tab Lifecycle
 // ===========================
+
+function destroyTab(tab) {
+  electronAPI.killPty(tab.id);
+  tab.terminal.dispose();
+  tab.wrapper.remove();
+  const index = tabs.indexOf(tab);
+  if (index >= 0) tabs.splice(index, 1);
+}
 
 function createTab(directory, customName = null, originalDir = null) {
   const id = crypto.randomUUID();
@@ -172,9 +189,7 @@ function createTab(directory, customName = null, originalDir = null) {
 
   terminal.onData((data) => {
     if (tab.exited) {
-      if (data === "\r") {
-        restartTab(tab);
-      }
+      if (data === "\r") restartTab(tab);
       return;
     }
     electronAPI.writePty(id, data);
@@ -184,12 +199,9 @@ function createTab(directory, customName = null, originalDir = null) {
   electronAPI.trackWorkspace(directory);
   updateEmptyState();
   switchTab(id);
-  // Extra delayed refit for first tab after empty state (container was display:none)
+  // Delayed refit for first tab after empty state (container was display:none)
   setTimeout(() => {
-    if (tab.id === activeTabId) {
-      tab.fitAddon.fit();
-      electronAPI.resizePty(tab.id, tab.terminal.cols, tab.terminal.rows);
-    }
+    if (tab.id === activeTabId) refitActiveTerminal();
   }, 100);
   scheduleSave();
   return tab;
@@ -201,11 +213,9 @@ function switchTab(tabId) {
     const isActive = tab.id === tabId;
     tab.wrapper.classList.toggle("active", isActive);
     if (isActive) {
-      // Double rAF — first lets display:block apply, second lets layout compute
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          tab.fitAddon.fit();
-          electronAPI.resizePty(tab.id, tab.terminal.cols, tab.terminal.rows);
+          refitActiveTerminal();
           tab.terminal.focus();
         });
       });
@@ -216,25 +226,19 @@ function switchTab(tabId) {
 }
 
 async function closeTab(tabId) {
+  const tab = tabs.find((t) => t.id === tabId);
+  if (!tab) return;
+
   if (tabs.length === 1) {
     if (!confirm("Close the last tab and quit?")) return;
-    // Kill the tab and save empty state so next launch shows picker
-    const lastTab = tabs[0];
-    electronAPI.killPty(lastTab.id);
-    lastTab.terminal.dispose();
-    lastTab.wrapper.remove();
-    tabs.splice(0, 1);
+    destroyTab(tab);
     await saveSessionsNow();
     window.close();
     return;
   }
 
-  const index = tabs.findIndex((t) => t.id === tabId);
-  const tab = tabs[index];
-  electronAPI.killPty(tabId);
-  tab.terminal.dispose();
-  tab.wrapper.remove();
-  tabs.splice(index, 1);
+  const index = tabs.indexOf(tab);
+  destroyTab(tab);
   updateEmptyState();
 
   if (tabs.length === 0) {
@@ -242,8 +246,7 @@ async function closeTab(tabId) {
     renderSidebar();
     updateTopbar();
   } else if (activeTabId === tabId) {
-    const newIndex = Math.min(index, tabs.length - 1);
-    switchTab(tabs[newIndex].id);
+    switchTab(tabs[Math.min(index, tabs.length - 1)].id);
   } else {
     renderSidebar();
   }
@@ -316,32 +319,26 @@ async function openPicker() {
     electronAPI.getRecentWorkspaces(),
   ]);
 
-  // Build recent items (up to 5), excluding home
   const recentPaths = new Set();
   const recentItems = [];
   for (const r of recentWorkspaces.slice(0, 5)) {
-    const name = r.path.split("/").pop() || r.path;
-    recentItems.push({ name, path: r.path, isRecent: true });
+    recentItems.push({ name: basename(r.path), path: r.path, isRecent: true });
     recentPaths.add(r.path);
   }
 
-  // All workspace dirs, excluding those already in recents
   const allItems = workspaceDirs
     .filter((d) => !recentPaths.has(d.path))
     .map((d) => ({ name: d.name, path: d.path }));
 
   pickerDirs = [
     ...recentItems,
-    { name: "---", path: null, isSeparator: true },
+    ...(recentItems.length > 0
+      ? [{ name: "---", path: null, isSeparator: true }]
+      : []),
     { name: "~ (Home)", path: homePath, isHome: true },
     ...allItems,
     { name: "Browse...", path: null, isBrowse: true },
   ];
-
-  // Remove separator if no recents
-  if (recentItems.length === 0) {
-    pickerDirs = pickerDirs.filter((d) => !d.isSeparator);
-  }
 
   pickerSearch.value = "";
   pickerSelectedIndex = 0;
@@ -353,14 +350,12 @@ async function openPicker() {
 function closePicker() {
   pickerOverlay.classList.add("hidden");
   updateEmptyState();
-  // Refocus active terminal
-  const activeTab = tabs.find((t) => t.id === activeTabId);
-  if (activeTab) activeTab.terminal.focus();
+  const tab = getActiveTab();
+  if (tab) tab.terminal.focus();
 }
 
 function getFilteredDirs(filter) {
   if (!filter) return pickerDirs;
-  // When filtering, flatten all items (no separators, no duplicates)
   const lf = filter.toLowerCase();
   const seen = new Set();
   return pickerDirs.filter((d) => {
@@ -374,8 +369,7 @@ function getFilteredDirs(filter) {
 
 function updatePickerSelection() {
   let idx = 0;
-  const items = pickerList.querySelectorAll("li");
-  items.forEach((li) => {
+  pickerList.querySelectorAll("li").forEach((li) => {
     if (li.classList.contains("picker-separator")) return;
     li.classList.toggle("selected", idx === pickerSelectedIndex);
     idx++;
@@ -386,7 +380,6 @@ function renderPickerList(filter) {
   const filtered = getFilteredDirs(filter);
   pickerList.innerHTML = "";
 
-  // Clamp selected index, skip separators
   const selectableCount = filtered.filter((d) => !d.isSeparator).length;
   if (pickerSelectedIndex >= selectableCount)
     pickerSelectedIndex = Math.max(0, selectableCount - 1);
@@ -432,8 +425,9 @@ pickerSearch.addEventListener("input", () => {
 });
 
 pickerSearch.addEventListener("keydown", (e) => {
-  const filtered = getFilteredDirs(pickerSearch.value);
-  const selectable = filtered.filter((d) => !d.isSeparator);
+  const selectable = getFilteredDirs(pickerSearch.value).filter(
+    (d) => !d.isSeparator,
+  );
   if (e.key === "ArrowDown") {
     e.preventDefault();
     pickerSelectedIndex = Math.min(
@@ -471,7 +465,7 @@ function scheduleSave() {
 
 async function saveSessionsNow() {
   const bounds = await electronAPI.getWindowBounds();
-  const sessionData = {
+  electronAPI.saveSessions({
     version: 1,
     window: bounds || { width: 1200, height: 800 },
     sidebarWidth,
@@ -480,8 +474,7 @@ async function saveSessionsNow() {
       customName: t.customName,
     })),
     activeTabIndex: tabs.findIndex((t) => t.id === activeTabId),
-  };
-  electronAPI.saveSessions(sessionData);
+  });
 }
 
 // ===========================
@@ -505,7 +498,7 @@ electronAPI.onPtyExit((tabId, _exitCode) => {
 });
 
 // ===========================
-// Menu Events from Main
+// Menu Events
 // ===========================
 
 electronAPI.onNewTab(() => openPicker());
@@ -528,18 +521,9 @@ resizeHandle.addEventListener("mousedown", (e) => {
 
 document.addEventListener("mousemove", (e) => {
   if (!isResizing) return;
-  const newWidth = Math.min(400, Math.max(120, e.clientX));
-  sidebarWidth = newWidth;
-  sidebarEl.style.width = `${newWidth}px`;
-  const activeTab = tabs.find((t) => t.id === activeTabId);
-  if (activeTab) {
-    activeTab.fitAddon.fit();
-    electronAPI.resizePty(
-      activeTab.id,
-      activeTab.terminal.cols,
-      activeTab.terminal.rows,
-    );
-  }
+  sidebarWidth = Math.min(400, Math.max(120, e.clientX));
+  sidebarEl.style.width = `${sidebarWidth}px`;
+  refitActiveTerminal();
 });
 
 document.addEventListener("mouseup", () => {
@@ -556,57 +540,35 @@ document.addEventListener("mouseup", () => {
 // ===========================
 
 document.addEventListener("keydown", (e) => {
-  // Cmd+1-9: switch to tab N
   if (e.metaKey && !e.shiftKey && e.key >= "1" && e.key <= "9") {
     e.preventDefault();
     const index = parseInt(e.key) - 1;
     if (tabs[index]) switchTab(tabs[index].id);
     return;
   }
-  // Cmd+Shift+[: previous tab
   if (e.metaKey && e.shiftKey && e.key === "[") {
     e.preventDefault();
-    const currentIndex = tabs.findIndex((t) => t.id === activeTabId);
-    if (currentIndex > 0) switchTab(tabs[currentIndex - 1].id);
+    const i = tabs.findIndex((t) => t.id === activeTabId);
+    if (i > 0) switchTab(tabs[i - 1].id);
     return;
   }
-  // Cmd+Shift+]: next tab
   if (e.metaKey && e.shiftKey && e.key === "]") {
     e.preventDefault();
-    const currentIndex = tabs.findIndex((t) => t.id === activeTabId);
-    if (currentIndex < tabs.length - 1) switchTab(tabs[currentIndex + 1].id);
+    const i = tabs.findIndex((t) => t.id === activeTabId);
+    if (i < tabs.length - 1) switchTab(tabs[i + 1].id);
     return;
   }
 });
 
-// Resize terminal on window resize
-window.addEventListener("resize", () => {
-  const activeTab = tabs.find((t) => t.id === activeTabId);
-  if (activeTab) {
-    activeTab.fitAddon.fit();
-    electronAPI.resizePty(
-      activeTab.id,
-      activeTab.terminal.cols,
-      activeTab.terminal.rows,
-    );
-  }
-});
+window.addEventListener("resize", () => refitActiveTerminal());
 
-// New tab buttons
 newTabBtn.addEventListener("click", openPicker);
 topbarNewTabBtn.addEventListener("click", openPicker);
-
-// Empty state button
-const emptyStateOpenBtn = document.getElementById("empty-state-open-btn");
 emptyStateOpenBtn.addEventListener("click", openPicker);
 
 // ===========================
 // Initialization
 // ===========================
-
-function shouldShowPicker(tabList) {
-  return !tabList || tabList.length === 0;
-}
 
 async function init() {
   homePath = await electronAPI.getHomePath();
@@ -619,10 +581,9 @@ async function init() {
 
   sidebarWidth = data.sidebarWidth || 200;
   sidebarEl.style.width = `${sidebarWidth}px`;
-
   updateEmptyState();
 
-  if (shouldShowPicker(data.tabs)) {
+  if (!data.tabs || data.tabs.length === 0) {
     openPicker();
   } else {
     for (const tabData of data.tabs) {
@@ -632,23 +593,10 @@ async function init() {
         tabData._originalDir || null,
       );
     }
-
     if (data.activeTabIndex >= 0 && data.activeTabIndex < tabs.length) {
       switchTab(tabs[data.activeTabIndex].id);
     }
-
-    // Delayed refit — ensures terminal fills the restored window size
-    setTimeout(() => {
-      const activeTab = tabs.find((t) => t.id === activeTabId);
-      if (activeTab) {
-        activeTab.fitAddon.fit();
-        electronAPI.resizePty(
-          activeTab.id,
-          activeTab.terminal.cols,
-          activeTab.terminal.rows,
-        );
-      }
-    }, 200);
+    setTimeout(() => refitActiveTerminal(), 200);
   }
 }
 
