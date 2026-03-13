@@ -175,10 +175,10 @@ function switchTab(tabId) {
   renderSidebar();
 }
 
-function closeTab(tabId) {
+async function closeTab(tabId) {
   if (tabs.length === 1) {
     if (!confirm("Close the last tab and quit?")) return;
-    saveSessionsNow();
+    await saveSessionsNow();
     window.close();
     return;
   }
@@ -275,6 +275,10 @@ async function openPicker() {
 
 function closePicker() {
   pickerOverlay.classList.add("hidden");
+  // If no tabs exist (first launch, user escaped), create a home dir tab
+  if (tabs.length === 0) {
+    createTab(homePath);
+  }
   // Refocus active terminal
   const activeTab = tabs.find((t) => t.id === activeTabId);
   if (activeTab) activeTab.terminal.focus();
@@ -321,6 +325,19 @@ async function selectPickerItem(dir) {
     if (!directory) return;
   } else {
     directory = dir.path;
+  }
+  // If the only open tab is the home dir (default fallback), replace it
+  if (
+    tabs.length === 1 &&
+    tabs[0].directory === homePath &&
+    !tabs[0].customName &&
+    directory !== homePath
+  ) {
+    const old = tabs[0];
+    electronAPI.killPty(old.id);
+    old.terminal.dispose();
+    old.wrapper.remove();
+    tabs.splice(0, 1);
   }
   createTab(directory);
 }
