@@ -64,6 +64,10 @@ ipcMain.on("pty:kill", (_event, tabId) => {
   ptyManager.kill(tabId);
 });
 
+ipcMain.handle("pty:cwd", (_event, tabId) => {
+  return ptyManager.getCwd(tabId);
+});
+
 // IPC: Session persistence
 ipcMain.handle("sessions:save", (_event, sessionData) => {
   sessionStore.save(sessionData);

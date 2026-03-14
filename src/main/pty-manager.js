@@ -84,7 +84,23 @@ function createManager(ptyModule, execModule) {
     ptys.clear();
   }
 
-  return { spawn, write, resize, kill, killAll };
+  function getCwd(tabId) {
+    const entry = ptys.get(tabId);
+    if (!entry) return null;
+    const pid = entry.process.pid;
+    try {
+      const output = execFn(
+        `/usr/sbin/lsof -a -p ${pid} -d cwd -Fn 2>/dev/null`,
+        { encoding: "utf-8", timeout: 2000 },
+      );
+      const match = output.match(/^n(.+)$/m);
+      return match ? match[1] : null;
+    } catch {
+      return null;
+    }
+  }
+
+  return { spawn, write, resize, kill, killAll, getCwd };
 }
 
 // Default instance for production use

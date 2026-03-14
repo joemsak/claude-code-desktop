@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   resizePty: (tabId, cols, rows) =>
     ipcRenderer.send("pty:resize", tabId, cols, rows),
   killPty: (tabId) => ipcRenderer.send("pty:kill", tabId),
+  getPtyCwd: (tabId) => ipcRenderer.invoke("pty:cwd", tabId),
 
   // PTY events (main -> renderer)
   onPtyData: (callback) =>
