@@ -33,10 +33,17 @@ function getActiveTab() {
   return tabs.find((t) => t.id === activeTabId);
 }
 
+function isScrolledToBottom(terminal) {
+  const buf = terminal.buffer.active;
+  return buf.viewportY >= buf.baseY;
+}
+
 function refitActiveTerminal() {
   const tab = getActiveTab();
   if (!tab) return;
+  const wasAtBottom = isScrolledToBottom(tab.terminal);
   tab.fitAddon.fit();
+  if (wasAtBottom) tab.terminal.scrollToBottom();
   electronAPI.resizePty(tab.id, tab.terminal.cols, tab.terminal.rows);
 }
 
@@ -483,7 +490,11 @@ async function saveSessionsNow() {
 
 electronAPI.onPtyData((tabId, data) => {
   const tab = tabs.find((t) => t.id === tabId);
-  if (tab) tab.terminal.write(data);
+  if (!tab) return;
+  const wasAtBottom = isScrolledToBottom(tab.terminal);
+  tab.terminal.write(data, () => {
+    if (wasAtBottom) tab.terminal.scrollToBottom();
+  });
 });
 
 electronAPI.onPtyExit((tabId, _exitCode) => {
