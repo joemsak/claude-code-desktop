@@ -494,7 +494,12 @@ async function saveSessionsNow() {
 
 electronAPI.onPtyData((tabId, data) => {
   const tab = tabs.find((t) => t.id === tabId);
-  if (tab) tab.terminal.write(data);
+  if (!tab) return;
+  const buf = tab.terminal.buffer.active;
+  const wasAtBottom = buf.viewportY >= buf.baseY;
+  tab.terminal.write(data, () => {
+    if (wasAtBottom) tab.terminal.scrollToBottom();
+  });
 });
 
 electronAPI.onPtyExit((tabId, _exitCode) => {
