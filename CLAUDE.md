@@ -1,5 +1,8 @@
 # CLAUDE.md
 
+## Git Workflow
+- Work directly on `main` — no feature branches needed for this project.
+
 ## Build/Run Commands
 - `npm run dev` — bundle renderer and launch app (fast, skips native rebuild)
 - `npm run start` — rebuild native modules + bundle + launch (use after npm install)
