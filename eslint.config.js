@@ -4,6 +4,11 @@ const globals = require("globals");
 module.exports = [
   js.configs.recommended,
   {
+    rules: {
+      "no-unused-vars": ["error", { varsIgnorePattern: "^_", argsIgnorePattern: "^_" }],
+    },
+  },
+  {
     files: ["src/main/**/*.js", "src/preload/**/*.js"],
     languageOptions: {
       ecmaVersion: 2022,
