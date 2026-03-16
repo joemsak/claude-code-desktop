@@ -79,6 +79,23 @@ describe('pty-manager', () => {
       expect(mock.mockSpawn).toHaveBeenCalled();
     });
 
+    it('only checks AWS auth once across multiple spawns', () => {
+      manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
+      manager.spawn('tab-2', '/tmp', vi.fn(), vi.fn());
+      manager.spawn('tab-3', '/tmp', vi.fn(), vi.fn());
+      // Should only call aws sts once, not three times
+      const stsCalls = mockExec.mock.calls.filter(c => c[0].includes('get-caller-identity'));
+      expect(stsCalls).toHaveLength(1);
+    });
+
+    it('only runs sso login once across multiple spawns when auth fails', () => {
+      mockExec.mockImplementation(() => { throw new Error('fail'); });
+      manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
+      manager.spawn('tab-2', '/tmp', vi.fn(), vi.fn());
+      // Should only attempt sts + sso login once total
+      expect(mockExec).toHaveBeenCalledTimes(2);
+    });
+
     it('strips npm_ env vars to prevent nvm warnings', () => {
       const origPrefix = process.env.npm_config_prefix;
       const origCommand = process.env.npm_command;

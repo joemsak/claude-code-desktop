@@ -1,4 +1,11 @@
-const { app, BrowserWindow, ipcMain, dialog, Menu } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  ipcMain,
+  dialog,
+  Menu,
+  shell,
+} = require("electron");
 const path = require("path");
 const fs = require("fs");
 const os = require("os");
@@ -114,6 +121,12 @@ ipcMain.handle("dirs:open-dialog", async () => {
 
 // IPC: Utility
 ipcMain.handle("util:home-path", () => os.homedir());
+
+ipcMain.handle("util:open-external", (_event, url) => {
+  if (typeof url === "string" && /^https?:\/\//.test(url)) {
+    return shell.openExternal(url);
+  }
+});
 
 ipcMain.handle("util:window-bounds", () => {
   if (!mainWindow) return null;

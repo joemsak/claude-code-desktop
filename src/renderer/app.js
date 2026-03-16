@@ -1,5 +1,6 @@
 import { Terminal } from "xterm";
 import { FitAddon } from "@xterm/addon-fit";
+import { WebLinksAddon } from "@xterm/addon-web-links";
 import { terminalTheme } from "./theme.js";
 
 const { electronAPI } = window;
@@ -169,6 +170,11 @@ function createTab(directory, customName = null, originalDir = null) {
   });
   const fitAddon = new FitAddon();
   terminal.loadAddon(fitAddon);
+  terminal.loadAddon(
+    new WebLinksAddon((_event, url) => {
+      electronAPI.openExternal(url);
+    }),
+  );
 
   const wrapper = document.createElement("div");
   wrapper.className = "terminal-wrapper";

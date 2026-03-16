@@ -6,8 +6,11 @@ function createManager(ptyModule, execModule) {
   const ptyLib = ptyModule || pty;
   const execFn = execModule || execSync;
   const ptys = new Map();
+  let awsAuthChecked = false;
 
   function ensureAwsAuth(env) {
+    if (awsAuthChecked) return;
+    awsAuthChecked = true;
     const profile = env.AWS_PROFILE || "bedrock-users";
     try {
       execFn(`aws sts get-caller-identity --profile ${profile}`, {
@@ -24,7 +27,10 @@ function createManager(ptyModule, execModule) {
         });
       } catch (err) {
         // Best effort — claude will show its own auth prompt if needed
-        console.error(`[pty-manager] AWS SSO login failed for profile "${profile}":`, err.message);
+        console.error(
+          `[pty-manager] AWS SSO login failed for profile "${profile}":`,
+          err.message,
+        );
       }
     }
   }
