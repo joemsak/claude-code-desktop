@@ -167,6 +167,11 @@ function createTab(directory, customName = null, originalDir = null) {
     scrollback: 5000,
     cursorBlink: true,
     allowProposedApi: true,
+    linkHandler: {
+      activate: (_event, text, _range) => {
+        electronAPI.openExternal(text);
+      },
+    },
   });
   const fitAddon = new FitAddon();
   terminal.loadAddon(fitAddon);
