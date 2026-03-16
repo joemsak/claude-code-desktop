@@ -36,18 +36,8 @@ function getActiveTab() {
 function refitActiveTerminal() {
   const tab = getActiveTab();
   if (!tab) return;
-  const buf = tab.terminal.buffer.active;
-  const wasAtBottom = buf.viewportY >= buf.baseY;
-  const savedViewportY = buf.viewportY;
   tab.fitAddon.fit();
-  if (wasAtBottom) {
-    tab.terminal.scrollToBottom();
-  } else {
-    // Restore approximate scroll position after reflow
-    tab.terminal.scrollToLine(
-      Math.min(savedViewportY, tab.terminal.buffer.active.baseY),
-    );
-  }
+  if (tab.atBottom) tab.terminal.scrollToBottom();
   electronAPI.resizePty(tab.id, tab.terminal.cols, tab.terminal.rows);
 }
 
@@ -194,9 +184,15 @@ function createTab(directory, customName = null, originalDir = null) {
     fitAddon,
     wrapper,
     exited: false,
+    atBottom: true,
     _originalDir: originalDir,
   };
   tabs.push(tab);
+
+  terminal.onScroll(() => {
+    const buf = terminal.buffer.active;
+    tab.atBottom = buf.viewportY >= buf.baseY;
+  });
 
   terminal.onData((data) => {
     if (tab.exited) {
@@ -445,11 +441,11 @@ pickerSearch.addEventListener("keydown", (e) => {
       pickerSelectedIndex + 1,
       selectable.length - 1,
     );
-    renderPickerList(pickerSearch.value);
+    updatePickerSelection();
   } else if (e.key === "ArrowUp") {
     e.preventDefault();
     pickerSelectedIndex = Math.max(pickerSelectedIndex - 1, 0);
-    renderPickerList(pickerSearch.value);
+    updatePickerSelection();
   } else if (e.key === "Enter") {
     e.preventDefault();
     if (selectable[pickerSelectedIndex]) {
@@ -495,10 +491,8 @@ async function saveSessionsNow() {
 electronAPI.onPtyData((tabId, data) => {
   const tab = tabs.find((t) => t.id === tabId);
   if (!tab) return;
-  const buf = tab.terminal.buffer.active;
-  const wasAtBottom = buf.viewportY >= buf.baseY;
   tab.terminal.write(data, () => {
-    if (wasAtBottom) tab.terminal.scrollToBottom();
+    if (tab.atBottom) tab.terminal.scrollToBottom();
   });
 });
 
@@ -587,15 +581,14 @@ emptyStateOpenBtn.addEventListener("click", openPicker);
 // ===========================
 
 setInterval(async () => {
-  for (const tab of tabs) {
-    if (tab.exited) continue;
-    const cwd = await electronAPI.getPtyCwd(tab.id);
-    if (cwd && cwd !== tab.directory) {
-      tab.directory = cwd;
-      renderSidebar();
-      if (tab.id === activeTabId) updateTopbar();
-      scheduleSave();
-    }
+  const tab = getActiveTab();
+  if (!tab || tab.exited) return;
+  const cwd = await electronAPI.getPtyCwd(tab.id);
+  if (cwd && cwd !== tab.directory) {
+    tab.directory = cwd;
+    renderSidebar();
+    updateTopbar();
+    scheduleSave();
   }
 }, 3000);
 

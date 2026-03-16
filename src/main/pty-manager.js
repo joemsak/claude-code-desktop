@@ -22,8 +22,9 @@ function createManager(ptyModule, execModule) {
           env,
           timeout: 30000,
         });
-      } catch {
+      } catch (err) {
         // Best effort — claude will show its own auth prompt if needed
+        console.error(`[pty-manager] AWS SSO login failed for profile "${profile}":`, err.message);
       }
     }
   }
