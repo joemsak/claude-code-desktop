@@ -34,11 +34,17 @@ function getActiveTab() {
   return tabs.find((t) => t.id === activeTabId);
 }
 
+function isAtBottom(terminal) {
+  const buf = terminal.buffer.active;
+  return buf.viewportY >= buf.baseY;
+}
+
 function refitActiveTerminal() {
   const tab = getActiveTab();
   if (!tab) return;
+  const wasAtBottom = isAtBottom(tab.terminal);
   tab.fitAddon.fit();
-  if (tab.atBottom) tab.terminal.scrollToBottom();
+  if (wasAtBottom) tab.terminal.scrollToBottom();
   electronAPI.resizePty(tab.id, tab.terminal.cols, tab.terminal.rows);
 }
 
@@ -200,9 +206,12 @@ function createTab(directory, customName = null, originalDir = null) {
   };
   tabs.push(tab);
 
-  terminal.onScroll(() => {
-    const buf = terminal.buffer.active;
-    tab.atBottom = buf.viewportY >= buf.baseY;
+  // Track user scroll intent via wheel events (not onScroll which fires
+  // for programmatic scrolls too and races with rapid writes)
+  terminal.element.addEventListener("wheel", () => {
+    requestAnimationFrame(() => {
+      tab.atBottom = isAtBottom(terminal);
+    });
   });
 
   terminal.onData((data) => {
@@ -226,6 +235,11 @@ function createTab(directory, customName = null, originalDir = null) {
 }
 
 function switchTab(tabId) {
+  const prevTab = getActiveTab();
+  if (prevTab) {
+    prevTab.atBottom = isAtBottom(prevTab.terminal);
+  }
+
   activeTabId = tabId;
   for (const tab of tabs) {
     const isActive = tab.id === tabId;
@@ -233,7 +247,9 @@ function switchTab(tabId) {
     if (isActive) {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          refitActiveTerminal();
+          tab.fitAddon.fit();
+          if (tab.atBottom) tab.terminal.scrollToBottom();
+          electronAPI.resizePty(tab.id, tab.terminal.cols, tab.terminal.rows);
           tab.terminal.focus();
         });
       });
@@ -502,8 +518,12 @@ async function saveSessionsNow() {
 electronAPI.onPtyData((tabId, data) => {
   const tab = tabs.find((t) => t.id === tabId);
   if (!tab) return;
+  // Use tab.atBottom (user-intent flag) instead of isAtBottom() to avoid race
+  // during rapid writes (e.g. thinking animation): previous write may have added
+  // content but scrollToBottom callback hasn't fired yet, making isAtBottom() false.
+  const shouldScroll = tab.id === activeTabId && tab.atBottom;
   tab.terminal.write(data, () => {
-    if (tab.atBottom) tab.terminal.scrollToBottom();
+    if (shouldScroll) tab.terminal.scrollToBottom();
   });
 });
 
@@ -532,6 +552,7 @@ electronAPI.onCloseTab(() => {
 // ===========================
 
 let isResizing = false;
+let resizeRafId = null;
 
 resizeHandle.addEventListener("mousedown", (e) => {
   isResizing = true;
@@ -544,7 +565,12 @@ document.addEventListener("mousemove", (e) => {
   if (!isResizing) return;
   sidebarWidth = Math.min(400, Math.max(120, e.clientX));
   sidebarEl.style.width = `${sidebarWidth}px`;
-  refitActiveTerminal();
+  if (!resizeRafId) {
+    resizeRafId = requestAnimationFrame(() => {
+      resizeRafId = null;
+      refitActiveTerminal();
+    });
+  }
 });
 
 document.addEventListener("mouseup", () => {
@@ -552,6 +578,7 @@ document.addEventListener("mouseup", () => {
     isResizing = false;
     resizeHandle.classList.remove("active");
     document.body.style.cursor = "";
+    refitActiveTerminal();
     scheduleSave();
   }
 });
