@@ -209,6 +209,7 @@ function createTab(directory, customName = null, originalDir = null) {
     busyTimeout: null,
     needsAttention: false,
     wasBusyOnLeave: false,
+    userHasTyped: false,
     _originalDir: originalDir,
   };
   tabs.push(tab);
@@ -226,11 +227,21 @@ function createTab(directory, customName = null, originalDir = null) {
       if (data === "\r") restartTab(tab);
       return;
     }
-    if (tab.needsAttention) {
-      tab.needsAttention = false;
-      renderSidebar();
+    const isFocusEvent = data === "\x1b[I" || data === "\x1b[O";
+    if (!isFocusEvent) {
+      if (tab.needsAttention) {
+        tab.needsAttention = false;
+        renderSidebar();
+      }
     }
     electronAPI.writePty(id, data);
+  });
+
+  // Track real keyboard input separately — terminal.onData also fires for
+  // auto-responses (e.g. cursor position reports) during startup, which would
+  // falsely mark a fresh tab as user-interacted.
+  terminal.onKey(() => {
+    tab.userHasTyped = true;
   });
 
   electronAPI.spawnPty(id, directory);
@@ -551,7 +562,10 @@ electronAPI.onPtyData((tabId, data) => {
     tab.busy = false;
     const isBackground = tab.id !== activeTabId;
     const isHidden = tab.id === activeTabId && !document.hasFocus();
-    if ((isBackground && tab.wasBusyOnLeave) || isHidden) {
+    if (
+      tab.userHasTyped &&
+      ((isBackground && tab.wasBusyOnLeave) || isHidden)
+    ) {
       tab.needsAttention = true;
       renderSidebar();
     }

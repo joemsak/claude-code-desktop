@@ -76,6 +76,46 @@ describe('attention indicator for background tabs', () => {
       expect(onDataBlock).not.toBeNull();
       expect(onDataBlock[0]).toMatch(/needsAttention\s*=\s*false/);
     });
+
+    it('does not clear needsAttention on focus events from terminal focus reporting', () => {
+      // When switching tabs, xterm sends focus-in (\x1b[I) via onData
+      // This should NOT clear needsAttention
+      const onDataBlock = appSource.match(/terminal\.onData\(\(data\)[\s\S]*?\}\);/);
+      expect(onDataBlock).not.toBeNull();
+      // Should check for focus events before clearing
+      expect(onDataBlock[0]).toMatch(/\\x1b\[I|\\x1b\[O|focusEvent|isFocus/i);
+    });
+  });
+
+  describe('gating attention on user interaction', () => {
+    it('tracks whether user has typed in the tab', () => {
+      const createTabBlock = appSource.match(/const tab = \{[\s\S]*?\};/);
+      expect(createTabBlock).not.toBeNull();
+      expect(createTabBlock[0]).toMatch(/userHasTyped|hasUserInput|interacted/i);
+    });
+
+    it('only sets needsAttention for tabs where user has interacted', () => {
+      // The idle callback should check that the user has actually typed in this tab
+      const ptyDataBlock = appSource.match(/onPtyData\([\s\S]*?\n\}\);/);
+      expect(ptyDataBlock).not.toBeNull();
+      expect(ptyDataBlock[0]).toMatch(/userHasTyped|hasUserInput|interacted/i);
+    });
+
+    it('sets userHasTyped via keyboard events, not terminal.onData', () => {
+      // terminal.onData fires for terminal auto-responses (e.g. cursor position reports)
+      // during startup, which would falsely mark a tab as interacted.
+      // userHasTyped must be set via terminal.onKey (real keyboard input only).
+      const onDataBlock = appSource.match(/terminal\.onData\(\(data\)[\s\S]*?\}\);/);
+      expect(onDataBlock).not.toBeNull();
+      // onData should NOT set userHasTyped
+      expect(onDataBlock[0]).not.toMatch(/userHasTyped\s*=\s*true/);
+
+      // onKey should set userHasTyped instead
+      expect(appSource).toMatch(/terminal\.onKey\(/);
+      const onKeyBlock = appSource.match(/terminal\.onKey\([\s\S]*?\}\);/);
+      expect(onKeyBlock).not.toBeNull();
+      expect(onKeyBlock[0]).toMatch(/userHasTyped\s*=\s*true/);
+    });
   });
 
   describe('sidebar rendering', () => {
