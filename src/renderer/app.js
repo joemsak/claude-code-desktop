@@ -90,7 +90,10 @@ function renderSidebar() {
   tabListEl.innerHTML = "";
   for (const tab of tabs) {
     const el = document.createElement("div");
-    el.className = "tab-entry" + (tab.id === activeTabId ? " active" : "");
+    el.className =
+      "tab-entry" +
+      (tab.id === activeTabId ? " active" : "") +
+      (tab.needsAttention ? " tab-attention" : "");
     el.dataset.tabId = tab.id;
     el.draggable = true;
 
@@ -202,6 +205,9 @@ function createTab(directory, customName = null, originalDir = null) {
     wrapper,
     exited: false,
     atBottom: true,
+    busy: false,
+    busyTimeout: null,
+    needsAttention: false,
     _originalDir: originalDir,
   };
   tabs.push(tab);
@@ -241,6 +247,8 @@ function switchTab(tabId) {
   }
 
   activeTabId = tabId;
+  const switchedTab = tabs.find((t) => t.id === tabId);
+  if (switchedTab) switchedTab.needsAttention = false;
   for (const tab of tabs) {
     const isActive = tab.id === tabId;
     tab.wrapper.classList.toggle("active", isActive);
@@ -529,6 +537,17 @@ electronAPI.onPtyData((tabId, data) => {
   tab.terminal.write(data, () => {
     if (shouldScroll) tab.terminal.scrollToBottom();
   });
+
+  // Track busy state for attention indicator
+  tab.busy = true;
+  clearTimeout(tab.busyTimeout);
+  tab.busyTimeout = setTimeout(() => {
+    tab.busy = false;
+    if (tab.id !== activeTabId) {
+      tab.needsAttention = true;
+      renderSidebar();
+    }
+  }, 2000);
 });
 
 electronAPI.onPtyExit((tabId, _exitCode) => {

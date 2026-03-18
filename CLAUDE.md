@@ -27,6 +27,8 @@ This bumps package.json, commits, tags, and pushes. GitHub Actions then builds D
 
 **Always run tests before releasing:** `npm test`
 
+**Before releasing:** Move the `[Unreleased]` section in CHANGELOG.md to a new version heading. Check if README needs updating to reflect what's shipping.
+
 ## Architecture
 - Electron app: main process (src/main/), preload (src/preload/), renderer (src/renderer/)
 - Renderer is bundled via esbuild (ESM → IIFE) to src/renderer/bundle.js
@@ -36,6 +38,7 @@ This bumps package.json, commits, tags, and pushes. GitHub Actions then builds D
 
 ## Development Process
 - Always use TDD — write failing tests first, then implement the minimum code to make them pass.
+- After committing, update CHANGELOG.md under the `[Unreleased]` section.
 
 ## Code Style
 - Main process: CommonJS (require/module.exports)
