@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-03-18
+
 ### Fixed
 - Attention indicator no longer falsely triggers on fresh tabs during startup (terminal auto-responses no longer count as user input)
 - Attention indicator no longer clears when switching to the tab via keyboard shortcut (focus events from terminal no longer count as user input)
