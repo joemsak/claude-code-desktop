@@ -34,6 +34,9 @@ This bumps package.json, commits, tags, and pushes. GitHub Actions then builds D
 - node-pty must be rebuilt for Electron's Node version after npm install
 - Session state persisted to ~/.config/claude-code-desktop/sessions.json
 
+## Development Process
+- Always use TDD — write failing tests first, then implement the minimum code to make them pass.
+
 ## Code Style
 - Main process: CommonJS (require/module.exports)
 - Renderer: ESM (import/export), bundled by esbuild

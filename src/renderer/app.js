@@ -388,17 +388,21 @@ function closePicker() {
   if (tab) tab.terminal.focus();
 }
 
+import { fuzzyMatch, fuzzyScore } from "./fuzzy.js";
+
 function getFilteredDirs(filter) {
   if (!filter) return pickerDirs;
-  const lf = filter.toLowerCase();
   const seen = new Set();
-  return pickerDirs.filter((d) => {
-    if (d.isSeparator) return false;
-    if (!d.name.toLowerCase().includes(lf)) return false;
-    if (d.path && seen.has(d.path)) return false;
+  const scored = [];
+  for (const d of pickerDirs) {
+    if (d.isSeparator) continue;
+    if (!fuzzyMatch(d.name, filter)) continue;
+    if (d.path && seen.has(d.path)) continue;
     if (d.path) seen.add(d.path);
-    return true;
-  });
+    scored.push({ dir: d, score: fuzzyScore(d.name, filter) });
+  }
+  scored.sort((a, b) => b.score - a.score);
+  return scored.map((s) => s.dir);
 }
 
 function updatePickerSelection() {
