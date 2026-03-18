@@ -10,7 +10,7 @@ Open multiple Claude Code sessions side-by-side in a tabbed interface. Each tab 
 
 ### Workspace picker
 
-When you create a new tab (**Cmd+T**), a picker lists directories from `~/workspace/`. Your 5 most recently used workspaces appear at the top for quick access. Type to filter, use arrow keys to navigate, or click "Browse..." to open any directory on disk.
+When you create a new tab (**Cmd+T**), a picker lists directories from `~/workspace/`. Your 5 most recently used workspaces appear at the top for quick access. Type to fuzzy-filter (e.g. "ccd" matches "claude-code-desktop"), use arrow keys to navigate, or click "Browse..." to open any directory on disk.
 
 ### Session persistence
 
@@ -22,6 +22,10 @@ All open tabs, their directories, custom names, sidebar width, and window positi
 - **Reorder tabs** — drag and drop tabs in the sidebar
 - **Close tabs** — click the close button or press **Cmd+W**
 - **Tooltips** — hover over a tab to see its full directory path
+
+### Attention indicator
+
+When Claude finishes output on a background tab or while the app is out of focus, the tab shows a blue dot so you know it needs your attention. The indicator clears when you switch to the tab and interact with the terminal.
 
 ### Draggable top bar
 
