@@ -38,17 +38,43 @@ describe('attention indicator for background tabs', () => {
       expect(ptyDataBlock[0]).toMatch(/busyTimeout|idleTimeout/);
     });
 
-    it('sets needsAttention when a non-active tab transitions from busy to idle', () => {
-      // The idle callback should set needsAttention for non-active tabs
-      expect(appSource).toMatch(/needsAttention\s*=\s*true/);
+    it('only sets needsAttention if the tab was busy when user left it or window lost focus', () => {
+      // The idle callback should check wasBusyOnLeave or window focus before setting needsAttention
+      const ptyDataBlock = appSource.match(/onPtyData\([\s\S]*?\n\}\);/);
+      expect(ptyDataBlock).not.toBeNull();
+      expect(ptyDataBlock[0]).toMatch(/wasBusyOnLeave/);
+      expect(ptyDataBlock[0]).toMatch(/hasFocus/);
+      expect(ptyDataBlock[0]).toMatch(/needsAttention\s*=\s*true/);
     });
   });
 
-  describe('clearing attention on tab switch', () => {
-    it('clears needsAttention when switching to a tab', () => {
+  describe('tracking busy state on tab leave', () => {
+    it('tracks wasBusyOnLeave flag on each tab', () => {
+      const createTabBlock = appSource.match(/const tab = \{[\s\S]*?\};/);
+      expect(createTabBlock).not.toBeNull();
+      expect(createTabBlock[0]).toMatch(/wasBusyOnLeave/);
+    });
+
+    it('sets wasBusyOnLeave based on busy state when switching away', () => {
       const switchBlock = appSource.match(/function switchTab[\s\S]*?\n\}/);
       expect(switchBlock).not.toBeNull();
-      expect(switchBlock[0]).toMatch(/needsAttention\s*=\s*false/);
+      expect(switchBlock[0]).toMatch(/wasBusyOnLeave\s*=.*busy/);
+    });
+  });
+
+  describe('clearing attention on user input', () => {
+    it('does not clear needsAttention on tab switch alone', () => {
+      const switchBlock = appSource.match(/function switchTab[\s\S]*?\n\}/);
+      expect(switchBlock).not.toBeNull();
+      // switchTab should NOT clear needsAttention — only user typing should
+      expect(switchBlock[0]).not.toMatch(/needsAttention\s*=\s*false/);
+    });
+
+    it('clears needsAttention when user types in the terminal', () => {
+      // terminal.onData handler should clear needsAttention
+      const onDataBlock = appSource.match(/terminal\.onData\(\(data\)[\s\S]*?\}\);/);
+      expect(onDataBlock).not.toBeNull();
+      expect(onDataBlock[0]).toMatch(/needsAttention\s*=\s*false/);
     });
   });
 

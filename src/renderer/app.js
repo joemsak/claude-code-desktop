@@ -208,6 +208,7 @@ function createTab(directory, customName = null, originalDir = null) {
     busy: false,
     busyTimeout: null,
     needsAttention: false,
+    wasBusyOnLeave: false,
     _originalDir: originalDir,
   };
   tabs.push(tab);
@@ -224,6 +225,10 @@ function createTab(directory, customName = null, originalDir = null) {
     if (tab.exited) {
       if (data === "\r") restartTab(tab);
       return;
+    }
+    if (tab.needsAttention) {
+      tab.needsAttention = false;
+      renderSidebar();
     }
     electronAPI.writePty(id, data);
   });
@@ -244,11 +249,12 @@ function switchTab(tabId) {
   const prevTab = getActiveTab();
   if (prevTab) {
     prevTab.atBottom = isAtBottom(prevTab.terminal);
+    prevTab.wasBusyOnLeave = prevTab.busy;
   }
 
   activeTabId = tabId;
   const switchedTab = tabs.find((t) => t.id === tabId);
-  if (switchedTab) switchedTab.needsAttention = false;
+  if (switchedTab) switchedTab.wasBusyOnLeave = false;
   for (const tab of tabs) {
     const isActive = tab.id === tabId;
     tab.wrapper.classList.toggle("active", isActive);
@@ -543,7 +549,9 @@ electronAPI.onPtyData((tabId, data) => {
   clearTimeout(tab.busyTimeout);
   tab.busyTimeout = setTimeout(() => {
     tab.busy = false;
-    if (tab.id !== activeTabId) {
+    const isBackground = tab.id !== activeTabId;
+    const isHidden = tab.id === activeTabId && !document.hasFocus();
+    if ((isBackground && tab.wasBusyOnLeave) || isHidden) {
       tab.needsAttention = true;
       renderSidebar();
     }
