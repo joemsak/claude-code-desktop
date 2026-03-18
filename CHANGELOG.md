@@ -4,8 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Attention indicator no longer falsely triggers on fresh tabs during startup (terminal auto-responses no longer count as user input)
+- Attention indicator no longer clears when switching to the tab via keyboard shortcut (focus events from terminal no longer count as user input)
+
+### Changed
+- Attention indicator also triggers when app window loses focus during Claude output
+
 ### Added
-- Attention indicator on background tabs when Claude stops and waits for input
 - Fuzzy matching in workspace picker
 
 ## [1.3.2] - 2026-03-15
