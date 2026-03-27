@@ -52,8 +52,10 @@ function createStore(homeDir) {
       };
       fs.mkdirSync(configDir, { recursive: true });
       fs.writeFileSync(sessionFile, JSON.stringify(clean, null, 2));
+      return { success: true };
     } catch (err) {
       console.error("Failed to save session:", err.message);
+      return { success: false, error: err.message };
     }
   }
 

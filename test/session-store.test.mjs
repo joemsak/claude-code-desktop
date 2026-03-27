@@ -142,6 +142,18 @@ describe('session-store', () => {
       const written = JSON.parse(fs.readFileSync(sessionFile, 'utf-8'));
       expect(written.tabs[0].directory).toBe('/b');
     });
+
+    it('returns { success: true } on successful save', () => {
+      const result = store.save({ version: 1, tabs: [], activeTabIndex: 0 });
+      expect(result).toEqual({ success: true });
+    });
+
+    it('returns { success: false } when save fails', () => {
+      const badStore = createStore('/proc/nonexistent');
+      const result = badStore.save({ version: 1, tabs: [], activeTabIndex: 0 });
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
   });
 
   describe('DEFAULT_SESSION', () => {
