@@ -166,4 +166,40 @@ describe('pty-manager', () => {
       expect(killCount).toBe(2);
     });
   });
+
+  describe('getCwd', () => {
+    it('returns null for unknown tab ID', () => {
+      expect(manager.getCwd('nonexistent')).toBeNull();
+    });
+
+    it('parses lsof output to extract current directory', () => {
+      mock.mockProcess.pid = 12345;
+      const mgr = createManager(mock.module, vi.fn((cmd) => {
+        if (cmd.includes('lsof')) return 'p12345\nn/Users/joe/workspace/project\n';
+        return '';
+      }), vi.fn());
+      mgr.spawn('tab-cwd', '/tmp', vi.fn(), vi.fn());
+      expect(mgr.getCwd('tab-cwd')).toBe('/Users/joe/workspace/project');
+    });
+
+    it('returns null when lsof throws', () => {
+      mock.mockProcess.pid = 12345;
+      const mgr = createManager(mock.module, vi.fn((cmd) => {
+        if (cmd.includes('lsof')) throw new Error('timeout');
+        return '';
+      }), vi.fn());
+      mgr.spawn('tab-cwd', '/tmp', vi.fn(), vi.fn());
+      expect(mgr.getCwd('tab-cwd')).toBeNull();
+    });
+
+    it('returns null when lsof output has no match', () => {
+      mock.mockProcess.pid = 12345;
+      const mgr = createManager(mock.module, vi.fn((cmd) => {
+        if (cmd.includes('lsof')) return 'garbage output';
+        return '';
+      }), vi.fn());
+      mgr.spawn('tab-cwd', '/tmp', vi.fn(), vi.fn());
+      expect(mgr.getCwd('tab-cwd')).toBeNull();
+    });
+  });
 });
