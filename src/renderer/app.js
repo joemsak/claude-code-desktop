@@ -231,6 +231,7 @@ function createTab(directory, customName = null, originalDir = null) {
     if (tab.id === activeTabId) refitActiveTerminal();
   }, 100);
   scheduleSave();
+  startCwdTracking();
   return tab;
 }
 
@@ -626,17 +627,27 @@ emptyStateOpenBtn.addEventListener("click", openPicker);
 // CWD Tracking
 // ===========================
 
-setInterval(async () => {
-  const tab = getActiveTab();
-  if (!tab || tab.exited) return;
-  const cwd = await electronAPI.getPtyCwd(tab.id);
-  if (cwd && cwd !== tab.directory) {
-    tab.directory = cwd;
-    renderSidebar();
-    updateTopbar();
-    scheduleSave();
-  }
-}, 3000);
+let cwdInterval = null;
+
+function startCwdTracking() {
+  if (cwdInterval) return;
+  cwdInterval = setInterval(async () => {
+    if (tabs.length === 0) {
+      clearInterval(cwdInterval);
+      cwdInterval = null;
+      return;
+    }
+    const tab = getActiveTab();
+    if (!tab || tab.exited) return;
+    const cwd = await electronAPI.getPtyCwd(tab.id);
+    if (cwd && cwd !== tab.directory) {
+      tab.directory = cwd;
+      renderSidebar();
+      updateTopbar();
+      scheduleSave();
+    }
+  }, 3000);
+}
 
 // ===========================
 // Initialization
