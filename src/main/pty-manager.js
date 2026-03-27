@@ -1,43 +1,13 @@
 const pty = require("node-pty");
 const os = require("os");
 const { execSync } = require("child_process");
+const { ensureAuth: defaultEnsureAuth } = require("./aws-auth");
 
-function createManager(ptyModule, execModule) {
+function createManager(ptyModule, execModule, preSpawnHook) {
   const ptyLib = ptyModule || pty;
   const execFn = execModule || execSync;
+  const onPreSpawn = preSpawnHook || defaultEnsureAuth;
   const ptys = new Map();
-  let awsAuthChecked = false;
-
-  function ensureAwsAuth(env) {
-    if (awsAuthChecked) return;
-    awsAuthChecked = true;
-    const profile = env.AWS_PROFILE || "bedrock-users";
-    if (!/^[a-zA-Z0-9_-]+$/.test(profile)) {
-      console.error(`[pty-manager] Invalid AWS profile name: ${profile}`);
-      return;
-    }
-    try {
-      execFn(`aws sts get-caller-identity --profile ${profile}`, {
-        stdio: "ignore",
-        env,
-        timeout: 10000,
-      });
-    } catch {
-      try {
-        execFn(`aws sso login --profile ${profile}`, {
-          stdio: "ignore",
-          env,
-          timeout: 30000,
-        });
-      } catch (err) {
-        // Best effort — claude will show its own auth prompt if needed
-        console.error(
-          `[pty-manager] AWS SSO login failed for profile "${profile}":`,
-          err.message,
-        );
-      }
-    }
-  }
 
   function spawn(tabId, directory, onData, onExit) {
     const shell = process.env.SHELL || "/bin/zsh";
@@ -47,10 +17,8 @@ function createManager(ptyModule, execModule) {
       ),
     );
 
-    ensureAwsAuth(cleanEnv);
+    onPreSpawn(cleanEnv);
 
-    // Source .zshrc for PATH (mise, nvm, etc.) but non-interactive to avoid
-    // shell init output. Then exec claude to replace the shell.
     const cmd = "source ~/.zshrc 2>/dev/null; exec claude";
     const ptyProcess = ptyLib.spawn(shell, ["-l", "-c", cmd], {
       name: "xterm-256color",
@@ -99,6 +67,7 @@ function createManager(ptyModule, execModule) {
     const entry = ptys.get(tabId);
     if (!entry) return null;
     const pid = entry.process.pid;
+    if (typeof pid !== "number" || pid < 1) return null;
     try {
       const output = execFn(
         `/usr/sbin/lsof -a -p ${pid} -d cwd -Fn 2>/dev/null`,
@@ -114,7 +83,6 @@ function createManager(ptyModule, execModule) {
   return { spawn, write, resize, kill, killAll, getCwd };
 }
 
-// Default instance for production use
 const defaultManager = createManager();
 
 module.exports = { ...defaultManager, createManager };

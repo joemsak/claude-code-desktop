@@ -28,8 +28,8 @@ describe('pty-manager', () => {
 
   beforeEach(() => {
     mock = createMockPty();
-    mockExec = vi.fn(); // succeeds by default (auth is valid)
-    manager = createManager(mock.module, mockExec);
+    mockExec = vi.fn();
+    manager = createManager(mock.module, mockExec, vi.fn());
   });
 
   describe('spawn', () => {
@@ -48,52 +48,20 @@ describe('pty-manager', () => {
       expect(args).not.toContain('-il');
     });
 
-    it('checks AWS auth before spawning PTY', () => {
-      manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
-      // Should call execSync with aws sts get-caller-identity
-      expect(mockExec).toHaveBeenCalledWith(
-        expect.stringContaining('aws sts get-caller-identity'),
-        expect.any(Object),
-      );
+    it('calls pre-spawn hook with clean environment', () => {
+      const hook = vi.fn();
+      const mgr = createManager(mock.module, vi.fn(), hook);
+      mgr.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
+      expect(hook).toHaveBeenCalledTimes(1);
+      expect(hook).toHaveBeenCalledWith(expect.objectContaining({ HOME: expect.any(String) }));
     });
 
-    it('runs aws sso login if auth check fails', () => {
-      mockExec
-        .mockImplementationOnce(() => { throw new Error('expired'); }) // sts fails
-        .mockImplementationOnce(() => {}); // sso login succeeds
-      manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
-      expect(mockExec).toHaveBeenCalledTimes(2);
-      expect(mockExec.mock.calls[1][0]).toContain('aws sso login');
-    });
-
-    it('skips sso login if auth check succeeds', () => {
-      manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
-      expect(mockExec).toHaveBeenCalledTimes(1);
-      expect(mockExec.mock.calls[0][0]).toContain('get-caller-identity');
-    });
-
-    it('still spawns claude if both auth checks fail', () => {
-      mockExec.mockImplementation(() => { throw new Error('fail'); });
-      manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
-      // Should still spawn PTY despite auth failures
-      expect(mock.mockSpawn).toHaveBeenCalled();
-    });
-
-    it('only checks AWS auth once across multiple spawns', () => {
-      manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
-      manager.spawn('tab-2', '/tmp', vi.fn(), vi.fn());
-      manager.spawn('tab-3', '/tmp', vi.fn(), vi.fn());
-      // Should only call aws sts once, not three times
-      const stsCalls = mockExec.mock.calls.filter(c => c[0].includes('get-caller-identity'));
-      expect(stsCalls).toHaveLength(1);
-    });
-
-    it('only runs sso login once across multiple spawns when auth fails', () => {
-      mockExec.mockImplementation(() => { throw new Error('fail'); });
-      manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
-      manager.spawn('tab-2', '/tmp', vi.fn(), vi.fn());
-      // Should only attempt sts + sso login once total
-      expect(mockExec).toHaveBeenCalledTimes(2);
+    it('calls pre-spawn hook on every spawn', () => {
+      const hook = vi.fn();
+      const mgr = createManager(mock.module, vi.fn(), hook);
+      mgr.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
+      mgr.spawn('tab-2', '/tmp', vi.fn(), vi.fn());
+      expect(hook).toHaveBeenCalledTimes(2);
     });
 
     it('strips npm_ env vars to prevent nvm warnings', () => {
@@ -111,21 +79,6 @@ describe('pty-manager', () => {
         else delete process.env.npm_config_prefix;
         if (origCommand !== undefined) process.env.npm_command = origCommand;
         else delete process.env.npm_command;
-      }
-    });
-
-    it('rejects AWS profile names with special characters', () => {
-      const origProfile = process.env.AWS_PROFILE;
-      process.env.AWS_PROFILE = 'foo; rm -rf /';
-      try {
-        const mgr = createManager(mock.module, mockExec);
-        mgr.spawn('tab-inject', '/tmp', vi.fn(), vi.fn());
-        for (const call of mockExec.mock.calls) {
-          expect(call[0]).not.toContain('foo; rm -rf /');
-        }
-      } finally {
-        if (origProfile !== undefined) process.env.AWS_PROFILE = origProfile;
-        else delete process.env.AWS_PROFILE;
       }
     });
 
@@ -206,7 +159,7 @@ describe('pty-manager', () => {
           kill: vi.fn(() => { killCount++; }),
         })),
       };
-      const mgr = createManager(mockModule, vi.fn());
+      const mgr = createManager(mockModule, vi.fn(), vi.fn());
       mgr.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
       mgr.spawn('tab-2', '/tmp', vi.fn(), vi.fn());
       mgr.killAll();
