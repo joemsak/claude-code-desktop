@@ -4,8 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-03-27
+
 ### Added
 - Follow indicator at bottom-right of terminal: shows "Following ↓" (bold, white) when auto-scrolling with output, "Follow ↓" (muted) when user has scrolled up; click to jump back to bottom
+- Tests for getCwd in pty-manager
+- Tests for AWS auth module
+- Tests for session save error reporting
 
 ### Removed
 - Attention indicator feature (blue dot on background tabs)
@@ -21,11 +26,6 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - AWS auth extracted into configurable pre-spawn hook (aws-auth.js)
 - Workspace directory is now configurable (defaults to ~/workspace)
-
-### Added
-- Tests for getCwd in pty-manager
-- Tests for AWS auth module
-- Tests for session save error reporting
 
 ## [1.4.1] - 2026-03-27
 
