@@ -35,6 +35,9 @@ This bumps package.json, commits, tags, and pushes. GitHub Actions then builds D
 - xterm.css is copied from node_modules at bundle time
 - node-pty must be rebuilt for Electron's Node version after npm install
 - Session state persisted to ~/.config/claude-code-desktop/sessions.json
+- AWS auth is in `src/main/aws-auth.js` — a configurable pre-spawn hook
+- Profile name is validated before shell interpolation
+- `pty-manager.js` accepts a `preSpawnHook` parameter (third arg to `createManager`)
 
 ## Development Process
 - Always use TDD — write failing tests first, then implement the minimum code to make them pass.

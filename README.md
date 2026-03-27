@@ -23,10 +23,6 @@ All open tabs, their directories, custom names, sidebar width, and window positi
 - **Close tabs** — click the close button or press **Cmd+W**
 - **Tooltips** — hover over a tab to see its full directory path
 
-### Attention indicator
-
-When Claude finishes output on a background tab or while the app is out of focus, the tab shows a blue dot so you know it needs your attention. The indicator clears when you switch to the tab and interact with the terminal.
-
 ### Draggable top bar
 
 The top bar displays the active tab's directory path and doubles as a window drag region. The new-tab button sits in the top-right corner for quick access.
@@ -39,9 +35,9 @@ Drag the sidebar edge to resize it between 120px and 400px. Your preferred width
 
 Full terminal emulation powered by xterm.js with a Catppuccin Dusk color theme, 5000-line scrollback, cursor blinking, and auto-fit on window resize. When a session exits, press **Enter** to restart it in the same directory.
 
-### AWS SSO auto-login
+### Pre-spawn hooks
 
-On launch, the app checks your AWS credentials and automatically runs `aws sso login` if needed (using the `AWS_PROFILE` env var or defaulting to `bedrock-users`). This runs in the background and never blocks startup.
+On first PTY spawn, the app runs a configurable auth check (defaults to AWS SSO login using the `AWS_PROFILE` env var or `bedrock-users`). This runs in the background and never blocks startup.
 
 ### Keyboard shortcuts
 

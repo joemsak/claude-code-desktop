@@ -4,8 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Removed
+- Attention indicator feature (blue dot on background tabs)
+
+### Fixed
+- Command injection vulnerability in AWS profile name validation
+- IPC input validation for paths, dimensions, and session data
+- CWD polling interval now stops when no tabs are open
+- Session save now reports success/failure status
+- Explicit `script-src 'self'` in Content Security Policy
+
 ### Changed
-- Extract AWS auth into configurable pre-spawn hook for better testability and separation of concerns
+- AWS auth extracted into configurable pre-spawn hook (aws-auth.js)
+- Workspace directory is now configurable (defaults to ~/workspace)
+
+### Added
+- Tests for getCwd in pty-manager
+- Tests for AWS auth module
+- Tests for session save error reporting
 
 ## [1.4.1] - 2026-03-27
 
