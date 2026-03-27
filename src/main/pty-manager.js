@@ -12,6 +12,10 @@ function createManager(ptyModule, execModule) {
     if (awsAuthChecked) return;
     awsAuthChecked = true;
     const profile = env.AWS_PROFILE || "bedrock-users";
+    if (!/^[a-zA-Z0-9_-]+$/.test(profile)) {
+      console.error(`[pty-manager] Invalid AWS profile name: ${profile}`);
+      return;
+    }
     try {
       execFn(`aws sts get-caller-identity --profile ${profile}`, {
         stdio: "ignore",

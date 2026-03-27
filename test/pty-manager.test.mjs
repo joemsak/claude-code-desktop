@@ -114,6 +114,21 @@ describe('pty-manager', () => {
       }
     });
 
+    it('rejects AWS profile names with special characters', () => {
+      const origProfile = process.env.AWS_PROFILE;
+      process.env.AWS_PROFILE = 'foo; rm -rf /';
+      try {
+        const mgr = createManager(mock.module, mockExec);
+        mgr.spawn('tab-inject', '/tmp', vi.fn(), vi.fn());
+        for (const call of mockExec.mock.calls) {
+          expect(call[0]).not.toContain('foo; rm -rf /');
+        }
+      } finally {
+        if (origProfile !== undefined) process.env.AWS_PROFILE = origProfile;
+        else delete process.env.AWS_PROFILE;
+      }
+    });
+
     it('registers onData and onExit callbacks', () => {
       manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
       expect(mock.mockProcess.onData).toHaveBeenCalledWith(expect.any(Function));
