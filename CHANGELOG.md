@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Tab key autocompletes the selected item in workspace picker (instead of moving focus to other UI elements)
+
 ## [1.4.0] - 2026-03-18
 
 ### Fixed
