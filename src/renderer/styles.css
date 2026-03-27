@@ -132,18 +132,6 @@ body {
   border-top: 2px solid #89b4fa;
 }
 
-.tab-entry.tab-attention .tab-name::before {
-  content: "";
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  background: #89b4fa;
-  border-radius: 50%;
-  margin-right: 6px;
-  flex-shrink: 0;
-  vertical-align: middle;
-}
-
 .tab-name {
   overflow: hidden;
   text-overflow: ellipsis;

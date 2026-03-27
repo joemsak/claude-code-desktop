@@ -90,10 +90,7 @@ function renderSidebar() {
   tabListEl.innerHTML = "";
   for (const tab of tabs) {
     const el = document.createElement("div");
-    el.className =
-      "tab-entry" +
-      (tab.id === activeTabId ? " active" : "") +
-      (tab.needsAttention ? " tab-attention" : "");
+    el.className = "tab-entry" + (tab.id === activeTabId ? " active" : "");
     el.dataset.tabId = tab.id;
     el.draggable = true;
 
@@ -205,11 +202,6 @@ function createTab(directory, customName = null, originalDir = null) {
     wrapper,
     exited: false,
     atBottom: true,
-    busy: false,
-    busyTimeout: null,
-    needsAttention: false,
-    wasBusyOnLeave: false,
-    userHasTyped: false,
     _originalDir: originalDir,
   };
   tabs.push(tab);
@@ -227,21 +219,7 @@ function createTab(directory, customName = null, originalDir = null) {
       if (data === "\r") restartTab(tab);
       return;
     }
-    const isFocusEvent = data === "\x1b[I" || data === "\x1b[O";
-    if (!isFocusEvent) {
-      if (tab.needsAttention) {
-        tab.needsAttention = false;
-        renderSidebar();
-      }
-    }
     electronAPI.writePty(id, data);
-  });
-
-  // Track real keyboard input separately — terminal.onData also fires for
-  // auto-responses (e.g. cursor position reports) during startup, which would
-  // falsely mark a fresh tab as user-interacted.
-  terminal.onKey(() => {
-    tab.userHasTyped = true;
   });
 
   electronAPI.spawnPty(id, directory);
@@ -260,12 +238,9 @@ function switchTab(tabId) {
   const prevTab = getActiveTab();
   if (prevTab) {
     prevTab.atBottom = isAtBottom(prevTab.terminal);
-    prevTab.wasBusyOnLeave = prevTab.busy;
   }
 
   activeTabId = tabId;
-  const switchedTab = tabs.find((t) => t.id === tabId);
-  if (switchedTab) switchedTab.wasBusyOnLeave = false;
   for (const tab of tabs) {
     const isActive = tab.id === tabId;
     tab.wrapper.classList.toggle("active", isActive);
@@ -554,29 +529,10 @@ async function saveSessionsNow() {
 electronAPI.onPtyData((tabId, data) => {
   const tab = tabs.find((t) => t.id === tabId);
   if (!tab) return;
-  // Use tab.atBottom (user-intent flag) instead of isAtBottom() to avoid race
-  // during rapid writes (e.g. thinking animation): previous write may have added
-  // content but scrollToBottom callback hasn't fired yet, making isAtBottom() false.
   const shouldScroll = tab.id === activeTabId && tab.atBottom;
   tab.terminal.write(data, () => {
     if (shouldScroll) tab.terminal.scrollToBottom();
   });
-
-  // Track busy state for attention indicator
-  tab.busy = true;
-  clearTimeout(tab.busyTimeout);
-  tab.busyTimeout = setTimeout(() => {
-    tab.busy = false;
-    const isBackground = tab.id !== activeTabId;
-    const isHidden = tab.id === activeTabId && !document.hasFocus();
-    if (
-      tab.userHasTyped &&
-      ((isBackground && tab.wasBusyOnLeave) || isHidden)
-    ) {
-      tab.needsAttention = true;
-      renderSidebar();
-    }
-  }, 2000);
 });
 
 electronAPI.onPtyExit((tabId, _exitCode) => {
