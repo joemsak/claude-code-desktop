@@ -43,6 +43,7 @@ function createWindow(sessionData) {
 
 // IPC: PTY management
 ipcMain.on("pty:spawn", (event, tabId, directory) => {
+  if (typeof directory !== "string" || !path.isAbsolute(directory)) return;
   ptyManager.spawn(
     tabId,
     directory,
@@ -64,6 +65,15 @@ ipcMain.on("pty:write", (_event, tabId, data) => {
 });
 
 ipcMain.on("pty:resize", (_event, tabId, cols, rows) => {
+  if (
+    typeof cols !== "number" ||
+    typeof rows !== "number" ||
+    cols < 1 ||
+    cols > 1000 ||
+    rows < 1 ||
+    rows > 1000
+  )
+    return;
   ptyManager.resize(tabId, cols, rows);
 });
 
@@ -77,6 +87,12 @@ ipcMain.handle("pty:cwd", (_event, tabId) => {
 
 // IPC: Session persistence
 ipcMain.handle("sessions:save", (_event, sessionData) => {
+  if (
+    !sessionData ||
+    typeof sessionData !== "object" ||
+    !Array.isArray(sessionData.tabs)
+  )
+    return;
   sessionStore.save(sessionData);
 });
 
@@ -86,6 +102,7 @@ ipcMain.handle("sessions:load", () => {
 
 // IPC: Workspace tracking
 ipcMain.handle("workspace:track", (_event, dirPath) => {
+  if (typeof dirPath !== "string" || !path.isAbsolute(dirPath)) return;
   sessionStore.trackWorkspace(dirPath);
 });
 
