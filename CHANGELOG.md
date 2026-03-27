@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Extract AWS auth into configurable pre-spawn hook for better testability and separation of concerns
+
 ## [1.4.1] - 2026-03-27
 
 ### Added
