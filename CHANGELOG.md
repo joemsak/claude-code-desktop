@@ -4,8 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Follow indicator at bottom-right of terminal: shows "Following ↓" (bold, white) when auto-scrolling with output, "Follow ↓" (muted) when user has scrolled up; click to jump back to bottom
+
 ### Removed
 - Attention indicator feature (blue dot on background tabs)
+- Broken scroll tracking bug fix code (atBottom flag, wheel-based scroll intent tracking, conditional scrollToBottom in onPtyData/switchTab/refitActiveTerminal) — replaced by xterm's native scroll behavior plus the follow indicator
 
 ### Fixed
 - Command injection vulnerability in AWS profile name validation

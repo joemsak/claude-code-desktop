@@ -25,6 +25,7 @@ const emptyStateEl = document.getElementById("empty-state");
 const topbarPathEl = document.getElementById("topbar-path");
 const topbarNewTabBtn = document.getElementById("topbar-new-tab");
 const emptyStateOpenBtn = document.getElementById("empty-state-open-btn");
+const followIndicator = document.getElementById("follow-indicator");
 
 // ===========================
 // Helpers
@@ -39,12 +40,26 @@ function isAtBottom(terminal) {
   return buf.viewportY >= buf.baseY;
 }
 
+function updateFollowIndicator() {
+  const tab = getActiveTab();
+  if (!tab) {
+    followIndicator.classList.add("hidden");
+    return;
+  }
+  followIndicator.classList.remove("hidden");
+  if (isAtBottom(tab.terminal)) {
+    followIndicator.textContent = "Following \u2193";
+    followIndicator.classList.add("following");
+  } else {
+    followIndicator.textContent = "Follow \u2193";
+    followIndicator.classList.remove("following");
+  }
+}
+
 function refitActiveTerminal() {
   const tab = getActiveTab();
   if (!tab) return;
-  const wasAtBottom = isAtBottom(tab.terminal);
   tab.fitAddon.fit();
-  if (wasAtBottom) tab.terminal.scrollToBottom();
   electronAPI.resizePty(tab.id, tab.terminal.cols, tab.terminal.rows);
 }
 
@@ -201,18 +216,14 @@ function createTab(directory, customName = null, originalDir = null) {
     fitAddon,
     wrapper,
     exited: false,
-    atBottom: true,
     _originalDir: originalDir,
   };
   tabs.push(tab);
 
-  // Track user scroll intent via wheel events (not onScroll which fires
-  // for programmatic scrolls too and races with rapid writes)
   terminal.element.addEventListener("wheel", () => {
-    requestAnimationFrame(() => {
-      tab.atBottom = isAtBottom(terminal);
-    });
+    requestAnimationFrame(() => updateFollowIndicator());
   });
+  terminal.onScroll(() => updateFollowIndicator());
 
   terminal.onData((data) => {
     if (tab.exited) {
@@ -236,11 +247,6 @@ function createTab(directory, customName = null, originalDir = null) {
 }
 
 function switchTab(tabId) {
-  const prevTab = getActiveTab();
-  if (prevTab) {
-    prevTab.atBottom = isAtBottom(prevTab.terminal);
-  }
-
   activeTabId = tabId;
   for (const tab of tabs) {
     const isActive = tab.id === tabId;
@@ -249,9 +255,9 @@ function switchTab(tabId) {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           tab.fitAddon.fit();
-          if (tab.atBottom) tab.terminal.scrollToBottom();
           electronAPI.resizePty(tab.id, tab.terminal.cols, tab.terminal.rows);
           tab.terminal.focus();
+          updateFollowIndicator();
         });
       });
     }
@@ -530,10 +536,7 @@ async function saveSessionsNow() {
 electronAPI.onPtyData((tabId, data) => {
   const tab = tabs.find((t) => t.id === tabId);
   if (!tab) return;
-  const shouldScroll = tab.id === activeTabId && tab.atBottom;
-  tab.terminal.write(data, () => {
-    if (shouldScroll) tab.terminal.scrollToBottom();
-  });
+  tab.terminal.write(data);
 });
 
 electronAPI.onPtyExit((tabId, _exitCode) => {
@@ -618,6 +621,14 @@ document.addEventListener("keydown", (e) => {
 });
 
 window.addEventListener("resize", () => refitActiveTerminal());
+
+followIndicator.addEventListener("click", () => {
+  const tab = getActiveTab();
+  if (tab) {
+    tab.terminal.scrollToBottom();
+    updateFollowIndicator();
+  }
+});
 
 newTabBtn.addEventListener("click", openPicker);
 topbarNewTabBtn.addEventListener("click", openPicker);
