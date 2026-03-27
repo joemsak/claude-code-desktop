@@ -14,6 +14,7 @@ function createStore(homeDir) {
     tabs: [],
     activeTabIndex: 0,
     recentWorkspaces: [],
+    workspaceDir: path.join(home, "workspace"),
   };
 
   function load() {

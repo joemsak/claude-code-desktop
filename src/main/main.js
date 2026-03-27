@@ -113,7 +113,10 @@ ipcMain.handle("workspace:recent", () => {
 
 // IPC: Directory picker
 ipcMain.handle("dirs:list-workspace", () => {
-  const workspaceDir = path.join(os.homedir(), "workspace");
+  const sessionData = sessionStore.load();
+  const workspaceDir =
+    (sessionData && sessionData.workspaceDir) ||
+    sessionStore.DEFAULT_SESSION.workspaceDir;
   try {
     const entries = fs.readdirSync(workspaceDir, { withFileTypes: true });
     return entries

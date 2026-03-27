@@ -157,6 +157,19 @@ describe('session-store', () => {
     });
   });
 
+  describe('workspaceDir', () => {
+    it('DEFAULT_SESSION includes workspaceDir as ~/workspace', () => {
+      expect(store.DEFAULT_SESSION.workspaceDir).toMatch(/\/workspace$/);
+    });
+
+    it('load returns saved workspaceDir', () => {
+      const data = { version: 1, tabs: [], workspaceDir: '/custom/path' };
+      fs.writeFileSync(sessionFile, JSON.stringify(data));
+      const result = store.load();
+      expect(result.workspaceDir).toBe('/custom/path');
+    });
+  });
+
   describe('trackWorkspace', () => {
     it('adds a new workspace with count 1', () => {
       store.trackWorkspace('/path/add-test');
