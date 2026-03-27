@@ -507,6 +507,13 @@ pickerSearch.addEventListener("keydown", (e) => {
     if (selectable[pickerSelectedIndex]) {
       selectPickerItem(selectable[pickerSelectedIndex]);
     }
+  } else if (e.key === "Tab") {
+    e.preventDefault();
+    if (selectable[pickerSelectedIndex]) {
+      pickerSearch.value = selectable[pickerSelectedIndex].name;
+      pickerSelectedIndex = 0;
+      renderPickerList(pickerSearch.value);
+    }
   } else if (e.key === "Escape") {
     e.preventDefault();
     closePicker();
