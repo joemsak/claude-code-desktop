@@ -42,8 +42,34 @@ function createWindow(sessionData) {
 
   mainWindow.loadFile(path.join(__dirname, "..", "renderer", "index.html"));
 
-  mainWindow.on("close", () => {
-    saveSessionFromMain();
+  mainWindow.on("close", async (event) => {
+    if (mainWindow._forceClose) {
+      saveSessionFromMain();
+      return;
+    }
+
+    // Check if any tabs have active (non-exited) PTY processes
+    const hasActiveTabs = ptyManager.hasActive();
+
+    if (!hasActiveTabs) {
+      saveSessionFromMain();
+      return;
+    }
+
+    event.preventDefault();
+    const result = await dialog.showMessageBox(mainWindow, {
+      type: "warning",
+      buttons: ["Quit", "Cancel"],
+      defaultId: 1,
+      cancelId: 1,
+      message: "You have active sessions.",
+      detail: "Are you sure you want to quit?",
+    });
+
+    if (result.response === 0) {
+      mainWindow._forceClose = true;
+      mainWindow.close();
+    }
   });
 }
 
@@ -126,6 +152,20 @@ ipcMain.on("pty:kill", (_event, tabId) => {
 
 ipcMain.handle("pty:cwd", (_event, tabId) => {
   return ptyManager.getCwd(tabId);
+});
+
+// IPC: Confirmation dialogs
+ipcMain.handle("dialog:confirm-close", async () => {
+  if (!mainWindow || mainWindow.isDestroyed()) return false;
+  const result = await dialog.showMessageBox(mainWindow, {
+    type: "warning",
+    buttons: ["Close", "Cancel"],
+    defaultId: 1,
+    cancelId: 1,
+    message: "This session is still active.",
+    detail: "Are you sure you want to close this tab?",
+  });
+  return result.response === 0;
 });
 
 // IPC: Session persistence
