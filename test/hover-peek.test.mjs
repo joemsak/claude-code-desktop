@@ -17,6 +17,10 @@ describe('hover peek', () => {
     expect(appSource).toContain('.buffer.active');
   });
 
+  it('uses stripTuiChrome to filter prompt and statusbar', () => {
+    expect(appSource).toContain('stripTuiChrome');
+  });
+
   it('shows peek panel on tab hover', () => {
     expect(appSource).toContain('showPeek');
   });
