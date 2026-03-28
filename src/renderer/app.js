@@ -26,6 +26,13 @@ const topbarPathEl = document.getElementById("topbar-path");
 const topbarNewTabBtn = document.getElementById("topbar-new-tab");
 const emptyStateOpenBtn = document.getElementById("empty-state-open-btn");
 const followIndicator = document.getElementById("follow-indicator");
+const settingsOverlay = document.getElementById("settings-overlay");
+const settingsCloseBtn = document.getElementById("settings-close");
+const settingsWorkspaceDir = document.getElementById("settings-workspace-dir");
+const settingsBrowseBtn = document.getElementById("settings-browse-btn");
+const settingsHooksProject = document.getElementById("settings-hooks-project");
+const settingsHooksGlobal = document.getElementById("settings-hooks-global");
+const settingsHooksHint = document.getElementById("settings-hooks-hint");
 
 // ===========================
 // Helpers
@@ -652,6 +659,74 @@ function startCwdTracking() {
     }
   }, 3000);
 }
+
+// ===========================
+// Settings
+// ===========================
+
+async function openSettings() {
+  const settings = await electronAPI.loadSettings();
+  settingsWorkspaceDir.value = settings.workspaceDir || "";
+  updateHooksToggle(settings.hooksScope || "project");
+  settingsOverlay.classList.remove("hidden");
+  settingsWorkspaceDir.focus();
+}
+
+function closeSettings() {
+  settingsOverlay.classList.add("hidden");
+  const tab = getActiveTab();
+  if (tab) tab.terminal.focus();
+}
+
+function updateHooksToggle(scope) {
+  settingsHooksProject.classList.toggle("active", scope === "project");
+  settingsHooksGlobal.classList.toggle("active", scope === "global");
+  settingsHooksHint.textContent =
+    scope === "project"
+      ? "Writes to .claude/settings.local.json in each workspace"
+      : "Writes to ~/.claude/settings.json (affects all Claude sessions)";
+}
+
+async function saveSettingsValue(key, value) {
+  await electronAPI.saveSettings({ [key]: value });
+}
+
+settingsCloseBtn.addEventListener("click", closeSettings);
+settingsOverlay.addEventListener("click", (e) => {
+  if (e.target === settingsOverlay) closeSettings();
+});
+
+settingsWorkspaceDir.addEventListener("change", () => {
+  saveSettingsValue("workspaceDir", settingsWorkspaceDir.value);
+});
+
+settingsBrowseBtn.addEventListener("click", async () => {
+  const dir = await electronAPI.openDirectoryDialog();
+  if (dir) {
+    settingsWorkspaceDir.value = dir;
+    saveSettingsValue("workspaceDir", dir);
+  }
+});
+
+settingsHooksProject.addEventListener("click", () => {
+  updateHooksToggle("project");
+  saveSettingsValue("hooksScope", "project");
+});
+
+settingsHooksGlobal.addEventListener("click", () => {
+  updateHooksToggle("global");
+  saveSettingsValue("hooksScope", "global");
+});
+
+electronAPI.onOpenSettings(() => openSettings());
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !settingsOverlay.classList.contains("hidden")) {
+    e.preventDefault();
+    closeSettings();
+    return;
+  }
+});
 
 // ===========================
 // Initialization

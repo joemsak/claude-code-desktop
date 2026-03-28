@@ -139,6 +139,28 @@ ipcMain.handle("dirs:open-dialog", async () => {
   return result.filePaths[0];
 });
 
+// IPC: Settings
+ipcMain.handle("settings:load", () => {
+  const data = sessionStore.load() || sessionStore.DEFAULT_SESSION;
+  return {
+    workspaceDir:
+      data.workspaceDir || sessionStore.DEFAULT_SESSION.workspaceDir,
+    hooksScope: data.hooksScope || "project",
+  };
+});
+
+ipcMain.handle("settings:save", (_event, settings) => {
+  if (!settings || typeof settings !== "object") return;
+  const data = sessionStore.load() || sessionStore.DEFAULT_SESSION;
+  if (typeof settings.workspaceDir === "string") {
+    data.workspaceDir = settings.workspaceDir;
+  }
+  if (settings.hooksScope === "project" || settings.hooksScope === "global") {
+    data.hooksScope = settings.hooksScope;
+  }
+  sessionStore.save(data);
+});
+
 // IPC: Utility
 ipcMain.handle("util:home-path", () => os.homedir());
 
@@ -197,6 +219,12 @@ app.whenReady().then(() => {
           label: "Close Tab",
           accelerator: "CmdOrCtrl+W",
           click: () => mainWindow?.webContents.send("menu:close-tab"),
+        },
+        { type: "separator" },
+        {
+          label: "Settings...",
+          accelerator: "CmdOrCtrl+,",
+          click: () => mainWindow?.webContents.send("menu:open-settings"),
         },
       ],
     },

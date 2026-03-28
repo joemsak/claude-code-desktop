@@ -21,6 +21,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // Menu events (main -> renderer)
   onNewTab: (callback) => ipcRenderer.on("menu:new-tab", () => callback()),
   onCloseTab: (callback) => ipcRenderer.on("menu:close-tab", () => callback()),
+  onOpenSettings: (callback) =>
+    ipcRenderer.on("menu:open-settings", () => callback()),
+
+  // Settings
+  loadSettings: () => ipcRenderer.invoke("settings:load"),
+  saveSettings: (settings) => ipcRenderer.invoke("settings:save", settings),
 
   // Session persistence
   saveSessions: (sessionData) =>

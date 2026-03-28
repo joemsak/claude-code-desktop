@@ -37,6 +37,34 @@
     </div>
   </div>
 
+  <div id="settings-overlay" class="hidden">
+    <div id="settings-modal">
+      <div id="settings-header">
+        <span>Settings</span>
+        <button id="settings-close">&times;</button>
+      </div>
+      <div id="settings-body">
+        <div class="settings-group">
+          <label class="settings-label">Workspace Directory</label>
+          <p class="settings-hint">Directory to scan for project folders in the workspace picker</p>
+          <div class="settings-row">
+            <input id="settings-workspace-dir" type="text" spellcheck="false" autocomplete="off">
+            <button id="settings-browse-btn">Browse</button>
+          </div>
+        </div>
+        <div class="settings-group">
+          <label class="settings-label">Status Detection Hooks</label>
+          <p class="settings-hint">Where to configure Claude Code hooks for tab status indicators</p>
+          <div class="settings-toggle">
+            <button id="settings-hooks-project" class="settings-toggle-btn active">Per Project</button>
+            <button id="settings-hooks-global" class="settings-toggle-btn">Global</button>
+          </div>
+          <p class="settings-hint-small" id="settings-hooks-hint">Writes to .claude/settings.local.json in each workspace</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="bundle.js"></script>
 </body>
 </html>
