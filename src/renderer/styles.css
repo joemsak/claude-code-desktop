@@ -644,6 +644,23 @@ body {
   color: #89b4fa;
 }
 
+#picker-browse-footer {
+  padding: 10px 16px;
+  color: #6c7086;
+  cursor: pointer;
+  font-size: 13px;
+  border-top: 1px solid #313244;
+  background: #1e1e2e;
+  transition: background 0.05s;
+  flex-shrink: 0;
+}
+
+#picker-browse-footer.selected,
+#picker-browse-footer:hover {
+  background: #45475a;
+  color: #cdd6f4;
+}
+
 /* --- Peek Panel --- */
 #peek-panel {
   position: absolute;

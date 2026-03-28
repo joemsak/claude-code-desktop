@@ -310,9 +310,9 @@ function showPeek(tab, tabEl) {
     const line = buffer.getLine(i);
     if (line) lines.push(line.translateToString(true).trimEnd());
   }
-  // Trim trailing empty lines and take last MAX_BUFFER_LINES
-  while (lines.length > 0 && lines[lines.length - 1] === "") lines.pop();
-  const text = lines.slice(-MAX_BUFFER_LINES).join("\n").trim();
+  // Strip Claude Code TUI chrome (prompt box + statusbar) and trailing empties
+  const cleaned = stripTuiChrome(lines);
+  const text = cleaned.slice(-MAX_BUFFER_LINES).join("\n").trim();
   peekContent.textContent = text || "(no output yet)";
 
   // Position to the right of the sidebar, aligned with the tab
@@ -556,26 +556,32 @@ async function openPicker() {
 
 function closePicker() {
   pickerOverlay.classList.add("hidden");
+  const footer = document.getElementById("picker-browse-footer");
+  if (footer) footer.remove();
   updateEmptyState();
   const tab = getActiveTab();
   if (tab) tab.terminal.focus();
 }
 
 import { fuzzyMatch, fuzzyScore } from "./fuzzy.js";
+import { stripTuiChrome } from "./strip-tui-chrome.js";
 
 function getFilteredDirs(filter) {
   if (!filter) return pickerDirs;
   const seen = new Set();
   const scored = [];
+  const browseItem = pickerDirs.find((d) => d.isBrowse);
   for (const d of pickerDirs) {
-    if (d.isSeparator) continue;
+    if (d.isSeparator || d.isBrowse) continue;
     if (!fuzzyMatch(d.name, filter)) continue;
     if (d.path && seen.has(d.path)) continue;
     if (d.path) seen.add(d.path);
     scored.push({ dir: d, score: fuzzyScore(d.name, filter) });
   }
   scored.sort((a, b) => b.score - a.score);
-  return scored.map((s) => s.dir);
+  const result = scored.map((s) => s.dir);
+  if (browseItem) result.push(browseItem);
+  return result;
 }
 
 function updatePickerSelection() {
@@ -589,13 +595,27 @@ function updatePickerSelection() {
     li.classList.toggle("selected", idx === pickerSelectedIndex);
     idx++;
   });
+  // Update sticky Browse... footer selection
+  const footer = document.getElementById("picker-browse-footer");
+  if (footer) {
+    footer.classList.toggle("selected", idx === pickerSelectedIndex);
+  }
 }
 
 function renderPickerList(filter) {
   const filtered = getFilteredDirs(filter);
   pickerList.innerHTML = "";
 
-  const selectableCount = filtered.filter((d) => !d.isSeparator).length;
+  // Remove existing sticky footer if any
+  const existingFooter = document.getElementById("picker-browse-footer");
+  if (existingFooter) existingFooter.remove();
+
+  // Separate Browse... from the rest
+  const browseItem = filtered.find((d) => d.isBrowse);
+  const listItems = filtered.filter((d) => !d.isBrowse);
+
+  const selectableCount =
+    listItems.filter((d) => !d.isSeparator).length + (browseItem ? 1 : 0);
   if (pickerSelectedIndex >= selectableCount)
     pickerSelectedIndex = Math.max(0, selectableCount - 1);
 
@@ -603,7 +623,7 @@ function renderPickerList(filter) {
   let headerShown = false;
   let allHeaderShown = false;
   let selectableIndex = 0;
-  filtered.forEach((dir) => {
+  listItems.forEach((dir) => {
     if (dir.isSeparator) {
       inRecents = false;
       return;
@@ -650,6 +670,22 @@ function renderPickerList(filter) {
     });
     pickerList.appendChild(li);
   });
+
+  // Render Browse... as sticky footer
+  if (browseItem) {
+    const browseIdx = selectableIndex++;
+    const footer = document.createElement("div");
+    footer.id = "picker-browse-footer";
+    footer.className = browseIdx === pickerSelectedIndex ? "selected" : "";
+    footer.textContent = "Browse\u2026";
+    footer.addEventListener("click", () => selectPickerItem(browseItem));
+    footer.addEventListener("mouseenter", () => {
+      pickerSelectedIndex = browseIdx;
+      updatePickerSelection();
+    });
+    const pickerModal = document.getElementById("picker-modal");
+    pickerModal.appendChild(footer);
+  }
 }
 
 async function selectPickerItem(dir) {
