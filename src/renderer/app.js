@@ -316,6 +316,7 @@ function showPeek(tab, tabEl) {
   const cleaned = stripTuiChrome(lines);
   const text = cleaned.slice(-MAX_BUFFER_LINES).join("\n").trim();
   peekContent.textContent = text || "(no output yet)";
+  peekContent.scrollTop = peekContent.scrollHeight;
 
   // Position to the right of the sidebar, aligned with the tab
   const rect = tabEl.getBoundingClientRect();

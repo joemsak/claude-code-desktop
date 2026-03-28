@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.1.4] - 2026-03-28
+
+### Fixed
+- Hover peek now always scrolls to the bottom on hover
+
 ## [2.1.3] - 2026-03-28
 
 ### Fixed
