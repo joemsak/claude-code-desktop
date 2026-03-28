@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-03-28
+
 ### Fixed
 - Picker hover highlighting two items at once (section headers miscounted in selection index)
 - Hover peek showing garbage text and escape sequences (now reads from xterm.js terminal buffer)
@@ -21,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - Status dots fade in with scale animation instead of popping
 - Follow indicator has smooth background transition
 - Buttons have refined hover scale and pressed states
+- Distribution switched from DMG to PKG installer (auto-installs to /Applications)
 
 ## [2.0.1] - 2026-03-28
 
