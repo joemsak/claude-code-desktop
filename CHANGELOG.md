@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-03-28
+
 ### Fixed
 - Stale hooks left behind after app crash/restart now cleaned up on tab spawn
 - Hook errors (PreToolUse, etc.) no longer occur when hook server from previous session is dead
