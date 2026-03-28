@@ -23,6 +23,7 @@ const sidebarEl = document.getElementById("sidebar");
 const resizeHandle = document.getElementById("sidebar-resize-handle");
 const emptyStateEl = document.getElementById("empty-state");
 const topbarPathEl = document.getElementById("topbar-path");
+const topbarStatusEl = document.getElementById("topbar-status");
 const topbarNewTabBtn = document.getElementById("topbar-new-tab");
 const emptyStateOpenBtn = document.getElementById("empty-state-open-btn");
 const emptyStateRecents = document.getElementById("empty-state-recents");
@@ -98,7 +99,20 @@ function getDisplayName(tab) {
 
 function updateTopbar() {
   const tab = getActiveTab();
-  topbarPathEl.textContent = tab ? tab.directory : "";
+  topbarPathEl.textContent = tab ? tab.directory.replace(homePath, "~") : "";
+  document.getElementById("topbar-name").textContent = tab
+    ? getDisplayName(tab)
+    : "";
+
+  // Status dot in topbar
+  topbarStatusEl.innerHTML = "";
+  if (tab && (tab.state === "working" || tab.state === "waiting")) {
+    const dot = document.createElement("span");
+    dot.className =
+      "status-dot" +
+      (tab.state === "working" ? " status-working" : " status-waiting");
+    topbarStatusEl.appendChild(dot);
+  }
 }
 
 async function updateEmptyState() {

@@ -37,6 +37,25 @@ body {
   min-width: 0;
 }
 
+#topbar-status {
+  display: flex;
+  align-items: center;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+#topbar-name {
+  color: #cdd6f4;
+  font-size: 12px;
+  font-weight: 500;
+  margin-right: 8px;
+  flex-shrink: 0;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 #topbar-new-tab {
   -webkit-app-region: no-drag;
   background: none;
