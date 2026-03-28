@@ -155,7 +155,7 @@ body {
   text-overflow: ellipsis;
   font-size: 13px;
   line-height: 1.4;
-  transition: background 0.1s, color 0.1s;
+  transition: background 0.1s, color 0.1s, transform 0.15s ease-out;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -222,6 +222,7 @@ body {
 .tab-entry:hover {
   background: #1e1e2e;
   color: #bac2de;
+  transform: translateX(-2px);
 }
 
 .tab-entry.active {
