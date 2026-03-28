@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Picker hover highlighting two items at once (section headers miscounted in selection index)
+- Hover peek showing garbage text and escape sequences (now reads from xterm.js terminal buffer)
+- Hover peek appearing after clicking a tab active (pending timeout now cancelled on switch)
+
 ## [2.0.1] - 2026-03-28
 
 ### Fixed
