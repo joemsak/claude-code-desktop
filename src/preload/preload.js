@@ -28,6 +28,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
   loadSettings: () => ipcRenderer.invoke("settings:load"),
   saveSettings: (settings) => ipcRenderer.invoke("settings:save", settings),
 
+  // Tab state
+  getTabState: (tabId) => ipcRenderer.invoke("tab:state", tabId),
+  onTabStateChange: (callback) =>
+    ipcRenderer.on("tab:state-change", (_event, tabId, state) =>
+      callback(tabId, state),
+    ),
+
   // Session persistence
   saveSessions: (sessionData) =>
     ipcRenderer.invoke("sessions:save", sessionData),
