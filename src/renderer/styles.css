@@ -71,6 +71,24 @@ body {
   display: none;
 }
 
+#topbar-path.topbar-exited {
+  color: #585b70;
+}
+
+#topbar-name.topbar-exited {
+  color: #585b70;
+  text-decoration: line-through;
+  text-decoration-color: #45475a;
+}
+
+#topbar-path.topbar-warning {
+  color: #f9e2af;
+}
+
+#topbar-name.topbar-warning {
+  color: #f9e2af;
+}
+
 #topbar-new-tab {
   -webkit-app-region: no-drag;
   background: none;

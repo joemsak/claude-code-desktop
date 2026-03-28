@@ -21,7 +21,7 @@ describe('topbar status badge and tab name', () => {
     const fnMatch = appSource.match(/function updateTopbar\(\)\s*\{[\s\S]*?\n\}/);
     expect(fnMatch).not.toBeNull();
     const fn = fnMatch[0];
-    expect(fn).toContain('topbar-name');
+    expect(fn).toContain('topbarNameEl');
     expect(fn).toContain('getDisplayName');
   });
 

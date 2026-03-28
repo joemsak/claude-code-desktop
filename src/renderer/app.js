@@ -24,6 +24,7 @@ const resizeHandle = document.getElementById("sidebar-resize-handle");
 const emptyStateEl = document.getElementById("empty-state");
 const topbarPathEl = document.getElementById("topbar-path");
 const topbarStatusEl = document.getElementById("topbar-status");
+const topbarNameEl = document.getElementById("topbar-name");
 const topbarNewTabBtn = document.getElementById("topbar-new-tab");
 const emptyStateOpenBtn = document.getElementById("empty-state-open-btn");
 const emptyStateRecents = document.getElementById("empty-state-recents");
@@ -100,9 +101,7 @@ function getDisplayName(tab) {
 function updateTopbar() {
   const tab = getActiveTab();
   topbarPathEl.textContent = tab ? tab.directory.replace(homePath, "~") : "";
-  document.getElementById("topbar-name").textContent = tab
-    ? getDisplayName(tab)
-    : "";
+  topbarNameEl.textContent = tab ? getDisplayName(tab) : "";
 
   // Status dot in topbar
   topbarStatusEl.innerHTML = "";
@@ -112,6 +111,17 @@ function updateTopbar() {
       "status-dot" +
       (tab.state === "working" ? " status-working" : " status-waiting");
     topbarStatusEl.appendChild(dot);
+  }
+
+  // Warning/exited states
+  topbarPathEl.classList.remove("topbar-exited", "topbar-warning");
+  topbarNameEl.classList.remove("topbar-exited", "topbar-warning");
+  if (tab && tab.exited) {
+    topbarPathEl.classList.add("topbar-exited");
+    topbarNameEl.classList.add("topbar-exited");
+  } else if (tab && tab._originalDir) {
+    topbarPathEl.classList.add("topbar-warning");
+    topbarNameEl.classList.add("topbar-warning");
   }
 
   // Tab position counter
