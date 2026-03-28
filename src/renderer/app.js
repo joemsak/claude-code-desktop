@@ -270,14 +270,6 @@ async function closeTab(tabId) {
   const tab = tabs.find((t) => t.id === tabId);
   if (!tab) return;
 
-  if (tabs.length === 1) {
-    if (!confirm("Close the last tab and quit?")) return;
-    destroyTab(tab);
-    await saveSessionsNow();
-    window.close();
-    return;
-  }
-
   const index = tabs.indexOf(tab);
   destroyTab(tab);
   updateEmptyState();
@@ -286,6 +278,7 @@ async function closeTab(tabId) {
     activeTabId = null;
     renderSidebar();
     updateTopbar();
+    updateFollowIndicator();
   } else if (activeTabId === tabId) {
     switchTab(tabs[Math.min(index, tabs.length - 1)].id);
   } else {
