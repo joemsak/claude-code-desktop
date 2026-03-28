@@ -2,6 +2,8 @@ import { Terminal } from "xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { terminalTheme } from "./theme.js";
+import { fuzzyMatch, fuzzyScore } from "./fuzzy.js";
+import { stripTuiChrome } from "./strip-tui-chrome.js";
 
 const { electronAPI } = window;
 
@@ -562,9 +564,6 @@ function closePicker() {
   const tab = getActiveTab();
   if (tab) tab.terminal.focus();
 }
-
-import { fuzzyMatch, fuzzyScore } from "./fuzzy.js";
-import { stripTuiChrome } from "./strip-tui-chrome.js";
 
 function getFilteredDirs(filter) {
   if (!filter) return pickerDirs;
