@@ -203,6 +203,11 @@ body {
   to { opacity: 1; }
 }
 
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 /* Brighten tab name when waiting for attention */
 .tab-entry:has(.status-waiting) .tab-name {
   color: #cdd6f4;
@@ -616,6 +621,7 @@ body {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
   overflow: hidden;
   pointer-events: auto;
+  animation: slideIn 0.12s ease-out;
 }
 
 #peek-header {
