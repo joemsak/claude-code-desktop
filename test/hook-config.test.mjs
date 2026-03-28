@@ -80,10 +80,9 @@ describe('hook config', () => {
       })
     );
 
-    const settingsPath = path.join(claudeDir, 'settings.local.json');
-    config.cleanupStale(settingsPath);
+    config.cleanupStale(tmpDir, 'project');
 
-    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+    const settings = JSON.parse(fs.readFileSync(path.join(claudeDir, 'settings.local.json'), 'utf-8'));
     expect(settings.hooks.Stop.length).toBe(1);
     expect(settings.hooks.Stop[0].hooks[0].command).toBe('echo keep');
     expect(settings.hooks.PreToolUse.length).toBe(0);

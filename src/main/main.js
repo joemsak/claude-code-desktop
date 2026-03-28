@@ -284,16 +284,13 @@ app.whenReady().then(async () => {
   const sessionData = sessionStore.load() || sessionStore.DEFAULT_SESSION;
   try {
     const scope = sessionData.hooksScope || "project";
-    // Clean global settings
-    hookConfig.cleanupStale(hookConfig.getSettingsPath("", "global"));
-    // Clean project-level settings for each saved workspace
+    hookConfig.cleanupStale("", "global");
     if (sessionData.tabs) {
       const cleaned = new Set();
       for (const tab of sessionData.tabs) {
         if (tab.directory && !cleaned.has(tab.directory)) {
           cleaned.add(tab.directory);
-          const settingsPath = hookConfig.getSettingsPath(tab.directory, scope);
-          hookConfig.cleanupStale(settingsPath);
+          hookConfig.cleanupStale(tab.directory, scope);
         }
       }
     }
