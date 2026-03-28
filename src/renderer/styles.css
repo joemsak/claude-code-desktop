@@ -225,6 +225,18 @@ body {
   transform: translateX(-2px);
 }
 
+.tab-entry:hover::before {
+  content: "\u2807";
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #45475a;
+  font-size: 8px;
+  opacity: 0.6;
+  cursor: grab;
+}
+
 .tab-entry.active {
   background: #313244;
   color: #cdd6f4;
@@ -234,6 +246,7 @@ body {
 
 .tab-entry.dragging {
   opacity: 0.5;
+  cursor: grabbing;
 }
 
 .tab-entry.drag-over {
