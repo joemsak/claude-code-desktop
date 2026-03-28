@@ -61,6 +61,34 @@ describe('hook config', () => {
     expect(settings.hooks.Stop[0].hooks[0].command).toBe('echo existing');
   });
 
+  it('cleanupStale removes all ccd hooks from a settings file', () => {
+    const claudeDir = path.join(tmpDir, '.claude');
+    fs.mkdirSync(claudeDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(claudeDir, 'settings.local.json'),
+      JSON.stringify({
+        hooks: {
+          Stop: [
+            { matcher: '', hooks: [{ type: 'command', command: 'echo keep' }] },
+            { matcher: '', hooks: [{ type: 'http', url: 'http://localhost:9999/hooks/ccd-old-tab-1' }] },
+            { matcher: '', hooks: [{ type: 'http', url: 'http://localhost:8888/hooks/ccd-old-tab-2' }] },
+          ],
+          PreToolUse: [
+            { matcher: '', hooks: [{ type: 'http', url: 'http://localhost:9999/hooks/ccd-old-tab-1' }] },
+          ],
+        },
+      })
+    );
+
+    const settingsPath = path.join(claudeDir, 'settings.local.json');
+    config.cleanupStale(settingsPath);
+
+    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+    expect(settings.hooks.Stop.length).toBe(1);
+    expect(settings.hooks.Stop[0].hooks[0].command).toBe('echo keep');
+    expect(settings.hooks.PreToolUse.length).toBe(0);
+  });
+
   it('writes hooks to global settings when scope is global', () => {
     const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hook-config-home-'));
     config = createHookConfig(8888, homeDir);

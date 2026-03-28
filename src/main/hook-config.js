@@ -45,6 +45,12 @@ function createHookConfig(port, homeDir) {
     );
   }
 
+  function isAnyCcdHook(hookEntry) {
+    return hookEntry.hooks?.some(
+      (h) => h.type === "http" && /\/hooks\/ccd-/.test(h.url),
+    );
+  }
+
   function install(workspaceDir, tabId, scope) {
     const settingsPath = getSettingsPath(workspaceDir, scope);
     const settings = readSettings(settingsPath);
@@ -78,7 +84,22 @@ function createHookConfig(port, homeDir) {
     writeSettings(settingsPath, settings);
   }
 
-  return { install, uninstall };
+  function cleanupStale(settingsPath) {
+    const settings = readSettings(settingsPath);
+    if (!settings.hooks) return;
+    let changed = false;
+    for (const event of HOOK_EVENTS) {
+      if (!settings.hooks[event]) continue;
+      const before = settings.hooks[event].length;
+      settings.hooks[event] = settings.hooks[event].filter(
+        (e) => !isAnyCcdHook(e),
+      );
+      if (settings.hooks[event].length !== before) changed = true;
+    }
+    if (changed) writeSettings(settingsPath, settings);
+  }
+
+  return { install, uninstall, cleanupStale, getSettingsPath };
 }
 
 module.exports = { createHookConfig };

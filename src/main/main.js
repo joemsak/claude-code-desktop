@@ -280,7 +280,27 @@ app.whenReady().then(async () => {
   const hookPort = await hookServer.start();
   hookConfig = createHookConfig(hookPort);
 
+  // Clean up stale hooks from previous sessions before restoring tabs
   const sessionData = sessionStore.load() || sessionStore.DEFAULT_SESSION;
+  try {
+    const scope = sessionData.hooksScope || "project";
+    // Clean global settings
+    hookConfig.cleanupStale(hookConfig.getSettingsPath("", "global"));
+    // Clean project-level settings for each saved workspace
+    if (sessionData.tabs) {
+      const cleaned = new Set();
+      for (const tab of sessionData.tabs) {
+        if (tab.directory && !cleaned.has(tab.directory)) {
+          cleaned.add(tab.directory);
+          const settingsPath = hookConfig.getSettingsPath(tab.directory, scope);
+          hookConfig.cleanupStale(settingsPath);
+        }
+      }
+    }
+  } catch {
+    // Non-fatal — stale hooks may cause errors but won't break functionality
+  }
+
   createWindow(sessionData);
 
   const template = [
