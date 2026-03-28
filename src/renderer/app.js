@@ -25,6 +25,7 @@ const emptyStateEl = document.getElementById("empty-state");
 const topbarPathEl = document.getElementById("topbar-path");
 const topbarNewTabBtn = document.getElementById("topbar-new-tab");
 const emptyStateOpenBtn = document.getElementById("empty-state-open-btn");
+const emptyStateRecents = document.getElementById("empty-state-recents");
 const followIndicator = document.getElementById("follow-indicator");
 const settingsOverlay = document.getElementById("settings-overlay");
 const settingsCloseBtn = document.getElementById("settings-close");
@@ -94,14 +95,47 @@ function updateTopbar() {
   topbarPathEl.textContent = tab ? tab.directory : "";
 }
 
-function updateEmptyState() {
+async function updateEmptyState() {
   if (tabs.length === 0) {
     emptyStateEl.classList.remove("hidden");
     terminalContainer.classList.add("hidden");
+    await renderEmptyStateRecents();
   } else {
     emptyStateEl.classList.add("hidden");
     terminalContainer.classList.remove("hidden");
   }
+}
+
+async function renderEmptyStateRecents() {
+  const recents = await electronAPI.getRecentWorkspaces();
+  emptyStateRecents.innerHTML = "";
+  if (recents.length === 0) return;
+
+  const label = document.createElement("div");
+  label.className = "empty-recents-label";
+  label.textContent = "Recent";
+  emptyStateRecents.appendChild(label);
+
+  const list = document.createElement("div");
+  list.className = "empty-recents-list";
+
+  for (const r of recents.slice(0, 3)) {
+    const item = document.createElement("div");
+    item.className = "empty-recents-item";
+
+    const name = document.createElement("span");
+    name.textContent = basename(r.path);
+    item.appendChild(name);
+
+    const pathSpan = document.createElement("span");
+    pathSpan.className = "empty-recents-path";
+    pathSpan.textContent = r.path.replace(homePath, "~");
+    item.appendChild(pathSpan);
+
+    item.addEventListener("click", () => createTab(r.path));
+    list.appendChild(item);
+  }
+  emptyStateRecents.appendChild(list);
 }
 
 // ===========================
@@ -429,20 +463,50 @@ function renderPickerList(filter) {
   if (pickerSelectedIndex >= selectableCount)
     pickerSelectedIndex = Math.max(0, selectableCount - 1);
 
+  let inRecents = true;
+  let headerShown = false;
+  let allHeaderShown = false;
   let selectableIndex = 0;
   filtered.forEach((dir) => {
     if (dir.isSeparator) {
-      const li = document.createElement("li");
-      li.className = "picker-separator";
-      pickerList.appendChild(li);
+      inRecents = false;
       return;
+    }
+
+    // Section headers (only when not filtering)
+    if (!filter) {
+      if (inRecents && dir.isRecent && !headerShown) {
+        headerShown = true;
+        const header = document.createElement("li");
+        header.className = "picker-section-header";
+        header.textContent = "Recent";
+        pickerList.appendChild(header);
+      }
+      if (!inRecents && !dir.isBrowse && !dir.isHome && !allHeaderShown) {
+        allHeaderShown = true;
+        const header = document.createElement("li");
+        header.className = "picker-section-header";
+        header.textContent = "All Workspaces";
+        pickerList.appendChild(header);
+      }
     }
 
     const idx = selectableIndex++;
     const li = document.createElement("li");
-    li.textContent = dir.name;
     if (dir.isRecent) li.classList.add("picker-recent");
     li.classList.toggle("selected", idx === pickerSelectedIndex);
+
+    const nameSpan = document.createElement("span");
+    nameSpan.textContent = dir.name;
+    li.appendChild(nameSpan);
+
+    if (dir.path && !dir.isHome && !dir.isBrowse) {
+      const pathSpan = document.createElement("span");
+      pathSpan.className = "picker-path";
+      pathSpan.textContent = dir.path.replace(homePath, "~");
+      li.appendChild(pathSpan);
+    }
+
     li.addEventListener("click", () => selectPickerItem(dir));
     li.addEventListener("mouseenter", () => {
       pickerSelectedIndex = idx;

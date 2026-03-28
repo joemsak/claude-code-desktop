@@ -248,41 +248,106 @@ body {
 
 .empty-state-content {
   text-align: center;
+  width: 320px;
+}
+
+.empty-state-icon {
+  font-size: 28px;
+  color: #89b4fa;
+  margin-bottom: 12px;
 }
 
 .empty-state-content h2 {
   color: #cdd6f4;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 500;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .empty-state-content p {
-  color: #6c7086;
-  font-size: 14px;
-  margin-bottom: 24px;
+  color: #585b70;
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+#empty-state-recents {
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.empty-recents-label {
+  color: #585b70;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+
+.empty-recents-list {
+  background: #181825;
+  border: 1px solid #313244;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.empty-recents-item {
+  padding: 9px 12px;
+  color: #89b4fa;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  transition: background 0.1s;
+}
+
+.empty-recents-item:not(:last-child) {
+  border-bottom: 1px solid #313244;
+}
+
+.empty-recents-item:hover {
+  background: #313244;
+}
+
+.empty-recents-path {
+  color: #45475a;
+  font-size: 11px;
 }
 
 #empty-state-open-btn {
   background: #313244;
   color: #cdd6f4;
   border: 1px solid #45475a;
-  padding: 10px 24px;
-  font-size: 14px;
+  padding: 8px 20px;
+  font-size: 13px;
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.15s;
+  width: 100%;
 }
 
 #empty-state-open-btn:hover {
   background: #45475a;
 }
 
+.empty-state-shortcuts {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+
 .empty-state-hint {
-  display: block;
-  color: #585b70;
-  font-size: 12px;
-  margin-top: 8px;
+  color: #45475a;
+  font-size: 11px;
+}
+
+.empty-state-hint kbd {
+  background: #313244;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  border: 1px solid #45475a;
 }
 
 /* --- Follow Indicator --- */
@@ -402,10 +467,27 @@ body {
   background: #45475a;
 }
 
+#picker-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 #picker-list li .picker-path {
-  color: #6c7086;
+  color: #45475a;
   font-size: 11px;
   margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.picker-section-header {
+  padding: 8px 16px 4px !important;
+  color: #585b70 !important;
+  font-size: 10px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: default !important;
+  pointer-events: none;
 }
 
 #picker-list li.picker-separator {

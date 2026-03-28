@@ -22,10 +22,15 @@
     <div id="follow-indicator" class="following">Following &#x2193;</div>
     <div id="empty-state" class="hidden">
       <div class="empty-state-content">
+        <div class="empty-state-icon">&#x2318;</div>
         <h2>Claude Code Desktop</h2>
-        <p>Pick a workspace to get started</p>
-        <button id="empty-state-open-btn">Open Workspace</button>
-        <span class="empty-state-hint">Cmd+T</span>
+        <p>Open a workspace to start a session</p>
+        <div id="empty-state-recents"></div>
+        <button id="empty-state-open-btn">Browse Other...</button>
+        <div class="empty-state-shortcuts">
+          <span class="empty-state-hint"><kbd>Cmd+T</kbd> picker</span>
+          <span class="empty-state-hint"><kbd>Cmd+,</kbd> settings</span>
+        </div>
       </div>
     </div>
   </div>
