@@ -9,6 +9,19 @@ All notable changes to this project will be documented in this file.
 - Hover peek showing garbage text and escape sequences (now reads from xterm.js terminal buffer)
 - Hover peek appearing after clicking a tab active (pending timeout now cancelled on switch)
 
+### Changed
+- Topbar now shows tab name, status dot, tab counter, and ~/shortened path
+- Topbar reflects exited/warning state of active tab
+- Active sidebar tab has blue left accent border
+- Sidebar tabs have subtle separators for visual breathing room
+- Sidebar tabs shift left on hover with micro-interaction
+- Drag handle icon visible on tab hover for reorder discoverability
+- Modal overlays (picker, settings) fade in smoothly
+- Peek panel slides in from sidebar edge
+- Status dots fade in with scale animation instead of popping
+- Follow indicator has smooth background transition
+- Buttons have refined hover scale and pressed states
+
 ## [2.0.1] - 2026-03-28
 
 ### Fixed
