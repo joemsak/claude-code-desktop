@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-03-28
+
 ### Added
 - Settings UI (Cmd+,) with workspace directory and hooks scope configuration
 - Hook-based Claude Code state detection via local HTTP server and Claude Code hooks API
