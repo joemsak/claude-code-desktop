@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Confirmation dialog when closing a tab with an active Claude session
+- Confirmation dialog when quitting with active sessions running
+
 ## [2.1.1] - 2026-03-28
 
 ### Fixed
