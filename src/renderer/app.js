@@ -113,6 +113,15 @@ function updateTopbar() {
       (tab.state === "working" ? " status-working" : " status-waiting");
     topbarStatusEl.appendChild(dot);
   }
+
+  // Tab position counter
+  const topbarCounterElement = document.getElementById("topbar-counter");
+  if (tab && tabs.length > 1) {
+    const pos = tabs.indexOf(tab) + 1;
+    topbarCounterElement.textContent = `${pos} / ${tabs.length}`;
+  } else {
+    topbarCounterElement.textContent = "";
+  }
 }
 
 async function updateEmptyState() {

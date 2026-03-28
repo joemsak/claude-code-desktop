@@ -56,6 +56,21 @@ body {
   white-space: nowrap;
 }
 
+#topbar-counter {
+  color: #585b70;
+  font-size: 10px;
+  background: #313244;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-right: 8px;
+  flex-shrink: 0;
+  -webkit-app-region: no-drag;
+}
+
+#topbar-counter:empty {
+  display: none;
+}
+
 #topbar-new-tab {
   -webkit-app-region: no-drag;
   background: none;
