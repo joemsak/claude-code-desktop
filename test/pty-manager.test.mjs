@@ -167,6 +167,29 @@ describe('pty-manager', () => {
     });
   });
 
+  describe('hasActive', () => {
+    it('returns false when no PTYs are spawned', () => {
+      expect(manager.hasActive()).toBe(false);
+    });
+
+    it('returns true when a PTY is alive', () => {
+      manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
+      expect(manager.hasActive()).toBe(true);
+    });
+
+    it('returns false after PTY exits', () => {
+      manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
+      mock.triggerExit(0);
+      expect(manager.hasActive()).toBe(false);
+    });
+
+    it('returns false after all PTYs are killed', () => {
+      manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());
+      manager.killAll();
+      expect(manager.hasActive()).toBe(false);
+    });
+  });
+
   describe('getCwd', () => {
     it('returns null for unknown tab ID', () => {
       expect(manager.getCwd('nonexistent')).toBeNull();

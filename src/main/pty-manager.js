@@ -80,7 +80,11 @@ function createManager(ptyModule, execModule, preSpawnHook) {
     }
   }
 
-  return { spawn, write, resize, kill, killAll, getCwd };
+  function hasActive() {
+    return ptys.size > 0;
+  }
+
+  return { spawn, write, resize, kill, killAll, getCwd, hasActive };
 }
 
 const defaultManager = createManager();
