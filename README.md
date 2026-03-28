@@ -39,12 +39,35 @@ Full terminal emulation powered by xterm.js with a Catppuccin Dusk color theme, 
 
 On first PTY spawn, the app runs a configurable auth check (defaults to AWS SSO login using the `AWS_PROFILE` env var or `bedrock-users`). This runs in the background and never blocks startup.
 
+### Settings
+
+Press **Cmd+,** to open the settings panel. Configure your workspace directory and hooks scope.
+
+### Tab status indicators
+
+Sidebar tabs show real-time status via colored dots:
+- **Pulsing blue** — Claude is actively working
+- **Orange** — Claude needs your attention (waiting for input)
+- **Dimmed strikethrough** — session has exited
+- **No indicator** — idle (quiet by default)
+
+Status is detected via Claude Code's hooks API and a local HTTP server.
+
+### Hover peek
+
+Hover over a sidebar tab for 500ms to preview the last 20 lines of terminal output in a floating panel — no need to switch tabs to check progress.
+
+### Native notifications
+
+When Claude finishes or needs input in a background tab, you get a native macOS notification (only when the app window is not focused).
+
 ### Keyboard shortcuts
 
 | Shortcut | Action |
 |---|---|
 | **Cmd+T** | New tab |
 | **Cmd+W** | Close tab |
+| **Cmd+,** | Settings |
 | **Cmd+1** – **Cmd+9** | Switch to tab 1–9 |
 | **Cmd+Shift+[** | Previous tab |
 | **Cmd+Shift+]** | Next tab |
@@ -78,8 +101,11 @@ npm run install-app
 npm run dev       # bundle + launch (fast iteration)
 npm run start     # rebuild native modules + bundle + launch
 npm run test      # run tests
+npm run lint      # run ESLint
 npm run bundle    # bundle renderer JS only
 ```
+
+Pre-commit hooks (via husky) automatically run lint, bundle, and tests before every commit — matching the CI pipeline.
 
 ## License
 

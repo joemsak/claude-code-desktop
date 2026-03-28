@@ -9,8 +9,13 @@
 - `npm run bundle` — bundle renderer JS with esbuild
 - `npm run rebuild` — rebuild node-pty for Electron
 - `npm run test` — run test suite (vitest)
+- `npm run lint` — run ESLint on src/ and test/
 - `npm run dist` — build distributable .app and .dmg
 - `npm run install-app` — build and copy to /Applications
+
+## Pre-commit Hooks
+- Husky runs lint, bundle, and tests before every commit (mirrors CI)
+- Do not add `eslint-disable` comments — fix the underlying issue instead
 
 ## Releasing
 
