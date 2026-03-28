@@ -6,7 +6,7 @@ import { terminalTheme } from "./theme.js";
 const { electronAPI } = window;
 
 // --- State ---
-let tabs = []; // [{ id, directory, customName, terminal, fitAddon, wrapper, exited, _originalDir }]
+let tabs = []; // [{ id, directory, customName, terminal, fitAddon, wrapper, exited, state, _originalDir }]
 let activeTabId = null;
 let sidebarWidth = 200;
 let saveTimeout = null;
@@ -146,9 +146,21 @@ function renderSidebar() {
   tabListEl.innerHTML = "";
   for (const tab of tabs) {
     const el = document.createElement("div");
-    el.className = "tab-entry" + (tab.id === activeTabId ? " active" : "");
+    el.className =
+      "tab-entry" +
+      (tab.id === activeTabId ? " active" : "") +
+      (tab.exited ? " tab-exited" : "");
     el.dataset.tabId = tab.id;
     el.draggable = true;
+
+    // Status dot (only for working/waiting states)
+    if (tab.state === "working" || tab.state === "waiting") {
+      const dot = document.createElement("span");
+      dot.className =
+        "status-dot" +
+        (tab.state === "working" ? " status-working" : " status-waiting");
+      el.appendChild(dot);
+    }
 
     const nameSpan = document.createElement("span");
     nameSpan.className = "tab-name";
@@ -257,6 +269,7 @@ function createTab(directory, customName = null, originalDir = null) {
     fitAddon,
     wrapper,
     exited: false,
+    state: null,
     _originalDir: originalDir,
   };
   tabs.push(tab);
@@ -607,10 +620,21 @@ electronAPI.onPtyExit((tabId, _exitCode) => {
   const tab = tabs.find((t) => t.id === tabId);
   if (tab) {
     tab.exited = true;
+    tab.state = "exited";
     tab.terminal.writeln("");
     tab.terminal.writeln(
       "\x1b[33m[Session ended. Press Enter to restart or Cmd+W to close]\x1b[0m",
     );
+    renderSidebar();
+  }
+});
+
+// Tab state changes from hook server
+electronAPI.onTabStateChange((tabId, state) => {
+  const tab = tabs.find((t) => t.id === tabId);
+  if (tab && !tab.exited) {
+    tab.state = state;
+    renderSidebar();
   }
 });
 
