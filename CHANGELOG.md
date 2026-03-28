@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Stale hooks left behind after app crash/restart now cleaned up on tab spawn
+- Hook errors (PreToolUse, etc.) no longer occur when hook server from previous session is dead
+
+### Changed
+- Hover peek now omits Claude Code prompt area and statusbar (shows only meaningful output)
+- Picker "Browse..." is now a sticky footer, always visible regardless of scroll position
+
 ## [2.1.0] - 2026-03-28
 
 ### Fixed
