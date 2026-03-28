@@ -736,6 +736,11 @@ electronAPI.onTabStateChange((tabId, state) => {
 // Menu Events
 // ===========================
 
+electronAPI.onNotificationClick((tabId) => {
+  const tab = tabs.find((t) => t.id === tabId);
+  if (tab) switchTab(tab.id);
+});
+
 electronAPI.onNewTab(() => openPicker());
 electronAPI.onCloseTab(() => {
   if (activeTabId) closeTab(activeTabId);

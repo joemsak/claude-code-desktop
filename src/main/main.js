@@ -5,6 +5,7 @@ const {
   dialog,
   Menu,
   shell,
+  Notification,
 } = require("electron");
 const path = require("path");
 const fs = require("fs");
@@ -254,6 +255,26 @@ app.whenReady().then(async () => {
   hookServer = createHookServer((tabId, state) => {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send("tab:state-change", tabId, state);
+
+      // Send native notification for important state changes when window is not focused
+      if (
+        (state === "waiting" || state === "idle") &&
+        !mainWindow.isFocused()
+      ) {
+        const dir = tabDirectories.get(tabId);
+        const title =
+          state === "waiting"
+            ? "Claude needs your input"
+            : "Claude finished working";
+        const body = dir ? path.basename(dir) : tabId;
+        const notification = new Notification({ title, body });
+        notification.on("click", () => {
+          mainWindow.show();
+          mainWindow.focus();
+          mainWindow.webContents.send("notification:click", tabId);
+        });
+        notification.show();
+      }
     }
   });
   const hookPort = await hookServer.start();

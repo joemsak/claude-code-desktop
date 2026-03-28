@@ -23,6 +23,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   onCloseTab: (callback) => ipcRenderer.on("menu:close-tab", () => callback()),
   onOpenSettings: (callback) =>
     ipcRenderer.on("menu:open-settings", () => callback()),
+  onNotificationClick: (callback) =>
+    ipcRenderer.on("notification:click", (_event, tabId) => callback(tabId)),
 
   // Settings
   loadSettings: () => ipcRenderer.invoke("settings:load"),
