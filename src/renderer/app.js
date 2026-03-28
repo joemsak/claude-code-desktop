@@ -445,6 +445,11 @@ async function closeTab(tabId) {
   const tab = tabs.find((t) => t.id === tabId);
   if (!tab) return;
 
+  if (!tab.exited) {
+    const confirmed = await electronAPI.confirmClose();
+    if (!confirmed) return;
+  }
+
   const index = tabs.indexOf(tab);
   destroyTab(tab);
   updateEmptyState();

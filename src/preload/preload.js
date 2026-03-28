@@ -48,6 +48,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   trackWorkspace: (dirPath) => ipcRenderer.invoke("workspace:track", dirPath),
   getRecentWorkspaces: () => ipcRenderer.invoke("workspace:recent"),
 
+  // Confirmation dialogs
+  confirmClose: () => ipcRenderer.invoke("dialog:confirm-close"),
+
   // Utility
   getHomePath: () => ipcRenderer.invoke("util:home-path"),
   getWindowBounds: () => ipcRenderer.invoke("util:window-bounds"),
