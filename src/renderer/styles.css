@@ -107,6 +107,10 @@ body {
   background: #313244;
 }
 
+#topbar-new-tab:active {
+  transform: scale(0.9);
+}
+
 #app {
   display: flex;
   height: calc(100vh - 37px); /* subtract topbar height + border */
@@ -277,6 +281,10 @@ body {
   color: #f38ba8;
 }
 
+.close-btn:active {
+  transform: scale(0.9);
+}
+
 .tab-entry:hover .close-btn {
   display: block;
 }
@@ -328,12 +336,13 @@ body {
   padding: 12px;
   cursor: pointer;
   text-align: center;
-  transition: color 0.1s;
+  transition: color 0.1s, transform 0.1s;
   -webkit-app-region: no-drag;
 }
 
 #new-tab-btn:hover {
   color: #cdd6f4;
+  transform: scale(1.05);
 }
 
 /* --- Sidebar Resize Handle --- */
@@ -449,6 +458,10 @@ body {
 
 #empty-state-open-btn:hover {
   background: #45475a;
+}
+
+#empty-state-open-btn:active {
+  transform: scale(0.98);
 }
 
 .empty-state-shortcuts {
