@@ -27,6 +27,10 @@ const topbarNewTabBtn = document.getElementById("topbar-new-tab");
 const emptyStateOpenBtn = document.getElementById("empty-state-open-btn");
 const emptyStateRecents = document.getElementById("empty-state-recents");
 const followIndicator = document.getElementById("follow-indicator");
+const peekPanel = document.getElementById("peek-panel");
+const peekTabName = document.getElementById("peek-tab-name");
+const peekTabStatus = document.getElementById("peek-tab-status");
+const peekContent = document.getElementById("peek-content");
 const settingsOverlay = document.getElementById("settings-overlay");
 const settingsCloseBtn = document.getElementById("settings-close");
 const settingsWorkspaceDir = document.getElementById("settings-workspace-dir");
@@ -61,6 +65,24 @@ function updateFollowIndicator() {
   } else {
     followIndicator.textContent = "Follow \u2193";
     followIndicator.classList.remove("following");
+  }
+}
+
+// eslint-disable-next-line no-control-regex
+const ANSI_REGEX =
+  /\x1b\[[0-9;]*[a-zA-Z]|\x1b\].*?(?:\x07|\x1b\\)|\x1b[()][0-9A-B]|\x1b[>=<]|\r/g;
+function stripAnsi(str) {
+  return str.replace(ANSI_REGEX, "");
+}
+
+const MAX_BUFFER_LINES = 20;
+
+function appendToOutputBuffer(tab, data) {
+  const cleaned = stripAnsi(data);
+  const lines = cleaned.split("\n");
+  tab.outputBuffer.push(...lines);
+  if (tab.outputBuffer.length > MAX_BUFFER_LINES) {
+    tab.outputBuffer = tab.outputBuffer.slice(-MAX_BUFFER_LINES);
   }
 }
 
@@ -189,6 +211,23 @@ function renderSidebar() {
 
     el.addEventListener("click", () => switchTab(tab.id));
 
+    // Hover peek (only for non-active tabs)
+    el.addEventListener("mouseenter", () => {
+      if (tab.id === activeTabId) return;
+      clearTimeout(peekTimeout);
+      peekTimeout = setTimeout(() => showPeek(tab, el), 500);
+    });
+    el.addEventListener("mouseleave", () => {
+      if (peekTabId !== tab.id) {
+        clearTimeout(peekTimeout);
+        peekTimeout = null;
+      } else {
+        // Delay hiding to allow mouse to move to peek panel
+        clearTimeout(peekTimeout);
+        peekTimeout = setTimeout(() => hidePeek(), 200);
+      }
+    });
+
     nameSpan.addEventListener("click", (e) => {
       e.stopPropagation();
       if (tab.id !== activeTabId) switchTab(tab.id);
@@ -219,6 +258,59 @@ function renderSidebar() {
     tabListEl.appendChild(el);
   }
 }
+
+// ===========================
+// Hover Peek
+// ===========================
+
+let peekTimeout = null;
+let peekTabId = null;
+
+function showPeek(tab, tabEl) {
+  peekTabId = tab.id;
+  peekTabName.textContent = getDisplayName(tab);
+
+  if (tab.state === "working") {
+    peekTabStatus.innerHTML =
+      '<span class="status-dot status-working" style="width:5px;height:5px;"></span> working';
+    peekTabStatus.style.color = "#89b4fa";
+  } else if (tab.state === "waiting") {
+    peekTabStatus.innerHTML =
+      '<span class="status-dot status-waiting" style="width:5px;height:5px;"></span> waiting';
+    peekTabStatus.style.color = "#fab387";
+  } else if (tab.exited) {
+    peekTabStatus.textContent = "exited";
+    peekTabStatus.style.color = "#585b70";
+  } else {
+    peekTabStatus.textContent = "idle";
+    peekTabStatus.style.color = "#6c7086";
+  }
+
+  const text = tab.outputBuffer.join("\n").trim();
+  peekContent.textContent = text || "(no output yet)";
+
+  // Position to the right of the sidebar, aligned with the tab
+  const rect = tabEl.getBoundingClientRect();
+  const sidebarRect = sidebarEl.getBoundingClientRect();
+  peekPanel.style.left = `${sidebarRect.right + 8}px`;
+  peekPanel.style.top = `${Math.max(rect.top, 40)}px`;
+  peekPanel.classList.remove("hidden");
+}
+
+function hidePeek() {
+  clearTimeout(peekTimeout);
+  peekTimeout = null;
+  peekTabId = null;
+  peekPanel.classList.add("hidden");
+}
+
+peekPanel.addEventListener("mouseenter", () => {
+  clearTimeout(peekTimeout);
+});
+
+peekPanel.addEventListener("mouseleave", () => {
+  hidePeek();
+});
 
 // ===========================
 // Tab Lifecycle
@@ -270,6 +362,7 @@ function createTab(directory, customName = null, originalDir = null) {
     wrapper,
     exited: false,
     state: null,
+    outputBuffer: [],
     _originalDir: originalDir,
   };
   tabs.push(tab);
@@ -614,6 +707,7 @@ electronAPI.onPtyData((tabId, data) => {
   const tab = tabs.find((t) => t.id === tabId);
   if (!tab) return;
   tab.terminal.write(data);
+  appendToOutputBuffer(tab, data);
 });
 
 electronAPI.onPtyExit((tabId, _exitCode) => {

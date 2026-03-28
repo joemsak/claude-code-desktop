@@ -543,6 +543,64 @@ body {
   color: #89b4fa;
 }
 
+/* --- Peek Panel --- */
+#peek-panel {
+  position: absolute;
+  z-index: 50;
+  width: 360px;
+  max-height: 300px;
+  background: #1e1e2e;
+  border: 1px solid #45475a;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+#peek-header {
+  padding: 6px 10px;
+  background: #181825;
+  border-bottom: 1px solid #313244;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#peek-tab-name {
+  color: #89b4fa;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+#peek-tab-status {
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#peek-content {
+  padding: 8px 10px;
+  font-family: Menlo, Monaco, "Courier New", monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #cdd6f4;
+  margin: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+#peek-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+#peek-content::-webkit-scrollbar-thumb {
+  background: #313244;
+  border-radius: 2px;
+}
+
 /* --- Settings Overlay --- */
 #settings-overlay {
   position: fixed;

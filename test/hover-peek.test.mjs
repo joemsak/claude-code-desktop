@@ -1,0 +1,35 @@
+import { describe, it, expect } from 'vitest';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const appSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'app.js'), 'utf-8');
+const cssSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'styles.css'), 'utf-8');
+const htmlSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'index.html'), 'utf-8');
+
+describe('hover peek', () => {
+  it('has a peek panel element in the HTML', () => {
+    expect(htmlSource).toContain('id="peek-panel"');
+  });
+
+  it('maintains an output buffer per tab', () => {
+    expect(appSource).toContain('outputBuffer');
+  });
+
+  it('shows peek panel on tab hover', () => {
+    expect(appSource).toContain('showPeek');
+  });
+
+  it('hides peek panel on mouse leave', () => {
+    expect(appSource).toContain('hidePeek');
+  });
+
+  it('has CSS for the peek panel', () => {
+    expect(cssSource).toContain('peek-panel');
+  });
+
+  it('strips ANSI escape codes from peek output', () => {
+    expect(appSource).toContain('stripAnsi');
+  });
+});
