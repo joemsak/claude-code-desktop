@@ -108,6 +108,7 @@ body {
   align-items: center;
   justify-content: space-between;
   -webkit-app-region: no-drag;
+  border-bottom: 1px solid #11111b;
 }
 
 .tab-entry.tab-warning .tab-name {
