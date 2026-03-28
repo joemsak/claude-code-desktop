@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Settings UI (Cmd+,) with workspace directory and hooks scope configuration
+- Hook-based Claude Code state detection via local HTTP server and Claude Code hooks API
+- Sidebar status indicators: pulsing blue dot for working tabs, orange dot for tabs needing attention, dimmed strikethrough for exited tabs; idle tabs have no indicator (quiet by default)
+- Hover peek: hover a sidebar tab for 500ms to preview the last 20 lines of terminal output in a floating panel
+- Native macOS notifications when Claude finishes or needs input in a background tab (only when window is not focused)
+- Empty state now shows recent workspaces directly, keyboard shortcut hints (Cmd+T, Cmd+,)
+- Workspace picker section headers (Recent / All Workspaces) and directory paths alongside names
+
+### Changed
+- Closing the last tab returns to the empty state instead of quitting the app
+
 ## [1.5.0] - 2026-03-27
 
 ### Added
