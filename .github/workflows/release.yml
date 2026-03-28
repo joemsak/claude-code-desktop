@@ -45,8 +45,7 @@ jobs:
         with:
           name: mac-${{ matrix.arch }}
           path: |
-            dist/*.dmg
-            dist/*.zip
+            dist/*.pkg
 
   release:
     needs: build

@@ -34,7 +34,7 @@
       "category": "public.app-category.developer-tools",
       "target": [
         "dir",
-        "dmg"
+        "pkg"
       ]
     },
     "files": [
