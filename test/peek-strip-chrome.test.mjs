@@ -16,19 +16,38 @@ describe('stripTuiChrome', () => {
     expect(result).toEqual(['Some output text', 'More output']);
   });
 
-  it('removes statusbar with ctx info', () => {
+  it('strips everything after prompt box including unknown statusbar lines', () => {
     const lines = [
       'Some output text',
-      'Opus 4.6 (1M context)   ctx: 100K/1M (10%)   📂 project   ⎇ main*',
+      '─────────────────────────────────────────',
+      '❯',
+      '─────────────────────────────────────────',
+      '   Opus 4.6 (1M context)   ctx: 0/1M   📂 zenpayroll   ⎇ js/rails-8.1-upgrade',
+      '  PR #324225',
+      '  some-future-statusbar-thing',
     ];
     const result = stripTuiChrome(lines);
     expect(result).toEqual(['Some output text']);
   });
 
-  it('removes mode indicator line', () => {
+  it('strips prompt box with > symbol', () => {
     const lines = [
       'output',
-      '⏵⏵ accept edits on (shift+tab to cycle)',
+      '──────────────────────────',
+      '>',
+      '──────────────────────────',
+    ];
+    const result = stripTuiChrome(lines);
+    expect(result).toEqual(['output']);
+  });
+
+  it('strips prompt box with trailing empties before it', () => {
+    const lines = [
+      'output',
+      '',
+      '──────────────────────────',
+      '❯',
+      '──────',
     ];
     const result = stripTuiChrome(lines);
     expect(result).toEqual(['output']);
@@ -44,17 +63,6 @@ describe('stripTuiChrome', () => {
     expect(stripTuiChrome([])).toEqual([]);
   });
 
-  it('removes prompt with varying border widths', () => {
-    const lines = [
-      'output',
-      '───────────────────────────────────────────────────────────────────────────',
-      ' ❯',
-      '───────────────────────────────────────────────────────────────────────────',
-    ];
-    const result = stripTuiChrome(lines);
-    expect(result).toEqual(['output']);
-  });
-
   it('does not strip normal content with $ signs', () => {
     const lines = ['the cost is $5', 'echo $HOME'];
     const result = stripTuiChrome(lines);
@@ -67,35 +75,31 @@ describe('stripTuiChrome', () => {
     expect(result).toEqual(['│ Name │ Value │', '│ foo  │ bar   │']);
   });
 
-  it('strips prompt with > symbol', () => {
+  // Fallback: when there's no prompt box, still strip known chrome from bottom
+  it('removes standalone statusbar with ctx info', () => {
+    const lines = [
+      'Some output text',
+      'Opus 4.6 (1M context)   ctx: 100K/1M (10%)   📂 project   ⎇ main*',
+    ];
+    const result = stripTuiChrome(lines);
+    expect(result).toEqual(['Some output text']);
+  });
+
+  it('removes standalone mode indicator line', () => {
     const lines = [
       'output',
-      '──────────────────────────',
-      '>',
-      '──────────────────────────',
+      '⏵⏵ accept edits on (shift+tab to cycle)',
     ];
     const result = stripTuiChrome(lines);
     expect(result).toEqual(['output']);
   });
 
-  it('removes trailing empty lines after stripping chrome', () => {
-    const lines = [
-      'output',
-      '',
-      '──────────────────────────',
-      '❯',
-      '──────',
-    ];
-    const result = stripTuiChrome(lines);
-    expect(result).toEqual(['output']);
-  });
-
-  it('handles statusbar with branch indicator only', () => {
+  it('removes standalone branch indicator', () => {
     const lines = ['output', '⎇ main*'];
     expect(stripTuiChrome(lines)).toEqual(['output']);
   });
 
-  it('handles statusbar with project indicator only', () => {
+  it('removes standalone project indicator', () => {
     const lines = ['output', '📂 my-project'];
     expect(stripTuiChrome(lines)).toEqual(['output']);
   });

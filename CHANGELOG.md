@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Directory picker horizontal scrolling caused by long paths (paths now truncate with ellipsis)
+- Hover peek showing prompt box chrome, statusbar, and PR indicator lines (now truncates everything after Claude output)
+
 ## [2.1.2] - 2026-03-28
 
 ### Added
