@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-03-28
+
+### Fixed
+- ESLint `no-control-regex` CI failure — replaced regex literal with constructed RegExp to avoid lint suppression
+
+### Added
+- Pre-commit hooks via husky: runs lint, bundle, and tests before every commit (mirrors CI checks)
+
 ## [2.0.0] - 2026-03-28
 
 ### Added

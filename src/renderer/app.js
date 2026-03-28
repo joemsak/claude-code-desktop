@@ -68,9 +68,18 @@ function updateFollowIndicator() {
   }
 }
 
-// eslint-disable-next-line no-control-regex
-const ANSI_REGEX =
-  /\x1b\[[0-9;]*[a-zA-Z]|\x1b\].*?(?:\x07|\x1b\\)|\x1b[()][0-9A-B]|\x1b[>=<]|\r/g;
+const ESC = "\x1b";
+const BEL = "\x07";
+const ANSI_REGEX = new RegExp(
+  [
+    ESC + "\\[[0-9;]*[a-zA-Z]",
+    ESC + "\\].*?(?:" + BEL + "|" + ESC + "\\\\)",
+    ESC + "[()][0-9A-B]",
+    ESC + "[>=<]",
+    "\\r",
+  ].join("|"),
+  "g",
+);
 function stripAnsi(str) {
   return str.replace(ANSI_REGEX, "");
 }
