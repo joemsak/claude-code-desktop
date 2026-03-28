@@ -158,6 +158,8 @@ body {
 .tab-entry.active {
   background: #313244;
   color: #cdd6f4;
+  border-left: 3px solid #89b4fa;
+  padding-left: 9px; /* 12px - 3px border to maintain alignment */
 }
 
 .tab-entry.dragging {
