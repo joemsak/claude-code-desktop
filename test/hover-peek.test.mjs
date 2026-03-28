@@ -13,8 +13,8 @@ describe('hover peek', () => {
     expect(htmlSource).toContain('id="peek-panel"');
   });
 
-  it('maintains an output buffer per tab', () => {
-    expect(appSource).toContain('outputBuffer');
+  it('reads from xterm terminal buffer for peek content', () => {
+    expect(appSource).toContain('.buffer.active');
   });
 
   it('shows peek panel on tab hover', () => {
@@ -29,7 +29,7 @@ describe('hover peek', () => {
     expect(cssSource).toContain('peek-panel');
   });
 
-  it('strips ANSI escape codes from peek output', () => {
-    expect(appSource).toContain('stripAnsi');
+  it('reads terminal lines via translateToString', () => {
+    expect(appSource).toContain('translateToString');
   });
 });

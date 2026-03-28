@@ -68,32 +68,7 @@ function updateFollowIndicator() {
   }
 }
 
-const ESC = "\x1b";
-const BEL = "\x07";
-const ANSI_REGEX = new RegExp(
-  [
-    ESC + "\\[[0-9;]*[a-zA-Z]",
-    ESC + "\\].*?(?:" + BEL + "|" + ESC + "\\\\)",
-    ESC + "[()][0-9A-B]",
-    ESC + "[>=<]",
-    "\\r",
-  ].join("|"),
-  "g",
-);
-function stripAnsi(str) {
-  return str.replace(ANSI_REGEX, "");
-}
-
 const MAX_BUFFER_LINES = 20;
-
-function appendToOutputBuffer(tab, data) {
-  const cleaned = stripAnsi(data);
-  const lines = cleaned.split("\n");
-  tab.outputBuffer.push(...lines);
-  if (tab.outputBuffer.length > MAX_BUFFER_LINES) {
-    tab.outputBuffer = tab.outputBuffer.slice(-MAX_BUFFER_LINES);
-  }
-}
 
 function refitActiveTerminal() {
   const tab = getActiveTab();
@@ -295,7 +270,16 @@ function showPeek(tab, tabEl) {
     peekTabStatus.style.color = "#6c7086";
   }
 
-  const text = tab.outputBuffer.join("\n").trim();
+  // Read from xterm.js terminal buffer (already processes all escape sequences)
+  const buffer = tab.terminal.buffer.active;
+  const lines = [];
+  for (let i = 0; i < buffer.length; i++) {
+    const line = buffer.getLine(i);
+    if (line) lines.push(line.translateToString(true).trimEnd());
+  }
+  // Trim trailing empty lines and take last MAX_BUFFER_LINES
+  while (lines.length > 0 && lines[lines.length - 1] === "") lines.pop();
+  const text = lines.slice(-MAX_BUFFER_LINES).join("\n").trim();
   peekContent.textContent = text || "(no output yet)";
 
   // Position to the right of the sidebar, aligned with the tab
@@ -371,7 +355,6 @@ function createTab(directory, customName = null, originalDir = null) {
     wrapper,
     exited: false,
     state: null,
-    outputBuffer: [],
     _originalDir: originalDir,
   };
   tabs.push(tab);
@@ -403,6 +386,7 @@ function createTab(directory, customName = null, originalDir = null) {
 }
 
 function switchTab(tabId) {
+  hidePeek();
   activeTabId = tabId;
   for (const tab of tabs) {
     const isActive = tab.id === tabId;
@@ -564,7 +548,11 @@ function getFilteredDirs(filter) {
 function updatePickerSelection() {
   let idx = 0;
   pickerList.querySelectorAll("li").forEach((li) => {
-    if (li.classList.contains("picker-separator")) return;
+    if (
+      li.classList.contains("picker-separator") ||
+      li.classList.contains("picker-section-header")
+    )
+      return;
     li.classList.toggle("selected", idx === pickerSelectedIndex);
     idx++;
   });
@@ -716,7 +704,6 @@ electronAPI.onPtyData((tabId, data) => {
   const tab = tabs.find((t) => t.id === tabId);
   if (!tab) return;
   tab.terminal.write(data);
-  appendToOutputBuffer(tab, data);
 });
 
 electronAPI.onPtyExit((tabId, _exitCode) => {
