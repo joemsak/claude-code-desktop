@@ -8,7 +8,7 @@ import { stripTuiChrome } from "./strip-tui-chrome.js";
 const { electronAPI } = window;
 
 // --- State ---
-let tabs = []; // [{ id, directory, customName, terminal, fitAddon, wrapper, exited, state, _originalDir }]
+let tabs = []; // [{ id, directory, customName, terminal, fitAddon, wrapper, exited, _originalDir }]
 let activeTabId = null;
 let sidebarWidth = 200;
 let saveTimeout = null;
@@ -25,7 +25,6 @@ const sidebarEl = document.getElementById("sidebar");
 const resizeHandle = document.getElementById("sidebar-resize-handle");
 const emptyStateEl = document.getElementById("empty-state");
 const topbarPathEl = document.getElementById("topbar-path");
-const topbarStatusEl = document.getElementById("topbar-status");
 const topbarNameEl = document.getElementById("topbar-name");
 const topbarNewTabBtn = document.getElementById("topbar-new-tab");
 const emptyStateOpenBtn = document.getElementById("empty-state-open-btn");
@@ -39,9 +38,6 @@ const settingsOverlay = document.getElementById("settings-overlay");
 const settingsCloseBtn = document.getElementById("settings-close");
 const settingsWorkspaceDir = document.getElementById("settings-workspace-dir");
 const settingsBrowseBtn = document.getElementById("settings-browse-btn");
-const settingsHooksProject = document.getElementById("settings-hooks-project");
-const settingsHooksGlobal = document.getElementById("settings-hooks-global");
-const settingsHooksHint = document.getElementById("settings-hooks-hint");
 
 // ===========================
 // Helpers
@@ -104,16 +100,6 @@ function updateTopbar() {
   const tab = getActiveTab();
   topbarPathEl.textContent = tab ? tab.directory.replace(homePath, "~") : "";
   topbarNameEl.textContent = tab ? getDisplayName(tab) : "";
-
-  // Status dot in topbar
-  topbarStatusEl.innerHTML = "";
-  if (tab && (tab.state === "working" || tab.state === "waiting")) {
-    const dot = document.createElement("span");
-    dot.className =
-      "status-dot" +
-      (tab.state === "working" ? " status-working" : " status-waiting");
-    topbarStatusEl.appendChild(dot);
-  }
 
   // Warning/exited states
   topbarPathEl.classList.remove("topbar-exited", "topbar-warning");
@@ -193,15 +179,6 @@ function renderSidebar() {
       (tab.exited ? " tab-exited" : "");
     el.dataset.tabId = tab.id;
     el.draggable = true;
-
-    // Status dot (only for working/waiting states)
-    if (tab.state === "working" || tab.state === "waiting") {
-      const dot = document.createElement("span");
-      dot.className =
-        "status-dot" +
-        (tab.state === "working" ? " status-working" : " status-waiting");
-      el.appendChild(dot);
-    }
 
     const nameSpan = document.createElement("span");
     nameSpan.className = "tab-name";
@@ -289,15 +266,7 @@ function showPeek(tab, tabEl) {
   peekTabId = tab.id;
   peekTabName.textContent = getDisplayName(tab);
 
-  if (tab.state === "working") {
-    peekTabStatus.innerHTML =
-      '<span class="status-dot status-working" style="width:5px;height:5px;"></span> working';
-    peekTabStatus.style.color = "#89b4fa";
-  } else if (tab.state === "waiting") {
-    peekTabStatus.innerHTML =
-      '<span class="status-dot status-waiting" style="width:5px;height:5px;"></span> waiting';
-    peekTabStatus.style.color = "#fab387";
-  } else if (tab.exited) {
+  if (tab.exited) {
     peekTabStatus.textContent = "exited";
     peekTabStatus.style.color = "#585b70";
   } else {
@@ -390,7 +359,6 @@ function createTab(directory, customName = null, originalDir = null) {
     fitAddon,
     wrapper,
     exited: false,
-    state: null,
     _originalDir: originalDir,
   };
   tabs.push(tab);
@@ -442,14 +410,9 @@ function switchTab(tabId) {
   updateTopbar();
 }
 
-async function closeTab(tabId) {
+function closeTab(tabId) {
   const tab = tabs.find((t) => t.id === tabId);
   if (!tab) return;
-
-  if (!tab.exited) {
-    const confirmed = await electronAPI.confirmClose();
-    if (!confirmed) return;
-  }
 
   const index = tabs.indexOf(tab);
   destroyTab(tab);
@@ -784,7 +747,6 @@ electronAPI.onPtyExit((tabId, _exitCode) => {
   const tab = tabs.find((t) => t.id === tabId);
   if (tab) {
     tab.exited = true;
-    tab.state = "exited";
     tab.terminal.writeln("");
     tab.terminal.writeln(
       "\x1b[33m[Session ended. Press Enter to restart or Cmd+W to close]\x1b[0m",
@@ -793,23 +755,9 @@ electronAPI.onPtyExit((tabId, _exitCode) => {
   }
 });
 
-// Tab state changes from hook server
-electronAPI.onTabStateChange((tabId, state) => {
-  const tab = tabs.find((t) => t.id === tabId);
-  if (tab && !tab.exited) {
-    tab.state = state;
-    renderSidebar();
-  }
-});
-
 // ===========================
 // Menu Events
 // ===========================
-
-electronAPI.onNotificationClick((tabId) => {
-  const tab = tabs.find((t) => t.id === tabId);
-  if (tab) switchTab(tab.id);
-});
 
 electronAPI.onNewTab(() => openPicker());
 electronAPI.onCloseTab(() => {
@@ -924,7 +872,6 @@ function startCwdTracking() {
 async function openSettings() {
   const settings = await electronAPI.loadSettings();
   settingsWorkspaceDir.value = settings.workspaceDir || "";
-  updateHooksToggle(settings.hooksScope || "project");
   settingsOverlay.classList.remove("hidden");
   settingsWorkspaceDir.focus();
 }
@@ -933,15 +880,6 @@ function closeSettings() {
   settingsOverlay.classList.add("hidden");
   const tab = getActiveTab();
   if (tab) tab.terminal.focus();
-}
-
-function updateHooksToggle(scope) {
-  settingsHooksProject.classList.toggle("active", scope === "project");
-  settingsHooksGlobal.classList.toggle("active", scope === "global");
-  settingsHooksHint.textContent =
-    scope === "project"
-      ? "Writes to .claude/settings.local.json in each workspace"
-      : "Writes to ~/.claude/settings.json (affects all Claude sessions)";
 }
 
 async function saveSettingsValue(key, value) {
@@ -963,16 +901,6 @@ settingsBrowseBtn.addEventListener("click", async () => {
     settingsWorkspaceDir.value = dir;
     saveSettingsValue("workspaceDir", dir);
   }
-});
-
-settingsHooksProject.addEventListener("click", () => {
-  updateHooksToggle("project");
-  saveSettingsValue("hooksScope", "project");
-});
-
-settingsHooksGlobal.addEventListener("click", () => {
-  updateHooksToggle("global");
-  saveSettingsValue("hooksScope", "global");
 });
 
 electronAPI.onOpenSettings(() => openSettings());

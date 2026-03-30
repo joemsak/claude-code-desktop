@@ -8,7 +8,7 @@ const appSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 
 
 describe('close last tab behavior', () => {
   it('does not call window.close() when closing the last tab', () => {
-    const closeTabBlock = appSource.match(/async function closeTab\([\s\S]*?\n\}/);
+    const closeTabBlock = appSource.match(/function closeTab\([\s\S]*?\n\}/);
     expect(closeTabBlock).not.toBeNull();
     const closeCode = closeTabBlock[0];
 
@@ -17,7 +17,7 @@ describe('close last tab behavior', () => {
   });
 
   it('does not show a confirm dialog when closing the last tab', () => {
-    const closeTabBlock = appSource.match(/async function closeTab\([\s\S]*?\n\}/);
+    const closeTabBlock = appSource.match(/function closeTab\([\s\S]*?\n\}/);
     expect(closeTabBlock).not.toBeNull();
     const closeCode = closeTabBlock[0];
 
@@ -26,7 +26,7 @@ describe('close last tab behavior', () => {
   });
 
   it('shows the empty state after closing the last tab', () => {
-    const closeTabBlock = appSource.match(/async function closeTab\([\s\S]*?\n\}/);
+    const closeTabBlock = appSource.match(/function closeTab\([\s\S]*?\n\}/);
     expect(closeTabBlock).not.toBeNull();
     const closeCode = closeTabBlock[0];
 

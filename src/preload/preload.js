@@ -23,19 +23,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   onCloseTab: (callback) => ipcRenderer.on("menu:close-tab", () => callback()),
   onOpenSettings: (callback) =>
     ipcRenderer.on("menu:open-settings", () => callback()),
-  onNotificationClick: (callback) =>
-    ipcRenderer.on("notification:click", (_event, tabId) => callback(tabId)),
 
   // Settings
   loadSettings: () => ipcRenderer.invoke("settings:load"),
   saveSettings: (settings) => ipcRenderer.invoke("settings:save", settings),
-
-  // Tab state
-  getTabState: (tabId) => ipcRenderer.invoke("tab:state", tabId),
-  onTabStateChange: (callback) =>
-    ipcRenderer.on("tab:state-change", (_event, tabId, state) =>
-      callback(tabId, state),
-    ),
 
   // Session persistence
   saveSessions: (sessionData) =>
@@ -47,9 +38,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   openDirectoryDialog: () => ipcRenderer.invoke("dirs:open-dialog"),
   trackWorkspace: (dirPath) => ipcRenderer.invoke("workspace:track", dirPath),
   getRecentWorkspaces: () => ipcRenderer.invoke("workspace:recent"),
-
-  // Confirmation dialogs
-  confirmClose: () => ipcRenderer.invoke("dialog:confirm-close"),
 
   // Utility
   getHomePath: () => ipcRenderer.invoke("util:home-path"),

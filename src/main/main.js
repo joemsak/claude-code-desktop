@@ -5,20 +5,14 @@ const {
   dialog,
   Menu,
   shell,
-  Notification,
 } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const os = require("os");
 const ptyManager = require("./pty-manager");
 const sessionStore = require("./session-store");
-const { createHookServer } = require("./hook-server");
-const { createHookConfig } = require("./hook-config");
 
 let mainWindow;
-let hookServer;
-let hookConfig;
-const tabDirectories = new Map(); // tabId → directory
 
 function createWindow(sessionData) {
   const win = sessionData?.window || sessionStore.DEFAULT_SESSION.window;
@@ -76,18 +70,6 @@ function createWindow(sessionData) {
 // IPC: PTY management
 ipcMain.on("pty:spawn", (event, tabId, directory) => {
   if (typeof directory !== "string" || !path.isAbsolute(directory)) return;
-  tabDirectories.set(tabId, directory);
-
-  // Install hooks for state detection
-  if (hookConfig) {
-    const data = sessionStore.load() || sessionStore.DEFAULT_SESSION;
-    const scope = data.hooksScope || "project";
-    try {
-      hookConfig.install(directory, tabId, scope);
-    } catch {
-      // Non-fatal — status indicators won't work but terminal still functions
-    }
-  }
 
   ptyManager.spawn(
     tabId,
@@ -100,17 +82,6 @@ ipcMain.on("pty:spawn", (event, tabId, directory) => {
     (id, exitCode) => {
       if (!event.sender.isDestroyed()) {
         event.sender.send("pty:exit", id, exitCode);
-      }
-      // Clean up hooks on exit
-      if (hookConfig && tabDirectories.has(id)) {
-        const dir = tabDirectories.get(id);
-        const sessionData = sessionStore.load() || sessionStore.DEFAULT_SESSION;
-        const scope = sessionData.hooksScope || "project";
-        try {
-          hookConfig.uninstall(dir, id, scope);
-        } catch {
-          // ignore cleanup errors
-        }
       }
     },
   );
@@ -134,38 +105,11 @@ ipcMain.on("pty:resize", (_event, tabId, cols, rows) => {
 });
 
 ipcMain.on("pty:kill", (_event, tabId) => {
-  // Clean up hooks before killing
-  if (hookConfig && tabDirectories.has(tabId)) {
-    const dir = tabDirectories.get(tabId);
-    const data = sessionStore.load() || sessionStore.DEFAULT_SESSION;
-    const scope = data.hooksScope || "project";
-    try {
-      hookConfig.uninstall(dir, tabId, scope);
-    } catch {
-      // ignore cleanup errors
-    }
-    tabDirectories.delete(tabId);
-  }
-  if (hookServer) hookServer.removeTab(tabId);
   ptyManager.kill(tabId);
 });
 
 ipcMain.handle("pty:cwd", (_event, tabId) => {
   return ptyManager.getCwd(tabId);
-});
-
-// IPC: Confirmation dialogs
-ipcMain.handle("dialog:confirm-close", async () => {
-  if (!mainWindow || mainWindow.isDestroyed()) return false;
-  const result = await dialog.showMessageBox(mainWindow, {
-    type: "warning",
-    buttons: ["Close", "Cancel"],
-    defaultId: 1,
-    cancelId: 1,
-    message: "This session is still active.",
-    detail: "Are you sure you want to close this tab?",
-  });
-  return result.response === 0;
 });
 
 // IPC: Session persistence
@@ -222,19 +166,12 @@ ipcMain.handle("dirs:open-dialog", async () => {
   return result.filePaths[0];
 });
 
-// IPC: Tab state (from hook server)
-ipcMain.handle("tab:state", (_event, tabId) => {
-  if (!hookServer) return null;
-  return hookServer.getState(tabId);
-});
-
 // IPC: Settings
 ipcMain.handle("settings:load", () => {
   const data = sessionStore.load() || sessionStore.DEFAULT_SESSION;
   return {
     workspaceDir:
       data.workspaceDir || sessionStore.DEFAULT_SESSION.workspaceDir,
-    hooksScope: data.hooksScope || "project",
   };
 });
 
@@ -243,9 +180,6 @@ ipcMain.handle("settings:save", (_event, settings) => {
   const data = sessionStore.load() || sessionStore.DEFAULT_SESSION;
   if (typeof settings.workspaceDir === "string") {
     data.workspaceDir = settings.workspaceDir;
-  }
-  if (settings.hooksScope === "project" || settings.hooksScope === "global") {
-    data.hooksScope = settings.hooksScope;
   }
   sessionStore.save(data);
 });
@@ -291,35 +225,6 @@ function saveSessionFromMain() {
 
 // App lifecycle
 app.whenReady().then(async () => {
-  // Start hook server for Claude Code state detection
-  hookServer = createHookServer((tabId, state) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send("tab:state-change", tabId, state);
-
-      // Send native notification for important state changes when window is not focused
-      if (
-        (state === "waiting" || state === "idle") &&
-        !mainWindow.isFocused()
-      ) {
-        const dir = tabDirectories.get(tabId);
-        const title =
-          state === "waiting"
-            ? "Claude needs your input"
-            : "Claude finished working";
-        const body = dir ? path.basename(dir) : tabId;
-        const notification = new Notification({ title, body });
-        notification.on("click", () => {
-          mainWindow.show();
-          mainWindow.focus();
-          mainWindow.webContents.send("notification:click", tabId);
-        });
-        notification.show();
-      }
-    }
-  });
-  const hookPort = await hookServer.start();
-  hookConfig = createHookConfig(hookPort);
-
   createWindow(sessionStore.load() || sessionStore.DEFAULT_SESSION);
 
   const template = [
@@ -358,21 +263,4 @@ app.on("window-all-closed", () => {
 
 app.on("before-quit", () => {
   ptyManager.killAll();
-  if (hookConfig) {
-    const sessionData = sessionStore.load() || sessionStore.DEFAULT_SESSION;
-    const scope = sessionData.hooksScope || "project";
-    try {
-      hookConfig.uninstallAll("", "global");
-      const cleaned = new Set();
-      for (const [, dir] of tabDirectories) {
-        if (dir && !cleaned.has(dir)) {
-          cleaned.add(dir);
-          hookConfig.uninstallAll(dir, scope);
-        }
-      }
-    } catch {
-      // Best-effort cleanup on quit
-    }
-  }
-  if (hookServer) hookServer.stop();
 });

@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-03-30
+
+### Removed
+- HTTP hooks system (hook server, hook config, settings.json hook injection) — was causing persistent hook errors in CLI sessions
+- Native notifications (system alerts when Claude finishes or needs input)
+- Status indicator dots (working/waiting states in sidebar, topbar, and peek panel)
+- Tab close confirmation dialog — tabs now close immediately
+- Hooks scope setting from settings UI
+
 ## [2.1.5] - 2026-03-28
 
 ### Fixed

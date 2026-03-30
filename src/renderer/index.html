@@ -9,7 +9,6 @@
 </head>
 <body>
   <div id="topbar">
-    <span id="topbar-status"></span>
     <span id="topbar-name"></span>
     <span id="topbar-path"></span>
     <span id="topbar-counter"></span>
@@ -66,15 +65,6 @@
             <input id="settings-workspace-dir" type="text" spellcheck="false" autocomplete="off">
             <button id="settings-browse-btn">Browse</button>
           </div>
-        </div>
-        <div class="settings-group">
-          <label class="settings-label">Status Detection Hooks</label>
-          <p class="settings-hint">Where to configure Claude Code hooks for tab status indicators</p>
-          <div class="settings-toggle">
-            <button id="settings-hooks-project" class="settings-toggle-btn active">Per Project</button>
-            <button id="settings-hooks-global" class="settings-toggle-btn">Global</button>
-          </div>
-          <p class="settings-hint-small" id="settings-hooks-hint">Writes to .claude/settings.local.json in each workspace</p>
         </div>
       </div>
     </div>
