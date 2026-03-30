@@ -320,25 +320,7 @@ app.whenReady().then(async () => {
   const hookPort = await hookServer.start();
   hookConfig = createHookConfig(hookPort);
 
-  // Clean up stale hooks from previous sessions before restoring tabs
-  const sessionData = sessionStore.load() || sessionStore.DEFAULT_SESSION;
-  try {
-    const scope = sessionData.hooksScope || "project";
-    hookConfig.cleanupStale("", "global");
-    if (sessionData.tabs) {
-      const cleaned = new Set();
-      for (const tab of sessionData.tabs) {
-        if (tab.directory && !cleaned.has(tab.directory)) {
-          cleaned.add(tab.directory);
-          hookConfig.cleanupStale(tab.directory, scope);
-        }
-      }
-    }
-  } catch {
-    // Non-fatal — stale hooks may cause errors but won't break functionality
-  }
-
-  createWindow(sessionData);
+  createWindow(sessionStore.load() || sessionStore.DEFAULT_SESSION);
 
   const template = [
     { role: "appMenu" },
@@ -376,5 +358,21 @@ app.on("window-all-closed", () => {
 
 app.on("before-quit", () => {
   ptyManager.killAll();
+  if (hookConfig) {
+    const sessionData = sessionStore.load() || sessionStore.DEFAULT_SESSION;
+    const scope = sessionData.hooksScope || "project";
+    try {
+      hookConfig.uninstallAll("", "global");
+      const cleaned = new Set();
+      for (const [, dir] of tabDirectories) {
+        if (dir && !cleaned.has(dir)) {
+          cleaned.add(dir);
+          hookConfig.uninstallAll(dir, scope);
+        }
+      }
+    } catch {
+      // Best-effort cleanup on quit
+    }
+  }
   if (hookServer) hookServer.stop();
 });

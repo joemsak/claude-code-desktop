@@ -61,7 +61,7 @@ describe('hook config', () => {
     expect(settings.hooks.Stop[0].hooks[0].command).toBe('echo existing');
   });
 
-  it('cleanupStale removes all ccd hooks from a settings file', () => {
+  it('uninstallAll removes all ccd hooks from a settings file', () => {
     const claudeDir = path.join(tmpDir, '.claude');
     fs.mkdirSync(claudeDir, { recursive: true });
     fs.writeFileSync(
@@ -80,7 +80,7 @@ describe('hook config', () => {
       })
     );
 
-    config.cleanupStale(tmpDir, 'project');
+    config.uninstallAll(tmpDir, 'project');
 
     const settings = JSON.parse(fs.readFileSync(path.join(claudeDir, 'settings.local.json'), 'utf-8'));
     expect(settings.hooks.Stop.length).toBe(1);

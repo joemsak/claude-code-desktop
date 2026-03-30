@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Hooks now properly uninstalled from settings files on app quit, preventing stale hook errors in CLI sessions
+
 ## [2.1.4] - 2026-03-28
 
 ### Fixed

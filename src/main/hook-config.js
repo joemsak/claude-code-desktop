@@ -84,7 +84,7 @@ function createHookConfig(port, homeDir) {
     writeSettings(settingsPath, settings);
   }
 
-  function cleanupStale(workspaceDir, scope) {
+  function uninstallAll(workspaceDir, scope) {
     const settingsPath = getSettingsPath(workspaceDir, scope);
     const settings = readSettings(settingsPath);
     if (!settings.hooks) return;
@@ -100,7 +100,7 @@ function createHookConfig(port, homeDir) {
     if (changed) writeSettings(settingsPath, settings);
   }
 
-  return { install, uninstall, cleanupStale };
+  return { install, uninstall, uninstallAll };
 }
 
 module.exports = { createHookConfig };
