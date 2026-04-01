@@ -832,6 +832,7 @@ followIndicator.addEventListener("click", () => {
   if (tab) {
     tab.terminal.scrollToBottom();
     updateFollowIndicator();
+    tab.terminal.focus();
   }
 });
 

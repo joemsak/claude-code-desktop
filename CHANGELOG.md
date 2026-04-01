@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-04-01
+
+### Fixed
+- Clicking the "Follow" button now focuses the terminal, so you can immediately type or press keys without an extra click
+
 ## [2.2.0] - 2026-03-30
 
 ### Removed
