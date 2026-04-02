@@ -36,12 +36,19 @@ function createWindow(sessionData) {
 
   mainWindow.loadFile(path.join(__dirname, "..", "renderer", "index.html"));
 
-  // DEBUG: Cmd+Option+I to open DevTools
-  const { globalShortcut } = require("electron");
-  globalShortcut.register("CommandOrControl+Alt+I", () => {
-    mainWindow.webContents.toggleDevTools();
+  // DEBUG: Cmd+Option+I to open DevTools (window-local, not global)
+  mainWindow.webContents.on("before-input-event", (event, input) => {
+    if (
+      input.type === "keyDown" &&
+      input.key === "i" &&
+      input.meta &&
+      input.alt &&
+      !input.shift &&
+      !input.control
+    ) {
+      mainWindow.webContents.toggleDevTools();
+    }
   });
-  mainWindow.on("closed", () => globalShortcut.unregisterAll());
 
   mainWindow.on("close", async (event) => {
     if (mainWindow._forceClose) {

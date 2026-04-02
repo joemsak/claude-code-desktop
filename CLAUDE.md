@@ -48,6 +48,9 @@ This bumps package.json, commits, tags, and pushes. GitHub Actions then builds D
 - Always use TDD — write failing tests first, then implement the minimum code to make them pass.
 - After committing, update CHANGELOG.md under the `[Unreleased]` section.
 
+## Electron Gotchas
+- Never use `globalShortcut` for keyboard shortcuts — it captures keys system-wide, even when the app is not focused. Use `webContents.on("before-input-event")` or Electron `Menu` accelerators for window-local shortcuts instead.
+
 ## Code Style
 - Main process: CommonJS (require/module.exports)
 - Renderer: ESM (import/export), bundled by esbuild

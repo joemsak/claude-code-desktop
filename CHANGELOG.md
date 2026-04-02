@@ -4,11 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-### Fixed
-- Fix terminal scrolling to top during long conversations by upgrading from `xterm` 5.3.0 to `@xterm/xterm` 5.5.0 and stripping ED3 erase-scrollback sequences from Claude's TUI repaint output
-
 ### Added
 - DevTools toggle (Cmd+Option+I) for debugging
+
+### Fixed
+- Fix terminal scrolling to top during long conversations by upgrading from `xterm` 5.3.0 to `@xterm/xterm` 5.5.0 and stripping ED3 erase-scrollback sequences from Claude's TUI repaint output
+- DevTools shortcut (Cmd+Option+I) no longer captures keys globally — it now only works when the app window is focused
 
 ## [2.2.1] - 2026-04-01
 
