@@ -36,6 +36,13 @@ function createWindow(sessionData) {
 
   mainWindow.loadFile(path.join(__dirname, "..", "renderer", "index.html"));
 
+  // DEBUG: Cmd+Option+I to open DevTools
+  const { globalShortcut } = require("electron");
+  globalShortcut.register("CommandOrControl+Alt+I", () => {
+    mainWindow.webContents.toggleDevTools();
+  });
+  mainWindow.on("closed", () => globalShortcut.unregisterAll());
+
   mainWindow.on("close", async (event) => {
     if (mainWindow._forceClose) {
       saveSessionFromMain();

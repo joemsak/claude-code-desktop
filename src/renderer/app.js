@@ -1,4 +1,4 @@
-import { Terminal } from "xterm";
+import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { terminalTheme } from "./theme.js";
@@ -740,7 +740,14 @@ async function saveSessionsNow() {
 electronAPI.onPtyData((tabId, data) => {
   const tab = tabs.find((t) => t.id === tabId);
   if (!tab) return;
-  tab.terminal.write(data);
+  // Strip ED3 when paired with ED2 (the TUI repaint pattern \x1b[2J\x1b[3J).
+  // Claude's TUI sends this combo during streaming repaints, and the ED3 resets
+  // xterm's viewportY to 0 (scrolls to top). Standalone ED3 (e.g. from `clear`)
+  // is preserved.
+  const ESC = "\x1b";
+  const ED2_ED3 = new RegExp(ESC + "\\[2J" + ESC + "\\[3J", "g");
+  const filtered = data.replace(ED2_ED3, ESC + "[2J");
+  tab.terminal.write(filtered);
 });
 
 electronAPI.onPtyExit((tabId, _exitCode) => {

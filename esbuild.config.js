@@ -12,6 +12,12 @@ esbuild.buildSync({
 });
 
 // Copy xterm.css to renderer directory so it works in packaged app
-const xtermCssSrc = path.join("node_modules", "xterm", "css", "xterm.css");
+const xtermCssSrc = path.join(
+  "node_modules",
+  "@xterm",
+  "xterm",
+  "css",
+  "xterm.css",
+);
 const xtermCssDst = path.join("src", "renderer", "xterm.css");
 fs.copyFileSync(xtermCssSrc, xtermCssDst);
