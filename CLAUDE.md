@@ -10,7 +10,7 @@
 - `npm run rebuild` — rebuild node-pty for Electron
 - `npm run test` — run test suite (vitest)
 - `npm run lint` — run ESLint on src/ and test/
-- `npm run dist` — build distributable .app and .dmg
+- `npm run dist` — build distributable .app and .pkg
 - `npm run install-app` — build and copy to /Applications
 
 ## Pre-commit Hooks
@@ -28,7 +28,7 @@ npm run release:minor   # new features (1.0.0 → 1.1.0)
 npm run release:major   # breaking changes (1.0.0 → 2.0.0)
 ```
 
-This bumps package.json, commits, tags, and pushes. GitHub Actions then builds DMGs for arm64 + x64 and publishes a GitHub Release automatically.
+This bumps package.json, commits, tags, and pushes. GitHub Actions then builds PKG installers for arm64 + x64 and publishes a GitHub Release automatically.
 
 **Always run tests before releasing:** `npm test`
 
