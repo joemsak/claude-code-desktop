@@ -1,7 +1,8 @@
 # CLAUDE.md
 
 ## Git Workflow
-- Work directly on `main` — no feature branches needed for this project.
+- If the git user is `joemsak`, work directly on `main` — no feature branches needed.
+- All other contributors should create feature branches and open PRs.
 
 ## Build/Run Commands
 - `npm run dev` — bundle renderer and launch app (fast, skips native rebuild)
