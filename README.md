@@ -35,31 +35,13 @@ Drag the sidebar edge to resize it between 120px and 400px. Your preferred width
 
 Full terminal emulation powered by xterm.js with a Catppuccin Dusk color theme, 5000-line scrollback, cursor blinking, and auto-fit on window resize. When a session exits, press **Enter** to restart it in the same directory.
 
-### Pre-spawn hooks
-
-On first PTY spawn, the app runs a configurable auth check (defaults to AWS SSO login using the `AWS_PROFILE` env var or `bedrock-users`). This runs in the background and never blocks startup.
-
 ### Settings
 
-Press **Cmd+,** to open the settings panel. Configure your workspace directory and hooks scope.
-
-### Tab status indicators
-
-Sidebar tabs show real-time status via colored dots:
-- **Pulsing blue** — Claude is actively working
-- **Orange** — Claude needs your attention (waiting for input)
-- **Dimmed strikethrough** — session has exited
-- **No indicator** — idle (quiet by default)
-
-Status is detected via Claude Code's hooks API and a local HTTP server.
+Press **Cmd+,** to open the settings panel. Configure your workspace directory.
 
 ### Hover peek
 
 Hover over a sidebar tab for 500ms to preview the last 20 lines of terminal output in a floating panel — no need to switch tabs to check progress.
-
-### Native notifications
-
-When Claude finishes or needs input in a background tab, you get a native macOS notification (only when the app window is not focused).
 
 ### Keyboard shortcuts
 
@@ -76,7 +58,7 @@ When Claude finishes or needs input in a background tab, you get a native macOS 
 
 ### From GitHub Releases
 
-Download the latest `.dmg` for your architecture (Apple Silicon or Intel) from the [Releases](https://github.com/joemsak/claude-code-desktop/releases) page.
+Download the latest `.pkg` installer for your architecture (Apple Silicon or Intel) from the [Releases](https://github.com/joemsak/claude-code-desktop/releases) page. Since the app is not signed with an Apple Developer certificate, macOS will block the installer — go to **System Settings → Privacy & Security** and click **Open Anyway** to allow it.
 
 ### From source
 
