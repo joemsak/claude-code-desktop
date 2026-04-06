@@ -207,3 +207,9 @@ export function getThemeByName(name, customThemes = []) {
   const all = [...builtinThemes, ...customThemes];
   return all.find((t) => t.name === name) || builtinThemes[0];
 }
+
+export function applyTheme(theme, rootElement = document.documentElement) {
+  for (const [key, value] of Object.entries(theme.chrome)) {
+    rootElement.style.setProperty(`--${key}`, value);
+  }
+}

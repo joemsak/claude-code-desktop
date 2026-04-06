@@ -1,5 +1,6 @@
+// @vitest-environment happy-dom
 import { describe, it, expect } from "vitest";
-import { builtinThemes, getThemeByName, DEFAULT_THEME_NAME } from "../src/renderer/themes.js";
+import { builtinThemes, getThemeByName, DEFAULT_THEME_NAME, applyTheme } from "../src/renderer/themes.js";
 
 const REQUIRED_CHROME_KEYS = [
   "base", "mantle", "crust", "text", "subtext0", "subtext1",
@@ -65,5 +66,25 @@ describe("themes", () => {
     expect(names).toContain("Nord");
     expect(names).toContain("Tokyo Night");
     expect(names).toContain("Solarized Dark");
+  });
+});
+
+describe("applyTheme", () => {
+  it("sets CSS custom properties on the given element", () => {
+    const el = document.createElement("div");
+    const theme = getThemeByName("Catppuccin Mocha");
+    applyTheme(theme, el);
+    expect(el.style.getPropertyValue("--base")).toBe("#1e1e2e");
+    expect(el.style.getPropertyValue("--text")).toBe("#cdd6f4");
+    expect(el.style.getPropertyValue("--accent")).toBe("#89b4fa");
+  });
+
+  it("sets all chrome keys as CSS custom properties", () => {
+    const el = document.createElement("div");
+    const theme = getThemeByName("Dracula");
+    applyTheme(theme, el);
+    for (const key of REQUIRED_CHROME_KEYS) {
+      expect(el.style.getPropertyValue(`--${key}`), `--${key}`).toBe(theme.chrome[key]);
+    }
   });
 });

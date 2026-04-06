@@ -5,7 +5,10 @@ module.exports = [
   js.configs.recommended,
   {
     rules: {
-      "no-unused-vars": ["error", { varsIgnorePattern: "^_", argsIgnorePattern: "^_" }],
+      "no-unused-vars": [
+        "error",
+        { varsIgnorePattern: "^_", argsIgnorePattern: "^_" },
+      ],
     },
   },
   {
@@ -17,7 +20,11 @@ module.exports = [
     },
   },
   {
-    files: ["src/renderer/app.js", "src/renderer/theme.js"],
+    files: [
+      "src/renderer/app.js",
+      "src/renderer/theme.js",
+      "src/renderer/themes.js",
+    ],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "module",
@@ -29,7 +36,7 @@ module.exports = [
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "module",
-      globals: { ...globals.node },
+      globals: { ...globals.node, ...globals.browser },
     },
   },
   {
