@@ -28,6 +28,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   loadSettings: () => ipcRenderer.invoke("settings:load"),
   saveSettings: (settings) => ipcRenderer.invoke("settings:save", settings),
 
+  // Themes
+  listCustomThemes: () => ipcRenderer.invoke("themes:list-custom"),
+  openThemesFolder: () => ipcRenderer.invoke("themes:open-folder"),
+
   // Session persistence
   saveSessions: (sessionData) =>
     ipcRenderer.invoke("sessions:save", sessionData),

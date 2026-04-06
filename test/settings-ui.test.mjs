@@ -23,4 +23,24 @@ describe('settings UI', () => {
   it('has an IPC handler for loading settings', () => {
     expect(mainSource).toContain('settings:load');
   });
+
+  it("has an IPC handler for listing custom themes", () => {
+    expect(mainSource).toContain("themes:list-custom");
+  });
+
+  it("has an IPC handler for opening the themes folder", () => {
+    expect(mainSource).toContain("themes:open-folder");
+  });
+
+  it("settings:load returns theme and font settings", () => {
+    expect(mainSource).toContain("data.theme");
+    expect(mainSource).toContain("data.fontFamily");
+    expect(mainSource).toContain("data.fontSize");
+  });
+
+  it("settings:save handles theme and font settings", () => {
+    expect(mainSource).toContain("settings.theme");
+    expect(mainSource).toContain("settings.fontFamily");
+    expect(mainSource).toContain("settings.fontSize");
+  });
 });

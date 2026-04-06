@@ -186,6 +186,9 @@ ipcMain.handle("settings:load", () => {
   return {
     workspaceDir:
       data.workspaceDir || sessionStore.DEFAULT_SESSION.workspaceDir,
+    theme: data.theme || sessionStore.DEFAULT_SESSION.theme,
+    fontFamily: data.fontFamily || sessionStore.DEFAULT_SESSION.fontFamily,
+    fontSize: data.fontSize || sessionStore.DEFAULT_SESSION.fontSize,
   };
 });
 
@@ -195,7 +198,60 @@ ipcMain.handle("settings:save", (_event, settings) => {
   if (typeof settings.workspaceDir === "string") {
     data.workspaceDir = settings.workspaceDir;
   }
+  if (typeof settings.theme === "string") {
+    data.theme = settings.theme;
+  }
+  if (typeof settings.fontFamily === "string") {
+    data.fontFamily = settings.fontFamily;
+  }
+  if (
+    typeof settings.fontSize === "number" &&
+    settings.fontSize >= 8 &&
+    settings.fontSize <= 32
+  ) {
+    data.fontSize = settings.fontSize;
+  }
   sessionStore.save(data);
+});
+
+// IPC: Custom themes
+ipcMain.handle("themes:list-custom", () => {
+  const themesDir = path.join(
+    os.homedir(),
+    ".config",
+    "claude-code-desktop",
+    "themes",
+  );
+  try {
+    if (!fs.existsSync(themesDir)) return [];
+    const files = fs.readdirSync(themesDir).filter((f) => f.endsWith(".json"));
+    const themes = [];
+    for (const file of files) {
+      try {
+        const content = fs.readFileSync(path.join(themesDir, file), "utf-8");
+        const theme = JSON.parse(content);
+        if (theme.name && theme.chrome && theme.terminal) {
+          themes.push(theme);
+        }
+      } catch {
+        // Skip invalid theme files
+      }
+    }
+    return themes;
+  } catch {
+    return [];
+  }
+});
+
+ipcMain.handle("themes:open-folder", () => {
+  const themesDir = path.join(
+    os.homedir(),
+    ".config",
+    "claude-code-desktop",
+    "themes",
+  );
+  fs.mkdirSync(themesDir, { recursive: true });
+  shell.openPath(themesDir);
 });
 
 // IPC: Utility
