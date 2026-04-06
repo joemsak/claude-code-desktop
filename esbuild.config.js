@@ -21,3 +21,9 @@ const xtermCssSrc = path.join(
 );
 const xtermCssDst = path.join("src", "renderer", "xterm.css");
 fs.copyFileSync(xtermCssSrc, xtermCssDst);
+
+// Ensure fonts directory exists in renderer (fonts are checked into src/renderer/fonts/)
+const fontsDir = path.join("src", "renderer", "fonts");
+if (!fs.existsSync(fontsDir)) {
+  fs.mkdirSync(fontsDir, { recursive: true });
+}
