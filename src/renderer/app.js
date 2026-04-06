@@ -984,7 +984,10 @@ settingsThemeSelect.addEventListener("change", async () => {
   const customThemes = await electronAPI.listCustomThemes();
   const theme = getThemeByName(name, customThemes);
   applyThemeToAllTerminals(theme);
-  saveSettingsValue("theme", name);
+  await electronAPI.saveSettings({
+    theme: name,
+    themeBaseColor: theme.chrome.base,
+  });
 });
 
 settingsFontFamily.addEventListener("change", () => {

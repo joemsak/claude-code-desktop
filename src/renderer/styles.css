@@ -456,7 +456,7 @@ body {
   transition: color 0.15s, opacity 0.15s, background 0.15s;
   color: var(--subtext1);
   opacity: 0.7;
-  background: rgba(49, 50, 68, 0);
+  background: transparent;
 }
 
 #follow-indicator:hover {
@@ -467,7 +467,7 @@ body {
   color: var(--text);
   font-weight: bold;
   opacity: 1;
-  background: rgba(49, 50, 68, 0.6);
+  background: color-mix(in srgb, var(--surface0) 60%, transparent);
 }
 
 #follow-indicator.hidden {

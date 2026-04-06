@@ -20,11 +20,7 @@ module.exports = [
     },
   },
   {
-    files: [
-      "src/renderer/app.js",
-      "src/renderer/theme.js",
-      "src/renderer/themes.js",
-    ],
+    files: ["src/renderer/app.js", "src/renderer/themes.js"],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "module",
