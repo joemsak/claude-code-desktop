@@ -57,5 +57,7 @@ This bumps package.json, commits, tags, and pushes. GitHub Actions then builds P
 - Renderer: ESM (import/export), bundled by esbuild
 - Tests: ESM (.mjs files), vitest
 - No framework — vanilla HTML/CSS/JS
-- Colors defined in src/renderer/theme.js
+- Themes defined in src/renderer/themes.js (built-in presets + applyTheme)
+- App chrome colors use CSS custom properties (set by themes.js at runtime)
+- MesloLGS Nerd Font bundled in src/renderer/fonts/ via @font-face
 - Modules use factory pattern (createStore, createManager) for testability

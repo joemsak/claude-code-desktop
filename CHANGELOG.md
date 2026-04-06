@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-04-06
+
+### Added
+- Configurable themes — 5 built-in presets (Catppuccin Mocha, Dracula, Nord, Tokyo Night, Solarized Dark) with live switching
+- Custom theme support — drop JSON theme files in `~/.config/claude-code-desktop/themes/`
+- Font configuration — terminal font family and size configurable in settings
+- MesloLGS Nerd Font bundled — works out of the box, no system install needed
+- Nerd Font glyphs for tab close, new tab, and drag handle icons
+- "Open Themes Folder" button in settings for easy custom theme management
+- Theme and font preferences persist across sessions
+
+### Changed
+- All app chrome colors now use CSS custom properties (enables instant theme switching)
+- BrowserWindow background color matches saved theme on launch
+- Default terminal font changed from Menlo to MesloLGS Nerd Font (with Menlo fallback)
+
 ## [2.2.3] - 2026-04-02
 
 ### Added

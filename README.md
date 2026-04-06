@@ -33,11 +33,17 @@ Drag the sidebar edge to resize it between 120px and 400px. Your preferred width
 
 ### Terminal
 
-Full terminal emulation powered by xterm.js with a Catppuccin Dusk color theme, 5000-line scrollback, cursor blinking, and auto-fit on window resize. When a session exits, press **Enter** to restart it in the same directory.
+Full terminal emulation powered by xterm.js with 5000-line scrollback, cursor blinking, and auto-fit on window resize. MesloLGS Nerd Font is bundled for Powerline glyphs and devicons out of the box. When a session exits, press **Enter** to restart it in the same directory.
+
+### Themes
+
+5 built-in color themes: Catppuccin Mocha (default), Dracula, Nord, Tokyo Night, and Solarized Dark. Themes control both terminal ANSI colors and app chrome. Switch instantly from Settings (**Cmd+,**) — no restart needed.
+
+Create custom themes by dropping a JSON file in `~/.config/claude-code-desktop/themes/`. Each theme defines `chrome` (app UI colors) and `terminal` (ANSI colors) sections.
 
 ### Settings
 
-Press **Cmd+,** to open the settings panel. Configure your workspace directory.
+Press **Cmd+,** to open the settings panel. Configure your theme, terminal font family and size, and workspace directory.
 
 ### Hover peek
 
