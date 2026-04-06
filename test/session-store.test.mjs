@@ -167,6 +167,18 @@ describe('session-store', () => {
     it('has empty recentWorkspaces array', () => {
       expect(store.DEFAULT_SESSION.recentWorkspaces).toEqual([]);
     });
+
+    it("has default theme of Catppuccin Mocha", () => {
+      expect(store.DEFAULT_SESSION.theme).toBe("Catppuccin Mocha");
+    });
+
+    it("has default fontFamily with Nerd Font", () => {
+      expect(store.DEFAULT_SESSION.fontFamily).toContain("MesloLGS Nerd Font");
+    });
+
+    it("has default fontSize of 14", () => {
+      expect(store.DEFAULT_SESSION.fontSize).toBe(14);
+    });
   });
 
   describe('workspaceDir', () => {
@@ -179,6 +191,21 @@ describe('session-store', () => {
       fs.writeFileSync(sessionFile, JSON.stringify(data));
       const result = store.load();
       expect(result.workspaceDir).toBe('/custom/path');
+    });
+
+    it("load returns saved theme and font settings", () => {
+      const data = {
+        version: 1,
+        tabs: [],
+        theme: "Dracula",
+        fontFamily: "Fira Code",
+        fontSize: 16,
+      };
+      fs.writeFileSync(sessionFile, JSON.stringify(data));
+      const result = store.load();
+      expect(result.theme).toBe("Dracula");
+      expect(result.fontFamily).toBe("Fira Code");
+      expect(result.fontSize).toBe(16);
     });
   });
 

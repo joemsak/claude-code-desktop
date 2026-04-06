@@ -15,6 +15,9 @@ function createStore(homeDir) {
     activeTabIndex: 0,
     recentWorkspaces: [],
     workspaceDir: path.join(home, "workspace"),
+    theme: "Catppuccin Mocha",
+    fontFamily: '"MesloLGS Nerd Font", Menlo, Monaco, "Courier New", monospace',
+    fontSize: 14,
   };
 
   function load() {
