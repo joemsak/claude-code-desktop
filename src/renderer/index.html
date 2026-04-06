@@ -59,12 +59,32 @@
       </div>
       <div id="settings-body">
         <div class="settings-group">
+          <label class="settings-label">Theme</label>
+          <p class="settings-hint">Color scheme for terminal and app chrome</p>
+          <select id="settings-theme" class="settings-select"></select>
+        </div>
+        <div class="settings-group">
+          <label class="settings-label">Font Family</label>
+          <p class="settings-hint">Terminal font (Nerd Font recommended for icons)</p>
+          <input id="settings-font-family" type="text" spellcheck="false" autocomplete="off" class="settings-input">
+        </div>
+        <div class="settings-group">
+          <label class="settings-label">Font Size</label>
+          <input id="settings-font-size" type="number" min="8" max="32" class="settings-input settings-input-narrow">
+        </div>
+        <div class="settings-group settings-separator"></div>
+        <div class="settings-group">
           <label class="settings-label">Workspace Directory</label>
           <p class="settings-hint">Directory to scan for project folders in the workspace picker</p>
           <div class="settings-row">
             <input id="settings-workspace-dir" type="text" spellcheck="false" autocomplete="off">
             <button id="settings-browse-btn">Browse</button>
           </div>
+        </div>
+        <div class="settings-group">
+          <label class="settings-label">Custom Themes</label>
+          <p class="settings-hint">Drop .json theme files in the themes folder</p>
+          <button id="settings-open-themes" class="settings-btn-secondary">Open Themes Folder</button>
         </div>
       </div>
     </div>

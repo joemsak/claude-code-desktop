@@ -1,7 +1,12 @@
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
-import { terminalTheme } from "./theme.js";
+import {
+  builtinThemes,
+  getThemeByName,
+  applyTheme,
+  DEFAULT_THEME_NAME,
+} from "./themes.js";
 import { fuzzyMatch, fuzzyScore } from "./fuzzy.js";
 import { stripTuiChrome } from "./strip-tui-chrome.js";
 
@@ -13,6 +18,10 @@ let activeTabId = null;
 let sidebarWidth = 200;
 let saveTimeout = null;
 let homePath = "";
+let currentTheme = null;
+let currentFontFamily =
+  '"MesloLGS Nerd Font", Menlo, Monaco, "Courier New", monospace';
+let currentFontSize = 14;
 
 // --- DOM refs ---
 const tabListEl = document.getElementById("tab-list");
@@ -38,6 +47,10 @@ const settingsOverlay = document.getElementById("settings-overlay");
 const settingsCloseBtn = document.getElementById("settings-close");
 const settingsWorkspaceDir = document.getElementById("settings-workspace-dir");
 const settingsBrowseBtn = document.getElementById("settings-browse-btn");
+const settingsThemeSelect = document.getElementById("settings-theme");
+const settingsFontFamily = document.getElementById("settings-font-family");
+const settingsFontSize = document.getElementById("settings-font-size");
+const settingsOpenThemes = document.getElementById("settings-open-themes");
 
 // ===========================
 // Helpers
@@ -325,9 +338,11 @@ function destroyTab(tab) {
 function createTab(directory, customName = null, originalDir = null) {
   const id = crypto.randomUUID();
   const terminal = new Terminal({
-    theme: terminalTheme,
-    fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-    fontSize: 14,
+    theme: currentTheme
+      ? currentTheme.terminal
+      : getThemeByName(DEFAULT_THEME_NAME).terminal,
+    fontFamily: currentFontFamily,
+    fontSize: currentFontSize,
     scrollback: 5000,
     cursorBlink: true,
     allowProposedApi: true,
@@ -873,6 +888,31 @@ function startCwdTracking() {
   }, 3000);
 }
 
+function applyThemeToAllTerminals(theme) {
+  currentTheme = theme;
+  applyTheme(theme);
+  document.documentElement.style.setProperty(
+    "--terminal-font",
+    currentFontFamily,
+  );
+  for (const tab of tabs) {
+    tab.terminal.options.theme = theme.terminal;
+  }
+}
+
+function applyFontToAllTerminals() {
+  document.documentElement.style.setProperty(
+    "--terminal-font",
+    currentFontFamily,
+  );
+  for (const tab of tabs) {
+    tab.terminal.options.fontFamily = currentFontFamily;
+    tab.terminal.options.fontSize = currentFontSize;
+    tab.fitAddon.fit();
+    electronAPI.resizePty(tab.id, tab.terminal.cols, tab.terminal.rows);
+  }
+}
+
 // ===========================
 // Settings
 // ===========================
@@ -880,8 +920,36 @@ function startCwdTracking() {
 async function openSettings() {
   const settings = await electronAPI.loadSettings();
   settingsWorkspaceDir.value = settings.workspaceDir || "";
+
+  // Populate theme dropdown
+  const customThemes = await electronAPI.listCustomThemes();
+  settingsThemeSelect.innerHTML = "";
+  for (const theme of builtinThemes) {
+    const opt = document.createElement("option");
+    opt.value = theme.name;
+    opt.textContent = theme.name;
+    settingsThemeSelect.appendChild(opt);
+  }
+  if (customThemes.length > 0) {
+    const sep = document.createElement("option");
+    sep.disabled = true;
+    sep.textContent = "--- Custom ---";
+    settingsThemeSelect.appendChild(sep);
+    for (const theme of customThemes) {
+      const opt = document.createElement("option");
+      opt.value = theme.name;
+      opt.textContent = theme.name;
+      settingsThemeSelect.appendChild(opt);
+    }
+  }
+  settingsThemeSelect.value = settings.theme || DEFAULT_THEME_NAME;
+
+  // Font settings
+  settingsFontFamily.value = settings.fontFamily || currentFontFamily;
+  settingsFontSize.value = settings.fontSize || currentFontSize;
+
   settingsOverlay.classList.remove("hidden");
-  settingsWorkspaceDir.focus();
+  settingsThemeSelect.focus();
 }
 
 function closeSettings() {
@@ -911,6 +979,33 @@ settingsBrowseBtn.addEventListener("click", async () => {
   }
 });
 
+settingsThemeSelect.addEventListener("change", async () => {
+  const name = settingsThemeSelect.value;
+  const customThemes = await electronAPI.listCustomThemes();
+  const theme = getThemeByName(name, customThemes);
+  applyThemeToAllTerminals(theme);
+  saveSettingsValue("theme", name);
+});
+
+settingsFontFamily.addEventListener("change", () => {
+  currentFontFamily = settingsFontFamily.value;
+  applyFontToAllTerminals();
+  saveSettingsValue("fontFamily", currentFontFamily);
+});
+
+settingsFontSize.addEventListener("change", () => {
+  const size = parseInt(settingsFontSize.value, 10);
+  if (size >= 8 && size <= 32) {
+    currentFontSize = size;
+    applyFontToAllTerminals();
+    saveSettingsValue("fontSize", size);
+  }
+});
+
+settingsOpenThemes.addEventListener("click", () => {
+  electronAPI.openThemesFolder();
+});
+
 electronAPI.onOpenSettings(() => openSettings());
 
 document.addEventListener("keydown", (e) => {
@@ -937,6 +1032,21 @@ async function init() {
   sidebarWidth = data.sidebarWidth || 200;
   sidebarEl.style.width = `${sidebarWidth}px`;
   updateEmptyState();
+
+  // Load theme and font settings on startup
+  const startupSettings = await electronAPI.loadSettings();
+  currentFontFamily = startupSettings.fontFamily || currentFontFamily;
+  currentFontSize = startupSettings.fontSize || currentFontSize;
+  const customThemes = await electronAPI.listCustomThemes();
+  currentTheme = getThemeByName(
+    startupSettings.theme || DEFAULT_THEME_NAME,
+    customThemes,
+  );
+  applyTheme(currentTheme);
+  document.documentElement.style.setProperty(
+    "--terminal-font",
+    currentFontFamily,
+  );
 
   if (!data.tabs || data.tabs.length === 0) {
     openPicker();
