@@ -187,7 +187,8 @@ body {
 }
 
 .tab-entry:hover::before {
-  content: "\u2807";
+  content: "\udb80\udf5c";
+  font-family: var(--terminal-font);
   position: absolute;
   left: 3px;
   top: 50%;

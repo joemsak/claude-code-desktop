@@ -210,8 +210,8 @@ function renderSidebar() {
     el.appendChild(tooltip);
 
     const closeBtn = document.createElement("button");
-    closeBtn.className = "close-btn";
-    closeBtn.textContent = "\u00d7";
+    closeBtn.className = "close-btn nf-icon";
+    closeBtn.textContent = "\udb80\udd56";
     closeBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       closeTab(tab.id);
