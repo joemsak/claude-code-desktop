@@ -14,8 +14,25 @@ const sessionStore = require("./session-store");
 
 let mainWindow;
 
+// Map theme names to their base colors for BrowserWindow backgroundColor.
+// This avoids importing the renderer's themes.js in the main process.
+const THEME_BASE_COLORS = {
+  "Catppuccin Mocha": "#1e1e2e",
+  Dracula: "#282a36",
+  Nord: "#2e3440",
+  "Tokyo Night": "#1a1b26",
+  "Solarized Dark": "#002b36",
+};
+
+function getBaseColorForTheme(themeName) {
+  return THEME_BASE_COLORS[themeName] || "#1e1e2e";
+}
+
 function createWindow(sessionData) {
   const win = sessionData?.window || sessionStore.DEFAULT_SESSION.window;
+  const bgColor = sessionData?.theme
+    ? getBaseColorForTheme(sessionData.theme)
+    : "#1e1e2e";
 
   mainWindow = new BrowserWindow({
     x: win.x,
@@ -24,7 +41,7 @@ function createWindow(sessionData) {
     height: win.height || 800,
     minWidth: 600,
     minHeight: 400,
-    backgroundColor: "#1e1e2e",
+    backgroundColor: bgColor,
     titleBarStyle: "hiddenInset",
     trafficLightPosition: { x: 12, y: 10 },
     webPreferences: {
