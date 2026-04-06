@@ -9,6 +9,6 @@ const cssSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 
 describe('active tab left accent', () => {
   it('has a left border on active tab entry', () => {
     expect(cssSource).toContain('border-left');
-    expect(cssSource).toContain('#89b4fa');
+    expect(cssSource).toContain('var(--accent)');
   });
 });
