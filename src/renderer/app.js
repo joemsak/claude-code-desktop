@@ -1051,6 +1051,11 @@ async function init() {
     currentFontFamily,
   );
 
+  // Wait for @font-face fonts to load before creating terminals.
+  // xterm.js canvas renderer measures glyphs at init — if the font isn't
+  // ready, it falls back to the next in the chain and glyphs render blank.
+  await document.fonts.ready;
+
   if (!data.tabs || data.tabs.length === 0) {
     openPicker();
   } else {
