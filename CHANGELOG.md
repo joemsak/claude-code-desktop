@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.2] - 2026-04-06
+
 ### Fixed
 - Existing users upgrading to 2.3.1+ now get JetBrainsMono Nerd Font added to their font settings automatically (previously only new installs had it)
 
