@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- JetBrainsMono Nerd Font bundled as an alternative terminal font
+- Truecolor (24-bit RGB) support — sets `COLORTERM=truecolor` in the pty environment
+
 ## [2.3.0] - 2026-04-06
 
 ### Added

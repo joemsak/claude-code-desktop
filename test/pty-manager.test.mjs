@@ -64,6 +64,12 @@ describe('pty-manager', () => {
       expect(hook).toHaveBeenCalledTimes(2);
     });
 
+    it('sets COLORTERM=truecolor in the pty environment', () => {
+      manager.spawn('tab-color', '/tmp', vi.fn(), vi.fn());
+      const envArg = mock.mockSpawn.mock.calls[0][2].env;
+      expect(envArg.COLORTERM).toBe('truecolor');
+    });
+
     it('strips npm_ env vars to prevent nvm warnings', () => {
       const origPrefix = process.env.npm_config_prefix;
       const origCommand = process.env.npm_command;

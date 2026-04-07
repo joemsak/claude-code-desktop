@@ -20,7 +20,7 @@ let saveTimeout = null;
 let homePath = "";
 let currentTheme = null;
 let currentFontFamily =
-  '"MesloLGS Nerd Font", Menlo, Monaco, "Courier New", monospace';
+  '"MesloLGS Nerd Font", "JetBrainsMono Nerd Font", Menlo, Monaco, "Courier New", monospace';
 let currentFontSize = 14;
 
 // --- DOM refs ---

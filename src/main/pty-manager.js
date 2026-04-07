@@ -17,6 +17,8 @@ function createManager(ptyModule, execModule, preSpawnHook) {
       ),
     );
 
+    cleanEnv.COLORTERM = "truecolor";
+
     onPreSpawn(cleanEnv);
 
     const cmd = "source ~/.zshrc 2>/dev/null; exec claude";

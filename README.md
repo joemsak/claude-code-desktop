@@ -33,7 +33,7 @@ Drag the sidebar edge to resize it between 120px and 400px. Your preferred width
 
 ### Terminal
 
-Full terminal emulation powered by xterm.js with 5000-line scrollback, cursor blinking, and auto-fit on window resize. MesloLGS Nerd Font is bundled for Powerline glyphs and devicons out of the box. When a session exits, press **Enter** to restart it in the same directory.
+Full terminal emulation powered by xterm.js with 5000-line scrollback, cursor blinking, auto-fit on window resize, and truecolor (24-bit RGB) support. MesloLGS Nerd Font and JetBrainsMono Nerd Font are bundled for Powerline glyphs and devicons out of the box. When a session exits, press **Enter** to restart it in the same directory.
 
 ### Themes
 
