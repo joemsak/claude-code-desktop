@@ -172,8 +172,9 @@ describe('session-store', () => {
       expect(store.DEFAULT_SESSION.theme).toBe("Catppuccin Mocha");
     });
 
-    it("has default fontFamily with Nerd Font", () => {
+    it("has default fontFamily with both Nerd Fonts", () => {
       expect(store.DEFAULT_SESSION.fontFamily).toContain("MesloLGS Nerd Font");
+      expect(store.DEFAULT_SESSION.fontFamily).toContain("JetBrainsMono Nerd Font");
     });
 
     it("has default fontSize of 14", () => {
@@ -191,6 +192,22 @@ describe('session-store', () => {
       fs.writeFileSync(sessionFile, JSON.stringify(data));
       const result = store.load();
       expect(result.workspaceDir).toBe('/custom/path');
+    });
+
+    it("load migrates old default fontFamily to include JetBrainsMono", () => {
+      const oldDefault = '"MesloLGS Nerd Font", Menlo, Monaco, "Courier New", monospace';
+      const data = { version: 1, tabs: [], fontFamily: oldDefault };
+      fs.writeFileSync(sessionFile, JSON.stringify(data));
+      const result = store.load();
+      expect(result.fontFamily).toContain("JetBrainsMono Nerd Font");
+      expect(result.fontFamily).toContain("MesloLGS Nerd Font");
+    });
+
+    it("load does not alter custom fontFamily values", () => {
+      const data = { version: 1, tabs: [], fontFamily: "Fira Code, monospace" };
+      fs.writeFileSync(sessionFile, JSON.stringify(data));
+      const result = store.load();
+      expect(result.fontFamily).toBe("Fira Code, monospace");
     });
 
     it("load returns saved theme and font settings", () => {

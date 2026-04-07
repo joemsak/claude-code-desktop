@@ -16,7 +16,8 @@ function createStore(homeDir) {
     recentWorkspaces: [],
     workspaceDir: path.join(home, "workspace"),
     theme: "Catppuccin Mocha",
-    fontFamily: '"MesloLGS Nerd Font", Menlo, Monaco, "Courier New", monospace',
+    fontFamily:
+      '"MesloLGS Nerd Font", "JetBrainsMono Nerd Font", Menlo, Monaco, "Courier New", monospace',
     fontSize: 14,
   };
 
@@ -31,6 +32,13 @@ function createStore(homeDir) {
           }
           return tab;
         });
+        // Migrate: add JetBrainsMono Nerd Font if user still has the old default
+        const OLD_FONT =
+          '"MesloLGS Nerd Font", Menlo, Monaco, "Courier New", monospace';
+        if (parsed.fontFamily === OLD_FONT) {
+          parsed.fontFamily = DEFAULT_SESSION.fontFamily;
+        }
+
         return parsed;
       }
     } catch {
