@@ -287,8 +287,19 @@ body {
 }
 
 .tab-entry.dragging {
-  opacity: 0.3;
+  opacity: 0.2;
   cursor: grabbing;
+}
+
+#drag-clone {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0.9;
+  background: var(--surface0);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transform: scale(1.02);
 }
 
 .tab-entry.drag-over {

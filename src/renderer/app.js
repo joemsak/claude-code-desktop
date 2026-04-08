@@ -242,8 +242,27 @@ function renderSidebar() {
     el.addEventListener("dragstart", (e) => {
       e.dataTransfer.setData("text/plain", tab.id);
       el.classList.add("dragging");
+      // Hide default ghost — we show a floating clone instead
+      const transparent = document.createElement("div");
+      transparent.style.opacity = "0";
+      document.body.appendChild(transparent);
+      e.dataTransfer.setDragImage(transparent, 0, 0);
+      requestAnimationFrame(() => transparent.remove());
+      // Create floating clone
+      const clone = el.cloneNode(true);
+      clone.id = "drag-clone";
+      clone.style.width = `${el.offsetWidth}px`;
+      document.body.appendChild(clone);
+      dragClone = clone;
+      dragOffsetY = e.clientY - el.getBoundingClientRect().top;
     });
-    el.addEventListener("dragend", () => el.classList.remove("dragging"));
+    el.addEventListener("dragend", () => {
+      el.classList.remove("dragging");
+      if (dragClone) {
+        dragClone.remove();
+        dragClone = null;
+      }
+    });
     el.addEventListener("dragover", (e) => {
       e.preventDefault();
       if (el.classList.contains("dragging")) return;
@@ -446,6 +465,17 @@ function startRename(tab, nameSpan) {
 // ===========================
 // Drag Reorder
 // ===========================
+
+let dragClone = null;
+let dragOffsetY = 0;
+
+// Move the floating clone with the cursor
+document.addEventListener("dragover", (e) => {
+  if (dragClone) {
+    dragClone.style.top = `${e.clientY - dragOffsetY}px`;
+    dragClone.style.left = `${sidebarEl.getBoundingClientRect().left}px`;
+  }
+});
 
 // Allow dropping on the tab-list itself (empty space below last tab → move to end)
 tabListEl.addEventListener("dragover", (e) => {
