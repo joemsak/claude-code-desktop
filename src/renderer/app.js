@@ -8,6 +8,7 @@ import {
   DEFAULT_THEME_NAME,
 } from "./themes.js";
 import { fuzzyMatch, fuzzyScore } from "./fuzzy.js";
+import Sortable from "sortablejs";
 
 const { electronAPI } = window;
 
@@ -199,7 +200,11 @@ function renderSidebar() {
       (tab.exited ? " tab-exited" : "") +
       (tab.dangerousMode ? " tab-dangerous" : "");
     el.dataset.tabId = tab.id;
-    el.draggable = true;
+
+    const handle = document.createElement("span");
+    handle.className = "drag-handle";
+    handle.textContent = "⠿";
+    el.appendChild(handle);
 
     const nameSpan = document.createElement("span");
     nameSpan.className = "tab-name";
@@ -239,50 +244,9 @@ function renderSidebar() {
       startRename(tab, nameSpan);
     });
 
-    el.addEventListener("dragstart", (e) => {
-      e.dataTransfer.setData("text/plain", tab.id);
-      el.classList.add("dragging");
-      // Hide default ghost with a 1x1 transparent GIF
-      const img = new Image();
-      img.src =
-        "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-      e.dataTransfer.setDragImage(img, 0, 0);
-      // Create floating clone
-      const clone = el.cloneNode(true);
-      clone.id = "drag-clone";
-      clone.style.width = `${el.offsetWidth}px`;
-      document.body.appendChild(clone);
-      dragClone = clone;
-      dragOffsetY = e.clientY - el.getBoundingClientRect().top;
-    });
-    el.addEventListener("dragend", () => {
-      el.classList.remove("dragging");
-      if (dragClone) {
-        dragClone.remove();
-        dragClone = null;
-      }
-    });
-    el.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      if (el.classList.contains("dragging")) return;
-      const rect = el.getBoundingClientRect();
-      const isBottom = e.clientY > rect.top + rect.height / 2;
-      el.classList.toggle("drag-over", !isBottom);
-      el.classList.toggle("drag-over-below", isBottom);
-    });
-    el.addEventListener("dragleave", () => {
-      el.classList.remove("drag-over", "drag-over-below");
-    });
-    el.addEventListener("drop", (e) => {
-      e.preventDefault();
-      const rect = el.getBoundingClientRect();
-      const isBottom = e.clientY > rect.top + rect.height / 2;
-      el.classList.remove("drag-over", "drag-over-below");
-      reorderTabs(e.dataTransfer.getData("text/plain"), tab.id, isBottom);
-    });
-
     tabListEl.appendChild(el);
   }
+  initSortable();
 }
 
 // ===========================
@@ -462,58 +426,25 @@ function startRename(tab, nameSpan) {
 }
 
 // ===========================
-// Drag Reorder
+// Drag Reorder (SortableJS)
 // ===========================
 
-let dragClone = null;
-let dragOffsetY = 0;
-
-// Move the floating clone with the cursor
-document.addEventListener("dragover", (e) => {
-  if (dragClone) {
-    dragClone.style.top = `${e.clientY - dragOffsetY}px`;
-    dragClone.style.left = `${sidebarEl.getBoundingClientRect().left}px`;
-  }
-});
-
-// Allow dropping on the tab-list itself (empty space below last tab → move to end)
-tabListEl.addEventListener("dragover", (e) => {
-  if (e.target === tabListEl) {
-    e.preventDefault();
-    tabListEl.classList.add("drag-over-end");
-  }
-});
-tabListEl.addEventListener("dragleave", (e) => {
-  if (e.target === tabListEl) {
-    tabListEl.classList.remove("drag-over-end");
-  }
-});
-tabListEl.addEventListener("drop", (e) => {
-  if (e.target === tabListEl) {
-    e.preventDefault();
-    tabListEl.classList.remove("drag-over-end");
-    const fromId = e.dataTransfer.getData("text/plain");
-    moveTabToEnd(fromId);
-  }
-});
-
-function moveTabToEnd(tabId) {
-  const fromIndex = tabs.findIndex((t) => t.id === tabId);
-  if (fromIndex < 0 || fromIndex === tabs.length - 1) return;
-  const [moved] = tabs.splice(fromIndex, 1);
-  tabs.push(moved);
-  renderSidebar();
-  scheduleSave();
-}
-
-function reorderTabs(fromId, toId, insertAfter = false) {
-  if (fromId === toId) return;
-  const fromIndex = tabs.findIndex((t) => t.id === fromId);
-  const [moved] = tabs.splice(fromIndex, 1);
-  const toIndex = tabs.findIndex((t) => t.id === toId);
-  tabs.splice(insertAfter ? toIndex + 1 : toIndex, 0, moved);
-  renderSidebar();
-  scheduleSave();
+function initSortable() {
+  if (tabListEl._sortable) tabListEl._sortable.destroy();
+  tabListEl._sortable = new Sortable(tabListEl, {
+    animation: 150,
+    handle: ".drag-handle",
+    ghostClass: "sortable-ghost",
+    chosenClass: "sortable-chosen",
+    dragClass: "sortable-drag",
+    onEnd: (evt) => {
+      if (evt.oldIndex === evt.newIndex) return;
+      const [moved] = tabs.splice(evt.oldIndex, 1);
+      tabs.splice(evt.newIndex, 0, moved);
+      renderSidebar();
+      scheduleSave();
+    },
+  });
 }
 
 // ===========================

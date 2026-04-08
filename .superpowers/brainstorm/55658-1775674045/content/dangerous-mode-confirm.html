@@ -1,0 +1,67 @@
+<h2>Dangerous Mode Confirmation Dialog</h2>
+<p class="subtitle">In-app modal shown before launching with --dangerously-skip-permissions</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">Confirmation Modal — Default OFF</div>
+    <div class="mockup-body" style="background: #1e1e2e; padding: 24px; font-family: -apple-system, system-ui, sans-serif;">
+      <!-- Dimmed background hint -->
+      <div style="opacity: 0.3; margin-bottom: 16px;">
+        <div style="background: #313244; border-radius: 6px; padding: 8px 12px; color: #a6adc8; font-size: 11px;">workspace-picker (dimmed behind)</div>
+      </div>
+      <!-- Modal -->
+      <div style="background: #313244; border-radius: 10px; padding: 24px; max-width: 380px; margin: 0 auto; box-shadow: 0 8px 32px rgba(0,0,0,0.5);">
+        <div style="font-size: 20px; margin-bottom: 8px;">⚠️</div>
+        <div style="color: #cdd6f4; font-size: 14px; font-weight: 600; margin-bottom: 8px;">Skip Permission Prompts?</div>
+        <div style="color: #a6adc8; font-size: 12px; line-height: 1.5; margin-bottom: 16px;">
+          Claude will execute commands <strong style="color: #f38ba8;">without asking for approval</strong>. Only use this in trusted workspaces.
+        </div>
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <div style="flex: 1; background: #f38ba8; color: #1e1e2e; border-radius: 6px; padding: 8px; text-align: center; font-size: 12px; font-weight: 600; cursor: pointer;">Launch Dangerous</div>
+          <div style="flex: 1; background: #45475a; color: #cdd6f4; border-radius: 6px; padding: 8px; text-align: center; font-size: 12px; cursor: pointer;">Launch Normal</div>
+        </div>
+        <div style="text-align: center;">
+          <span style="color: #89b4fa; font-size: 11px; cursor: pointer; text-decoration: underline;">Change default mode in Settings</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">Confirmation Modal — Default ON</div>
+    <div class="mockup-body" style="background: #1e1e2e; padding: 24px; font-family: -apple-system, system-ui, sans-serif;">
+      <!-- Dimmed background hint -->
+      <div style="opacity: 0.3; margin-bottom: 16px;">
+        <div style="background: #313244; border-radius: 6px; padding: 8px 12px; color: #a6adc8; font-size: 11px;">workspace-picker (dimmed behind)</div>
+      </div>
+      <!-- Modal -->
+      <div style="background: #313244; border-radius: 10px; padding: 24px; max-width: 380px; margin: 0 auto; box-shadow: 0 8px 32px rgba(0,0,0,0.5);">
+        <div style="font-size: 20px; margin-bottom: 8px;">⚠️</div>
+        <div style="color: #cdd6f4; font-size: 14px; font-weight: 600; margin-bottom: 8px;">Skip Permission Prompts?</div>
+        <div style="color: #a6adc8; font-size: 12px; line-height: 1.5; margin-bottom: 16px;">
+          Claude will execute commands <strong style="color: #f38ba8;">without asking for approval</strong>. Only use this in trusted workspaces.
+        </div>
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <div style="flex: 1; background: #f38ba8; color: #1e1e2e; border-radius: 6px; padding: 8px; text-align: center; font-size: 12px; font-weight: 600; cursor: pointer;">Launch Dangerous</div>
+          <div style="flex: 1; background: #45475a; color: #cdd6f4; border-radius: 6px; padding: 8px; text-align: center; font-size: 12px; cursor: pointer;">Launch Normal</div>
+        </div>
+        <div style="text-align: center;">
+          <span style="color: #89b4fa; font-size: 11px; cursor: pointer; text-decoration: underline;">Change default mode in Settings</span>
+        </div>
+        <div style="margin-top: 10px; text-align: center; background: #45475a; border-radius: 4px; padding: 6px 8px;">
+          <span style="color: #a6adc8; font-size: 10px;">ℹ️ This is your default — launched via Cmd+T</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 24px;">
+  <h3>Key Decisions</h3>
+  <ul style="color: #cdd6f4; font-size: 13px; line-height: 1.8;">
+    <li><strong>Both buttons always visible</strong> — "Launch Dangerous" (red) and "Launch Normal" (neutral). Declining isn't cancel, it's "launch safely instead"</li>
+    <li><strong>"Change default mode in Settings"</strong> link always present regardless of current setting</li>
+    <li><strong>When default is ON</strong> — extra note "This is your default — launched via Cmd+T" so user understands why they're seeing the prompt on a regular Cmd+T</li>
+    <li><strong>Escape key</strong> dismisses modal → launches normal (same as clicking "Launch Normal")</li>
+  </ul>
+</div>

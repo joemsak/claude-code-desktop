@@ -1,0 +1,115 @@
+<h2>Hover Peek & Settings UI</h2>
+<p class="subtitle">Two new features — preview background tabs and configure the app</p>
+
+<div style="margin-bottom: 32px;">
+  <h3>Hover Peek</h3>
+  <p class="subtitle">Hover a sidebar tab for ~500ms to see recent output without switching</p>
+
+  <div class="mockup">
+    <div class="mockup-header">Sidebar with Hover Peek</div>
+    <div class="mockup-body" style="background: #1e1e2e; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; min-height: 280px;">
+      <style>
+        @keyframes pulse2 {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      </style>
+      <!-- Sidebar -->
+      <div style="width: 180px; background: #181825; border-right: 1px solid #313244; flex-shrink: 0;">
+        <div style="padding: 10px 12px; background: #313244; color: #cdd6f4; font-size: 13px;">
+          claude-code-desktop
+        </div>
+        <div style="padding: 10px 12px; color: #6c7086; font-size: 13px; display: flex; align-items: center; gap: 8px; background: #1e1e2e; position: relative;">
+          <span style="width: 6px; height: 6px; border-radius: 50%; background: #89b4fa; flex-shrink: 0; box-shadow: 0 0 4px #89b4fa; animation: pulse2 2s ease-in-out infinite;"></span>
+          gusto-monolith
+        </div>
+        <div style="padding: 10px 12px; color: #6c7086; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+          <span style="width: 6px; height: 6px; border-radius: 50%; background: #fab387; flex-shrink: 0; box-shadow: 0 0 4px #fab387;"></span>
+          <span style="color: #cdd6f4;">api-service</span>
+        </div>
+        <div style="padding: 10px 12px; color: #6c7086; font-size: 13px;">
+          infra-terraform
+        </div>
+      </div>
+
+      <!-- Peek panel (floating to right of hovered tab) -->
+      <div style="position: relative; flex: 1;">
+        <!-- Arrow pointing to hovered tab -->
+        <div style="position: absolute; left: 0; top: 44px;">
+          <div style="
+            position: absolute;
+            left: 8px;
+            top: 8px;
+            width: calc(100% - 24px);
+            min-width: 320px;
+            background: #1e1e2e;
+            border: 1px solid #45475a;
+            border-radius: 6px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+            overflow: hidden;
+          ">
+            <div style="padding: 6px 10px; background: #181825; border-bottom: 1px solid #313244; display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: #89b4fa; font-size: 11px; font-weight: 600;">gusto-monolith</span>
+              <span style="display: flex; align-items: center; gap: 4px;">
+                <span style="width: 5px; height: 5px; border-radius: 50%; background: #89b4fa; box-shadow: 0 0 3px #89b4fa; animation: pulse2 2s ease-in-out infinite;"></span>
+                <span style="color: #89b4fa; font-size: 10px;">working</span>
+              </span>
+            </div>
+            <div style="padding: 8px 10px; font-family: Menlo, Monaco, monospace; font-size: 11px; line-height: 1.5; color: #cdd6f4;">
+              <div style="color: #6c7086;">$ claude</div>
+              <div><span style="color: #89b4fa;">Claude</span> I'll fix the N+1 query in the</div>
+              <div>payroll calculator. Let me read the</div>
+              <div>current implementation first.</div>
+              <div style="color: #6c7086; margin-top: 4px;">Reading src/payroll/calculator.rb</div>
+              <div style="color: #a6e3a1;">✓ Read 245 lines</div>
+              <div style="color: #6c7086;">Reading spec/payroll/calculator_spec.rb</div>
+              <div style="color: #f9e2af;">⠋ Working...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <h3>Settings (Cmd+,)</h3>
+  <p class="subtitle">Minimal settings — add as we need them</p>
+
+  <div class="mockup">
+    <div class="mockup-header">Settings Window</div>
+    <div class="mockup-body" style="background: #1e1e2e; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+      <!-- Title bar -->
+      <div style="height: 36px; background: #181825; border-bottom: 1px solid #313244; display: flex; align-items: center; padding: 0 16px 0 72px;">
+        <span style="color: #cdd6f4; font-size: 13px; font-weight: 500;">Settings</span>
+      </div>
+      <!-- Settings content -->
+      <div style="padding: 24px 32px; max-width: 480px;">
+        <!-- Workspace directory -->
+        <div style="margin-bottom: 24px;">
+          <label style="color: #cdd6f4; font-size: 13px; font-weight: 500; display: block; margin-bottom: 6px;">Workspace Directory</label>
+          <p style="color: #6c7086; font-size: 11px; margin-bottom: 8px;">Directory to scan for project folders in the workspace picker</p>
+          <div style="display: flex; gap: 8px;">
+            <div style="flex: 1; background: #313244; border: 1px solid #45475a; border-radius: 4px; padding: 8px 12px; color: #cdd6f4; font-size: 13px;">~/workspace</div>
+            <button style="background: #313244; border: 1px solid #45475a; border-radius: 4px; padding: 8px 12px; color: #cdd6f4; font-size: 13px; cursor: pointer;">Browse</button>
+          </div>
+        </div>
+
+        <!-- Hooks scope -->
+        <div style="margin-bottom: 24px;">
+          <label style="color: #cdd6f4; font-size: 13px; font-weight: 500; display: block; margin-bottom: 6px;">Status Detection Hooks</label>
+          <p style="color: #6c7086; font-size: 11px; margin-bottom: 8px;">Where to configure Claude Code hooks for tab status indicators</p>
+          <div style="display: flex; gap: 2px; background: #181825; border-radius: 6px; padding: 2px; border: 1px solid #313244;">
+            <div style="flex: 1; padding: 8px 16px; background: #313244; border-radius: 4px; text-align: center; color: #cdd6f4; font-size: 12px; font-weight: 500; cursor: pointer;">
+              Per Project
+            </div>
+            <div style="flex: 1; padding: 8px 16px; border-radius: 4px; text-align: center; color: #6c7086; font-size: 12px; cursor: pointer;">
+              Global
+            </div>
+          </div>
+          <p style="color: #585b70; font-size: 10px; margin-top: 6px;">Per Project writes to .claude/settings.local.json in each workspace</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
