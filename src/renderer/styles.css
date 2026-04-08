@@ -213,7 +213,7 @@ body {
   text-overflow: ellipsis;
   font-size: 13px;
   line-height: 1.4;
-  transition: background 0.1s, color 0.1s;
+  transition: background 0.1s, color 0.1s, margin-top 0.15s ease-out;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -287,16 +287,22 @@ body {
 }
 
 .tab-entry.dragging {
-  opacity: 0.5;
+  opacity: 0.3;
   cursor: grabbing;
 }
 
 .tab-entry.drag-over {
-  border-top: 2px solid var(--accent);
+  margin-top: 8px;
+  box-shadow: 0 -2px 0 var(--accent);
 }
 
-#tab-list.drag-over-end {
-  box-shadow: inset 0 -2px 0 var(--accent);
+#tab-list.drag-over-end::after {
+  content: "";
+  display: block;
+  height: 8px;
+  margin-top: 4px;
+  box-shadow: 0 -2px 0 var(--accent);
+  transition: height 0.15s ease-out;
 }
 
 .tab-name {
