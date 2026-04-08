@@ -9,7 +9,7 @@ function createManager(ptyModule, execModule, preSpawnHook) {
   const onPreSpawn = preSpawnHook || defaultEnsureAuth;
   const ptys = new Map();
 
-  function spawn(tabId, directory, onData, onExit) {
+  function spawn(tabId, directory, onData, onExit, options) {
     const shell = process.env.SHELL || "/bin/zsh";
     const cleanEnv = Object.fromEntries(
       Object.entries({ ...process.env, HOME: os.homedir() }).filter(
@@ -21,7 +21,9 @@ function createManager(ptyModule, execModule, preSpawnHook) {
 
     onPreSpawn(cleanEnv);
 
-    const cmd = "source ~/.zshrc 2>/dev/null; exec claude";
+    const flag =
+      options && options.dangerousMode ? " --dangerously-skip-permissions" : "";
+    const cmd = `source ~/.zshrc 2>/dev/null; exec claude${flag}`;
     const ptyProcess = ptyLib.spawn(shell, ["-l", "-c", cmd], {
       name: "xterm-256color",
       cols: 80,

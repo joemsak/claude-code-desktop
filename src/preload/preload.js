@@ -2,8 +2,8 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("electronAPI", {
   // PTY management
-  spawnPty: (tabId, directory) =>
-    ipcRenderer.send("pty:spawn", tabId, directory),
+  spawnPty: (tabId, directory, options) =>
+    ipcRenderer.send("pty:spawn", tabId, directory, options),
   writePty: (tabId, data) => ipcRenderer.send("pty:write", tabId, data),
   resizePty: (tabId, cols, rows) =>
     ipcRenderer.send("pty:resize", tabId, cols, rows),

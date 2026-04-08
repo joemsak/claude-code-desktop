@@ -133,6 +133,29 @@ describe('pty-manager', () => {
     });
   });
 
+  describe('dangerousMode', () => {
+    it('appends --dangerously-skip-permissions when options.dangerousMode is true', () => {
+      manager.spawn('tab-d', '/tmp', vi.fn(), vi.fn(), { dangerousMode: true });
+      const args = mock.mockSpawn.mock.calls[0][1];
+      const cmd = args[args.length - 1];
+      expect(cmd).toContain('exec claude --dangerously-skip-permissions');
+    });
+
+    it('does not append flag when options.dangerousMode is false', () => {
+      manager.spawn('tab-n', '/tmp', vi.fn(), vi.fn(), { dangerousMode: false });
+      const args = mock.mockSpawn.mock.calls[0][1];
+      const cmd = args[args.length - 1];
+      expect(cmd).toMatch(/exec claude$/);
+    });
+
+    it('does not append flag when options is omitted', () => {
+      manager.spawn('tab-o', '/tmp', vi.fn(), vi.fn());
+      const args = mock.mockSpawn.mock.calls[0][1];
+      const cmd = args[args.length - 1];
+      expect(cmd).toMatch(/exec claude$/);
+    });
+  });
+
   describe('kill', () => {
     it('kills the PTY process', () => {
       manager.spawn('tab-1', '/tmp', vi.fn(), vi.fn());

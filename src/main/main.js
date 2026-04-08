@@ -83,7 +83,7 @@ function createWindow(sessionData) {
 }
 
 // IPC: PTY management
-ipcMain.on("pty:spawn", (event, tabId, directory) => {
+ipcMain.on("pty:spawn", (event, tabId, directory, options) => {
   if (typeof directory !== "string" || !path.isAbsolute(directory)) return;
 
   ptyManager.spawn(
@@ -99,6 +99,7 @@ ipcMain.on("pty:spawn", (event, tabId, directory) => {
         event.sender.send("pty:exit", id, exitCode);
       }
     },
+    options,
   );
 });
 
