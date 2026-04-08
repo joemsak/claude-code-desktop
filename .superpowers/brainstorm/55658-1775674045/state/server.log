@@ -1,9 +1,0 @@
-{"type":"server-started","port":57910,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:57910","screen_dir":"/Users/joseph.sak/workspace/claude-code-desktop/.superpowers/brainstorm/55658-1775674045/content","state_dir":"/Users/joseph.sak/workspace/claude-code-desktop/.superpowers/brainstorm/55658-1775674045/state"}
-{"type":"screen-added","file":"/Users/joseph.sak/workspace/claude-code-desktop/.superpowers/brainstorm/55658-1775674045/content/dangerous-mode-confirm.html"}
-{"type":"screen-added","file":"/Users/joseph.sak/workspace/claude-code-desktop/.superpowers/brainstorm/55658-1775674045/content/settings-and-tabs.html"}
-{"type":"screen-added","file":"/Users/joseph.sak/workspace/claude-code-desktop/.superpowers/brainstorm/55658-1775674045/content/drag-handle-options.html"}
-{"source":"user-event","type":"click","text":"A\n    \n      Grip Dots (current icon, bigger + brighter)\n      \n        \n        \n          api-service\n        \n        \n        \n          ⠿\n          my-project\n          ×\n        \n        \n        \n          docs\n        \n      \n      Bump to 10px, opacity 1.0 with --subtext0 color","choice":"a","id":null,"timestamp":1775675902713}
-{"source":"user-event","type":"click","text":"A\n    \n      Grip Dots (current icon, bigger + brighter)\n      \n        \n        \n          api-service\n        \n        \n        \n          ⠿\n          my-project\n          ×\n        \n        \n        \n          docs\n        \n      \n      Bump to 10px, opacity 1.0 with --subtext0 color","choice":"a","id":null,"timestamp":1775675903027}
-{"type":"screen-added","file":"/Users/joseph.sak/workspace/claude-code-desktop/.superpowers/brainstorm/55658-1775674045/content/drag-handle-bigger.html"}
-{"type":"screen-added","file":"/Users/joseph.sak/workspace/claude-code-desktop/.superpowers/brainstorm/55658-1775674045/content/waiting.html"}
-{"type":"server-stopped","reason":"idle timeout"}
