@@ -47,6 +47,9 @@ const settingsThemeSelect = document.getElementById("settings-theme");
 const settingsFontFamily = document.getElementById("settings-font-family");
 const settingsFontSize = document.getElementById("settings-font-size");
 const settingsOpenThemes = document.getElementById("settings-open-themes");
+const settingsDangerousToggle = document.getElementById(
+  "settings-dangerous-toggle",
+);
 const confirmOverlay = document.getElementById("confirm-dangerous-overlay");
 const confirmDangerousBtn = document.getElementById("confirm-dangerous-btn");
 const confirmNormalBtn = document.getElementById("confirm-normal-btn");
@@ -780,7 +783,8 @@ electronAPI.onPtyExit((tabId, _exitCode) => {
 // Menu Events
 // ===========================
 
-electronAPI.onNewTab(() => openPicker());
+electronAPI.onNewTab(() => openPicker(defaultDangerousMode));
+electronAPI.onNewTabDangerous(() => openPicker(!defaultDangerousMode));
 electronAPI.onCloseTab(() => {
   if (activeTabId) closeTab(activeTabId);
 });
@@ -857,9 +861,13 @@ followIndicator.addEventListener("click", () => {
   }
 });
 
-newTabBtn.addEventListener("click", openPicker);
-topbarNewTabBtn.addEventListener("click", openPicker);
-emptyStateOpenBtn.addEventListener("click", openPicker);
+newTabBtn.addEventListener("click", () => openPicker(defaultDangerousMode));
+topbarNewTabBtn.addEventListener("click", () =>
+  openPicker(defaultDangerousMode),
+);
+emptyStateOpenBtn.addEventListener("click", () =>
+  openPicker(defaultDangerousMode),
+);
 
 // ===========================
 // CWD Tracking
@@ -946,6 +954,7 @@ async function openSettings() {
   // Font settings
   settingsFontFamily.value = settings.fontFamily || currentFontFamily;
   settingsFontSize.value = settings.fontSize || currentFontSize;
+  settingsDangerousToggle.checked = settings.defaultDangerousMode || false;
 
   settingsOverlay.classList.remove("hidden");
   settingsThemeSelect.focus();
@@ -1008,6 +1017,12 @@ settingsOpenThemes.addEventListener("click", () => {
   electronAPI.openThemesFolder();
 });
 
+settingsDangerousToggle.addEventListener("change", () => {
+  defaultDangerousMode = settingsDangerousToggle.checked;
+  saveSettingsValue("defaultDangerousMode", defaultDangerousMode);
+  electronAPI.rebuildMenu(defaultDangerousMode);
+});
+
 electronAPI.onOpenSettings(() => openSettings());
 
 document.addEventListener("keydown", (e) => {
@@ -1039,6 +1054,7 @@ async function init() {
   const startupSettings = await electronAPI.loadSettings();
   currentFontFamily = startupSettings.fontFamily || currentFontFamily;
   currentFontSize = startupSettings.fontSize || currentFontSize;
+  defaultDangerousMode = startupSettings.defaultDangerousMode || false;
   const customThemes = await electronAPI.listCustomThemes();
   currentTheme = getThemeByName(
     startupSettings.theme || DEFAULT_THEME_NAME,

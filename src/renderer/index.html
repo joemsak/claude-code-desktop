@@ -79,6 +79,20 @@
           <p class="settings-hint">Drop .json theme files in the themes folder</p>
           <button id="settings-open-themes" class="settings-btn-secondary">Open Themes Folder</button>
         </div>
+        <div class="settings-group settings-separator"></div>
+        <div class="settings-group">
+          <div class="settings-toggle-row">
+            <div class="settings-toggle-label">
+              <label class="settings-label">Skip Permissions by Default</label>
+              <p class="settings-hint">New tabs launch with --dangerously-skip-permissions</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settings-dangerous-toggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <p class="settings-hint-small" style="color: var(--red);">&#x26A0;&#xFE0F; A confirmation will still be shown before each launch</p>
+        </div>
       </div>
     </div>
   </div>

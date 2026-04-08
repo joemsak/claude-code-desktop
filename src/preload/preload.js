@@ -20,7 +20,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // Menu events (main -> renderer)
   onNewTab: (callback) => ipcRenderer.on("menu:new-tab", () => callback()),
+  onNewTabDangerous: (callback) =>
+    ipcRenderer.on("menu:new-tab-dangerous", () => callback()),
   onCloseTab: (callback) => ipcRenderer.on("menu:close-tab", () => callback()),
+  rebuildMenu: (defaultDangerous) =>
+    ipcRenderer.invoke("menu:rebuild", defaultDangerous),
   onOpenSettings: (callback) =>
     ipcRenderer.on("menu:open-settings", () => callback()),
 

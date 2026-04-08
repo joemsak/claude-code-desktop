@@ -302,9 +302,17 @@ function saveSessionFromMain() {
   }
 }
 
-// App lifecycle
-app.whenReady().then(async () => {
-  createWindow(sessionStore.load() || sessionStore.DEFAULT_SESSION);
+ipcMain.handle("menu:rebuild", (_event, defaultDangerous) => {
+  buildMenu(!!defaultDangerous);
+});
+
+function buildMenu(defaultDangerous) {
+  const newTabLabel = defaultDangerous
+    ? "New Tab (Skip Permissions)"
+    : "New Tab";
+  const dangerousTabLabel = defaultDangerous
+    ? "New Tab (Standard)"
+    : "New Tab (Skip Permissions)";
 
   const template = [
     { role: "appMenu" },
@@ -312,9 +320,14 @@ app.whenReady().then(async () => {
       label: "File",
       submenu: [
         {
-          label: "New Tab",
+          label: newTabLabel,
           accelerator: "CmdOrCtrl+T",
           click: () => mainWindow?.webContents.send("menu:new-tab"),
+        },
+        {
+          label: dangerousTabLabel,
+          accelerator: "CmdOrCtrl+Shift+T",
+          click: () => mainWindow?.webContents.send("menu:new-tab-dangerous"),
         },
         {
           label: "Close Tab",
@@ -333,6 +346,14 @@ app.whenReady().then(async () => {
     { role: "windowMenu" },
   ];
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+}
+
+// App lifecycle
+app.whenReady().then(async () => {
+  createWindow(sessionStore.load() || sessionStore.DEFAULT_SESSION);
+
+  const sessionData = sessionStore.load();
+  buildMenu(sessionData?.defaultDangerousMode || false);
 });
 
 app.on("window-all-closed", () => {
