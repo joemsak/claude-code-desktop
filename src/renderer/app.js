@@ -8,7 +8,6 @@ import {
   DEFAULT_THEME_NAME,
 } from "./themes.js";
 import { fuzzyMatch, fuzzyScore } from "./fuzzy.js";
-import { stripTuiChrome } from "./strip-tui-chrome.js";
 
 const { electronAPI } = window;
 
@@ -39,10 +38,6 @@ const topbarNewTabBtn = document.getElementById("topbar-new-tab");
 const emptyStateOpenBtn = document.getElementById("empty-state-open-btn");
 const emptyStateRecents = document.getElementById("empty-state-recents");
 const followIndicator = document.getElementById("follow-indicator");
-const peekPanel = document.getElementById("peek-panel");
-const peekTabName = document.getElementById("peek-tab-name");
-const peekTabStatus = document.getElementById("peek-tab-status");
-const peekContent = document.getElementById("peek-content");
 const settingsOverlay = document.getElementById("settings-overlay");
 const settingsCloseBtn = document.getElementById("settings-close");
 const settingsWorkspaceDir = document.getElementById("settings-workspace-dir");
@@ -80,8 +75,6 @@ function updateFollowIndicator() {
     followIndicator.classList.remove("following");
   }
 }
-
-const MAX_BUFFER_LINES = 20;
 
 function refitActiveTerminal() {
   const tab = getActiveTab();
@@ -220,23 +213,6 @@ function renderSidebar() {
 
     el.addEventListener("click", () => switchTab(tab.id));
 
-    // Hover peek (only for non-active tabs)
-    el.addEventListener("mouseenter", () => {
-      if (tab.id === activeTabId) return;
-      clearTimeout(peekTimeout);
-      peekTimeout = setTimeout(() => showPeek(tab, el), 500);
-    });
-    el.addEventListener("mouseleave", () => {
-      if (peekTabId !== tab.id) {
-        clearTimeout(peekTimeout);
-        peekTimeout = null;
-      } else {
-        // Delay hiding to allow mouse to move to peek panel
-        clearTimeout(peekTimeout);
-        peekTimeout = setTimeout(() => hidePeek(), 200);
-      }
-    });
-
     nameSpan.addEventListener("click", (e) => {
       e.stopPropagation();
       if (tab.id !== activeTabId) switchTab(tab.id);
@@ -267,61 +243,6 @@ function renderSidebar() {
     tabListEl.appendChild(el);
   }
 }
-
-// ===========================
-// Hover Peek
-// ===========================
-
-let peekTimeout = null;
-let peekTabId = null;
-
-function showPeek(tab, tabEl) {
-  peekTabId = tab.id;
-  peekTabName.textContent = getDisplayName(tab);
-
-  if (tab.exited) {
-    peekTabStatus.textContent = "exited";
-    peekTabStatus.style.color = "#585b70";
-  } else {
-    peekTabStatus.textContent = "idle";
-    peekTabStatus.style.color = "#6c7086";
-  }
-
-  // Read from xterm.js terminal buffer (already processes all escape sequences)
-  const buffer = tab.terminal.buffer.active;
-  const lines = [];
-  for (let i = 0; i < buffer.length; i++) {
-    const line = buffer.getLine(i);
-    if (line) lines.push(line.translateToString(true).trimEnd());
-  }
-  // Strip Claude Code TUI chrome (prompt box + statusbar) and trailing empties
-  const cleaned = stripTuiChrome(lines);
-  const text = cleaned.slice(-MAX_BUFFER_LINES).join("\n").trim();
-  peekContent.textContent = text || "(no output yet)";
-  peekContent.scrollTop = peekContent.scrollHeight;
-
-  // Position to the right of the sidebar, aligned with the tab
-  const rect = tabEl.getBoundingClientRect();
-  const sidebarRect = sidebarEl.getBoundingClientRect();
-  peekPanel.style.left = `${sidebarRect.right + 8}px`;
-  peekPanel.style.top = `${Math.max(rect.top, 40)}px`;
-  peekPanel.classList.remove("hidden");
-}
-
-function hidePeek() {
-  clearTimeout(peekTimeout);
-  peekTimeout = null;
-  peekTabId = null;
-  peekPanel.classList.add("hidden");
-}
-
-peekPanel.addEventListener("mouseenter", () => {
-  clearTimeout(peekTimeout);
-});
-
-peekPanel.addEventListener("mouseleave", () => {
-  hidePeek();
-});
 
 // ===========================
 // Tab Lifecycle
@@ -405,7 +326,6 @@ function createTab(directory, customName = null, originalDir = null) {
 }
 
 function switchTab(tabId) {
-  hidePeek();
   activeTabId = tabId;
   for (const tab of tabs) {
     const isActive = tab.id === tabId;
@@ -462,8 +382,13 @@ function startRename(tab, nameSpan) {
   input.className = "rename-input";
   input.value = getDisplayName(tab);
   nameSpan.replaceWith(input);
-  input.focus();
-  input.select();
+  requestAnimationFrame(() => {
+    input.focus();
+    input.select();
+  });
+
+  input.addEventListener("mousedown", (e) => e.stopPropagation());
+  input.addEventListener("click", (e) => e.stopPropagation());
 
   let finished = false;
   const finish = (save) => {
