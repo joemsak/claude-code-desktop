@@ -342,6 +342,21 @@ function buildMenu(defaultDangerous) {
         },
       ],
     },
+    {
+      label: "View",
+      submenu: [
+        {
+          label: "Open Claude DevTools",
+          accelerator: "CmdOrCtrl+Shift+D",
+          click: () => {
+            const appPath = "/Applications/claude-devtools.app";
+            if (fs.existsSync(appPath)) {
+              shell.openPath(appPath);
+            }
+          },
+        },
+      ],
+    },
     { role: "editMenu" },
     { role: "windowMenu" },
   ];
