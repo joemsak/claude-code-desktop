@@ -43,4 +43,12 @@ describe('settings UI', () => {
     expect(mainSource).toContain("settings.fontFamily");
     expect(mainSource).toContain("settings.fontSize");
   });
+
+  it('settings:load returns defaultDangerousMode', () => {
+    expect(mainSource).toContain('data.defaultDangerousMode');
+  });
+
+  it('settings:save handles defaultDangerousMode', () => {
+    expect(mainSource).toContain('settings.defaultDangerousMode');
+  });
 });

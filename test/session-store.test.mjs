@@ -180,6 +180,10 @@ describe('session-store', () => {
     it("has default fontSize of 14", () => {
       expect(store.DEFAULT_SESSION.fontSize).toBe(14);
     });
+
+    it('DEFAULT_SESSION includes defaultDangerousMode as false', () => {
+      expect(store.DEFAULT_SESSION.defaultDangerousMode).toBe(false);
+    });
   });
 
   describe('workspaceDir', () => {

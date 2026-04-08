@@ -191,6 +191,7 @@ ipcMain.handle("settings:load", () => {
     theme: data.theme || sessionStore.DEFAULT_SESSION.theme,
     fontFamily: data.fontFamily || sessionStore.DEFAULT_SESSION.fontFamily,
     fontSize: data.fontSize || sessionStore.DEFAULT_SESSION.fontSize,
+    defaultDangerousMode: data.defaultDangerousMode || false,
   };
 });
 
@@ -215,6 +216,9 @@ ipcMain.handle("settings:save", (_event, settings) => {
   }
   if (typeof settings.themeBaseColor === "string") {
     data.themeBaseColor = settings.themeBaseColor;
+  }
+  if (typeof settings.defaultDangerousMode === "boolean") {
+    data.defaultDangerousMode = settings.defaultDangerousMode;
   }
   sessionStore.save(data);
 });

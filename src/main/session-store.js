@@ -19,6 +19,7 @@ function createStore(homeDir) {
     fontFamily:
       '"MesloLGS Nerd Font", "JetBrainsMono Nerd Font", Menlo, Monaco, "Courier New", monospace',
     fontSize: 14,
+    defaultDangerousMode: false,
   };
 
   function load() {
