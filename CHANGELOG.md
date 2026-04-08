@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-04-08
+
+### Added
+- Dangerous mode launch — Cmd+Shift+T opens the picker and launches with `--dangerously-skip-permissions`, with a confirmation modal before every launch
+- Default dangerous mode setting — toggle in Settings to swap Cmd+T / Cmd+Shift+T behavior (confirmation always shown)
+- Dangerous tabs show orange-tinted UI in sidebar and topbar for clear visual distinction
+- Dangerous mode state persisted per-tab across session save/restore
+- "Change default mode in Settings" link in the confirmation modal
+- claude-devtools integration — View > Open Claude DevTools (Cmd+Shift+D) launches the DevTools app if installed
+- Tab drag-and-drop reordering powered by SortableJS with 150ms smooth animation
+- Drag handle (⠿) appears on tab hover for reorder discoverability
+
+### Fixed
+- Tab rename: input now properly focused with text selected on double-click; clicking the input no longer reverts to non-editable state
+- Active tab indicator changed from border-left to inset box-shadow (no layout shift when switching tabs)
+- Welcome screen shortcut hints now readable (was same color as background)
+- IPC options sanitized at trust boundary (defense-in-depth for pty:spawn)
+- Escape key handlers consolidated into single priority-ordered listener (confirm modal → settings → picker)
+- Empty state recent items now respect the dangerous mode default setting
+
+### Removed
+- Hover peek feature (inactive tab preview on hover)
+- New-tab buttons (topbar + and sidebar +) — use Cmd+T instead
+- Tab position counter in topbar (e.g. "2/2")
+
+### Changed
+- Tab drag-and-drop replaced custom HTML5 DnD with SortableJS library
+- Dangerous mode accent color uses `color-mix()` for theme-aware orange (blends --error and --warning)
+
 ## [2.3.2] - 2026-04-06
 
 ### Fixed

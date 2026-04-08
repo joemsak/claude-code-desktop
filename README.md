@@ -19,13 +19,19 @@ All open tabs, their directories, custom names, sidebar width, and window positi
 ### Tab management
 
 - **Rename tabs** — double-click a tab name to edit it inline
-- **Reorder tabs** — drag and drop tabs in the sidebar
+- **Reorder tabs** — drag tabs by the grip handle in the sidebar (powered by SortableJS with smooth animation)
 - **Close tabs** — click the close button or press **Cmd+W**
 - **Tooltips** — hover over a tab to see its full directory path
 
+### Dangerous mode
+
+Launch Claude with `--dangerously-skip-permissions` via **Cmd+Shift+T**. A confirmation modal always appears before launching in dangerous mode. Dangerous tabs are visually distinguished with an orange accent in the sidebar and topbar.
+
+Toggle "Skip Permissions by Default" in Settings to swap the behavior — **Cmd+T** becomes dangerous mode and **Cmd+Shift+T** becomes standard mode. The confirmation modal still appears either way.
+
 ### Draggable top bar
 
-The top bar displays the active tab's directory path and doubles as a window drag region. The new-tab button sits in the top-right corner for quick access.
+The top bar displays the active tab's directory path and doubles as a window drag region.
 
 ### Resizable sidebar
 
@@ -41,21 +47,23 @@ Full terminal emulation powered by xterm.js with 5000-line scrollback, cursor bl
 
 Create custom themes by dropping a JSON file in `~/.config/claude-code-desktop/themes/`. Each theme defines `chrome` (app UI colors) and `terminal` (ANSI colors) sections.
 
+### claude-devtools integration
+
+If you have [claude-devtools](https://github.com/matt1398/claude-devtools) installed (`brew install --cask claude-devtools`), launch it from **View > Open Claude DevTools** or **Cmd+Shift+D**. It visualizes Claude Code session logs — every tool call, file path, and token.
+
 ### Settings
 
-Press **Cmd+,** to open the settings panel. Configure your theme, terminal font family and size, and workspace directory.
-
-### Hover peek
-
-Hover over a sidebar tab for 500ms to preview the last 20 lines of terminal output in a floating panel — no need to switch tabs to check progress.
+Press **Cmd+,** to open the settings panel. Configure your theme, terminal font family and size, workspace directory, and dangerous mode default.
 
 ### Keyboard shortcuts
 
 | Shortcut | Action |
 |---|---|
-| **Cmd+T** | New tab |
+| **Cmd+T** | New tab (or dangerous mode if default is flipped) |
+| **Cmd+Shift+T** | New tab in opposite mode |
 | **Cmd+W** | Close tab |
 | **Cmd+,** | Settings |
+| **Cmd+Shift+D** | Open Claude DevTools |
 | **Cmd+1** – **Cmd+9** | Switch to tab 1–9 |
 | **Cmd+Shift+[** | Previous tab |
 | **Cmd+Shift+]** | Next tab |
