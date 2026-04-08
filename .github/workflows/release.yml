@@ -40,7 +40,7 @@ jobs:
           npm test
 
       - name: Build for ${{ matrix.label }}
-        run: npm run bundle && npx electron-builder --mac --${{ matrix.arch }} -c.artifactName="Claude-Code-Desktop-${{ matrix.label }}.${ext}"
+        run: npm run bundle && npx electron-builder --mac --${{ matrix.arch }} -c.artifactName="Claude-Code-Desktop-${{ matrix.label }}.\${ext}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

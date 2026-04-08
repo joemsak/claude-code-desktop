@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Release workflow: `${ext}` was expanded as empty shell variable instead of electron-builder template, producing artifacts without `.pkg` extension
+
 ## [3.0.1] - 2026-04-08
 
 ### Added
