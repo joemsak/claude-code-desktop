@@ -246,6 +246,7 @@ function renderSidebar() {
     el.addEventListener("dragend", () => el.classList.remove("dragging"));
     el.addEventListener("dragover", (e) => {
       e.preventDefault();
+      if (el.classList.contains("dragging")) return;
       const rect = el.getBoundingClientRect();
       const isBottom = e.clientY > rect.top + rect.height / 2;
       el.classList.toggle("drag-over", !isBottom);
