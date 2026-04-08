@@ -200,7 +200,7 @@ body {
 }
 
 .drag-handle {
-  color: var(--subtext0);
+  color: var(--subtext1);
   font-size: 14px;
   cursor: grab;
   opacity: 0;
@@ -638,6 +638,10 @@ body {
 
 #picker-list li.picker-recent {
   color: var(--accent);
+}
+
+#picker-list li.picker-home {
+  color: var(--text);
 }
 
 #picker-browse-footer {

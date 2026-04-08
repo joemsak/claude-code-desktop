@@ -168,7 +168,7 @@ ipcMain.handle("dirs:list-workspace", () => {
   try {
     const entries = fs.readdirSync(workspaceDir, { withFileTypes: true });
     return entries
-      .filter((e) => e.isDirectory())
+      .filter((e) => e.isDirectory() && !e.name.startsWith("."))
       .map((e) => ({ name: e.name, path: path.join(workspaceDir, e.name) }))
       .sort((a, b) =>
         a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),

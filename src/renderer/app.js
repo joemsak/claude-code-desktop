@@ -579,6 +579,7 @@ function renderPickerList(filter) {
     const idx = selectableIndex++;
     const li = document.createElement("li");
     if (dir.isRecent) li.classList.add("picker-recent");
+    if (dir.isHome) li.classList.add("picker-home");
     li.classList.toggle("selected", idx === pickerSelectedIndex);
 
     const nameSpan = document.createElement("span");

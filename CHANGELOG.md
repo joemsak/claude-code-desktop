@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-04-08
+
+### Added
+- Workspace picker hides dot directories (e.g. `.git`, `.config`) from the listing
+- Home (`~`) item in picker gets distinct styling for visual clarity
+
+### Fixed
+- Home (`~`) color in picker was too dark — now uses full text color
+- Tab drag handle was barely visible — lightened from subtext0 to subtext1
+
 ## [3.0.0] - 2026-04-08
 
 ### Added
