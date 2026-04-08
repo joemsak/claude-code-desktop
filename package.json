@@ -1,6 +1,6 @@
 {
   "name": "claude-code-desktop",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Desktop app for managing multiple Claude Code terminal sessions",
   "main": "src/main/main.js",
   "scripts": {
