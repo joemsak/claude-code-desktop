@@ -246,13 +246,20 @@ function renderSidebar() {
     el.addEventListener("dragend", () => el.classList.remove("dragging"));
     el.addEventListener("dragover", (e) => {
       e.preventDefault();
-      el.classList.add("drag-over");
+      const rect = el.getBoundingClientRect();
+      const isBottom = e.clientY > rect.top + rect.height / 2;
+      el.classList.toggle("drag-over", !isBottom);
+      el.classList.toggle("drag-over-below", isBottom);
     });
-    el.addEventListener("dragleave", () => el.classList.remove("drag-over"));
+    el.addEventListener("dragleave", () => {
+      el.classList.remove("drag-over", "drag-over-below");
+    });
     el.addEventListener("drop", (e) => {
       e.preventDefault();
-      el.classList.remove("drag-over");
-      reorderTabs(e.dataTransfer.getData("text/plain"), tab.id);
+      const rect = el.getBoundingClientRect();
+      const isBottom = e.clientY > rect.top + rect.height / 2;
+      el.classList.remove("drag-over", "drag-over-below");
+      reorderTabs(e.dataTransfer.getData("text/plain"), tab.id, isBottom);
     });
 
     tabListEl.appendChild(el);
@@ -469,12 +476,12 @@ function moveTabToEnd(tabId) {
   scheduleSave();
 }
 
-function reorderTabs(fromId, toId) {
+function reorderTabs(fromId, toId, insertAfter = false) {
   if (fromId === toId) return;
   const fromIndex = tabs.findIndex((t) => t.id === fromId);
-  const toIndex = tabs.findIndex((t) => t.id === toId);
   const [moved] = tabs.splice(fromIndex, 1);
-  tabs.splice(toIndex, 0, moved);
+  const toIndex = tabs.findIndex((t) => t.id === toId);
+  tabs.splice(insertAfter ? toIndex + 1 : toIndex, 0, moved);
   renderSidebar();
   scheduleSave();
 }
