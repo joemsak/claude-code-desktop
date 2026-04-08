@@ -204,7 +204,7 @@ body {
 }
 
 .tab-entry {
-  padding: 10px 12px;
+  padding: 10px 12px 10px 20px;
   cursor: pointer;
   color: var(--subtext1);
   position: relative;
@@ -250,7 +250,7 @@ body {
   content: "⠿";
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   position: absolute;
-  left: 1px;
+  left: 5px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--overlay1);
@@ -261,24 +261,29 @@ body {
 .tab-entry.active {
   background: var(--surface0);
   color: var(--text);
-  border-left: 3px solid var(--accent);
-  padding-left: 9px; /* 12px - 3px border to maintain alignment */
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.tab-entry.tab-dangerous {
+  background: color-mix(in srgb, var(--error) 8%, transparent);
 }
 
 .tab-entry.tab-dangerous .tab-name {
-  color: var(--warning);
+  color: color-mix(in srgb, var(--error) 50%, var(--warning));
 }
 
 .tab-entry.tab-dangerous.active {
-  border-left-color: var(--warning);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--error) 50%, var(--warning));
+  background: color-mix(in srgb, var(--error) 12%, var(--surface0));
 }
 
 .topbar-dangerous {
-  border-bottom-color: var(--warning) !important;
+  background: color-mix(in srgb, var(--error) 10%, var(--mantle)) !important;
+  border-bottom-color: color-mix(in srgb, var(--error) 50%, var(--warning)) !important;
 }
 
 .topbar-dangerous #topbar-name {
-  color: var(--warning);
+  color: color-mix(in srgb, var(--error) 50%, var(--warning));
 }
 
 .tab-entry.dragging {

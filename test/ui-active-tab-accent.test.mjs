@@ -7,8 +7,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const cssSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'styles.css'), 'utf-8');
 
 describe('active tab left accent', () => {
-  it('has a left border on active tab entry', () => {
-    expect(cssSource).toContain('border-left');
-    expect(cssSource).toContain('var(--accent)');
+  it('has an inset box-shadow accent on active tab entry', () => {
+    const activeBlock = cssSource.match(/\.tab-entry\.active\s*\{[^}]*\}/);
+    expect(activeBlock).not.toBeNull();
+    expect(activeBlock[0]).toContain('box-shadow');
+    expect(activeBlock[0]).toContain('var(--accent)');
   });
 });
