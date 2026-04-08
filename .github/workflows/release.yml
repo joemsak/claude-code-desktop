@@ -16,7 +16,11 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        arch: [arm64, x64]
+        include:
+          - arch: arm64
+            label: Apple-Silicon
+          - arch: x64
+            label: Intel
 
     steps:
       - uses: actions/checkout@v5
@@ -35,8 +39,8 @@ jobs:
           npm run bundle
           npm test
 
-      - name: Build for ${{ matrix.arch }}
-        run: npm run bundle && npx electron-builder --mac --${{ matrix.arch }}
+      - name: Build for ${{ matrix.label }}
+        run: npm run bundle && npx electron-builder --mac --${{ matrix.arch }} -c.artifactName="Claude-Code-Desktop-${{ matrix.label }}.${ext}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
