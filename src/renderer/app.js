@@ -27,7 +27,6 @@ let defaultDangerousMode = false;
 // --- DOM refs ---
 const tabListEl = document.getElementById("tab-list");
 const terminalContainer = document.getElementById("terminal-container");
-const newTabBtn = document.getElementById("new-tab-btn");
 const pickerOverlay = document.getElementById("picker-overlay");
 const pickerSearch = document.getElementById("picker-search");
 const pickerList = document.getElementById("picker-list");
@@ -36,7 +35,6 @@ const resizeHandle = document.getElementById("sidebar-resize-handle");
 const emptyStateEl = document.getElementById("empty-state");
 const topbarPathEl = document.getElementById("topbar-path");
 const topbarNameEl = document.getElementById("topbar-name");
-const topbarNewTabBtn = document.getElementById("topbar-new-tab");
 const emptyStateOpenBtn = document.getElementById("empty-state-open-btn");
 const emptyStateRecents = document.getElementById("empty-state-recents");
 const followIndicator = document.getElementById("follow-indicator");
@@ -131,15 +129,6 @@ function updateTopbar() {
   }
   if (tab && tab.dangerousMode) {
     topbarEl.classList.add("topbar-dangerous");
-  }
-
-  // Tab position counter
-  const topbarCounterElement = document.getElementById("topbar-counter");
-  if (tab && tabs.length > 1) {
-    const pos = tabs.indexOf(tab) + 1;
-    topbarCounterElement.textContent = `${pos} / ${tabs.length}`;
-  } else {
-    topbarCounterElement.textContent = "";
   }
 }
 
@@ -862,10 +851,6 @@ followIndicator.addEventListener("click", () => {
   }
 });
 
-newTabBtn.addEventListener("click", () => openPicker(defaultDangerousMode));
-topbarNewTabBtn.addEventListener("click", () =>
-  openPicker(defaultDangerousMode),
-);
 emptyStateOpenBtn.addEventListener("click", () =>
   openPicker(defaultDangerousMode),
 );
