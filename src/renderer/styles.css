@@ -520,7 +520,7 @@ body {
 }
 
 .empty-state-hint {
-  color: var(--surface1);
+  color: var(--subtext0);
   font-size: 11px;
 }
 
@@ -529,6 +529,7 @@ body {
   padding: 1px 5px;
   border-radius: 3px;
   font-size: 10px;
+  color: var(--subtext1);
   border: 1px solid var(--surface1);
 }
 
