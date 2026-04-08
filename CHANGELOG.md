@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [3.1.0] - 2026-04-08
+## [3.0.1] - 2026-04-08
 
 ### Added
 - Workspace picker hides dot directories (e.g. `.git`, `.config`) from the listing
