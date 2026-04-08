@@ -295,6 +295,10 @@ body {
   border-top: 2px solid var(--accent);
 }
 
+#tab-list.drag-over-end {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
 .tab-name {
   overflow: hidden;
   text-overflow: ellipsis;

@@ -439,6 +439,36 @@ function startRename(tab, nameSpan) {
 // Drag Reorder
 // ===========================
 
+// Allow dropping on the tab-list itself (empty space below last tab → move to end)
+tabListEl.addEventListener("dragover", (e) => {
+  if (e.target === tabListEl) {
+    e.preventDefault();
+    tabListEl.classList.add("drag-over-end");
+  }
+});
+tabListEl.addEventListener("dragleave", (e) => {
+  if (e.target === tabListEl) {
+    tabListEl.classList.remove("drag-over-end");
+  }
+});
+tabListEl.addEventListener("drop", (e) => {
+  if (e.target === tabListEl) {
+    e.preventDefault();
+    tabListEl.classList.remove("drag-over-end");
+    const fromId = e.dataTransfer.getData("text/plain");
+    moveTabToEnd(fromId);
+  }
+});
+
+function moveTabToEnd(tabId) {
+  const fromIndex = tabs.findIndex((t) => t.id === tabId);
+  if (fromIndex < 0 || fromIndex === tabs.length - 1) return;
+  const [moved] = tabs.splice(fromIndex, 1);
+  tabs.push(moved);
+  renderSidebar();
+  scheduleSave();
+}
+
 function reorderTabs(fromId, toId) {
   if (fromId === toId) return;
   const fromIndex = tabs.findIndex((t) => t.id === fromId);
