@@ -866,3 +866,111 @@ body {
 .settings-btn-secondary:hover {
   background: var(--surface1);
 }
+
+/* --- Dangerous Mode Confirmation --- */
+#confirm-dangerous-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn 0.15s ease-out;
+}
+
+#confirm-dangerous-modal {
+  width: 380px;
+  background: var(--surface0);
+  border: 1px solid var(--surface1);
+  border-radius: 10px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+#confirm-dangerous-icon {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+#confirm-dangerous-title {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+#confirm-dangerous-body {
+  color: var(--subtext1);
+  font-size: 12px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+#confirm-dangerous-body strong {
+  color: var(--red);
+}
+
+#confirm-dangerous-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+#confirm-dangerous-btn {
+  flex: 1;
+  background: var(--red);
+  color: var(--base);
+  border: none;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.1s;
+}
+
+#confirm-dangerous-btn:hover {
+  opacity: 0.9;
+}
+
+#confirm-normal-btn {
+  flex: 1;
+  background: var(--surface1);
+  color: var(--text);
+  border: none;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+#confirm-normal-btn:hover {
+  background: var(--surface2);
+}
+
+#confirm-dangerous-footer {
+  text-align: center;
+}
+
+#confirm-settings-link {
+  color: var(--blue);
+  font-size: 11px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+#confirm-settings-link:hover {
+  color: var(--text);
+}
+
+#confirm-dangerous-note {
+  margin-top: 10px;
+  background: var(--surface1);
+  border-radius: 4px;
+  padding: 6px 8px;
+  color: var(--subtext1);
+  font-size: 10px;
+}

@@ -83,6 +83,24 @@
     </div>
   </div>
 
+  <div id="confirm-dangerous-overlay" class="hidden">
+    <div id="confirm-dangerous-modal">
+      <div id="confirm-dangerous-icon">⚠️</div>
+      <div id="confirm-dangerous-title">Skip Permission Prompts?</div>
+      <div id="confirm-dangerous-body">
+        Claude will execute commands <strong>without asking for approval</strong>. Only use this in trusted workspaces.
+      </div>
+      <div id="confirm-dangerous-buttons">
+        <button id="confirm-dangerous-btn">Launch Dangerous</button>
+        <button id="confirm-normal-btn">Launch Normal</button>
+      </div>
+      <div id="confirm-dangerous-footer">
+        <span id="confirm-settings-link">Change default mode in Settings</span>
+      </div>
+      <div id="confirm-dangerous-note" class="hidden">This is your default — launched via Cmd+T</div>
+    </div>
+  </div>
+
   <script src="bundle.js"></script>
 </body>
 </html>

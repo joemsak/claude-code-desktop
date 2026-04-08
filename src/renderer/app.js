@@ -21,6 +21,7 @@ let currentTheme = null;
 let currentFontFamily =
   '"MesloLGS Nerd Font", "JetBrainsMono Nerd Font", Menlo, Monaco, "Courier New", monospace';
 let currentFontSize = 14;
+let defaultDangerousMode = false;
 
 // --- DOM refs ---
 const tabListEl = document.getElementById("tab-list");
@@ -46,6 +47,11 @@ const settingsThemeSelect = document.getElementById("settings-theme");
 const settingsFontFamily = document.getElementById("settings-font-family");
 const settingsFontSize = document.getElementById("settings-font-size");
 const settingsOpenThemes = document.getElementById("settings-open-themes");
+const confirmOverlay = document.getElementById("confirm-dangerous-overlay");
+const confirmDangerousBtn = document.getElementById("confirm-dangerous-btn");
+const confirmNormalBtn = document.getElementById("confirm-normal-btn");
+const confirmSettingsLink = document.getElementById("confirm-settings-link");
+const confirmNote = document.getElementById("confirm-dangerous-note");
 
 // ===========================
 // Helpers
@@ -256,7 +262,12 @@ function destroyTab(tab) {
   if (index >= 0) tabs.splice(index, 1);
 }
 
-function createTab(directory, customName = null, originalDir = null) {
+function createTab(
+  directory,
+  customName = null,
+  originalDir = null,
+  options = {},
+) {
   const id = crypto.randomUUID();
   const terminal = new Terminal({
     theme: currentTheme
@@ -296,6 +307,7 @@ function createTab(directory, customName = null, originalDir = null) {
     wrapper,
     exited: false,
     _originalDir: originalDir,
+    dangerousMode: !!options.dangerousMode,
   };
   tabs.push(tab);
 
@@ -312,7 +324,9 @@ function createTab(directory, customName = null, originalDir = null) {
     electronAPI.writePty(id, data);
   });
 
-  electronAPI.spawnPty(id, directory);
+  electronAPI.spawnPty(id, directory, {
+    dangerousMode: !!options.dangerousMode,
+  });
   electronAPI.trackWorkspace(directory);
   updateEmptyState();
   switchTab(id);
@@ -369,7 +383,9 @@ function closeTab(tabId) {
 function restartTab(tab) {
   tab.exited = false;
   tab.terminal.clear();
-  electronAPI.spawnPty(tab.id, tab.directory);
+  electronAPI.spawnPty(tab.id, tab.directory, {
+    dangerousMode: tab.dangerousMode,
+  });
 }
 
 // ===========================
@@ -430,8 +446,11 @@ function reorderTabs(fromId, toId) {
 
 let pickerDirs = [];
 let pickerSelectedIndex = 0;
+let pendingDangerousMode = false;
+let pendingDirectory = null;
 
-async function openPicker() {
+async function openPicker(dangerousMode = false) {
+  pendingDangerousMode = dangerousMode;
   const [workspaceDirs, recentWorkspaces] = await Promise.all([
     electronAPI.listWorkspaceDirs(),
     electronAPI.getRecentWorkspaces(),
@@ -605,7 +624,11 @@ async function selectPickerItem(dir) {
   } else {
     directory = dir.path;
   }
-  createTab(directory);
+  if (pendingDangerousMode) {
+    showDangerousConfirm(directory);
+  } else {
+    createTab(directory);
+  }
 }
 
 pickerSearch.addEventListener("input", () => {
@@ -648,6 +671,57 @@ pickerSearch.addEventListener("keydown", (e) => {
 
 pickerOverlay.addEventListener("click", (e) => {
   if (e.target === pickerOverlay) closePicker();
+});
+
+// ===========================
+// Dangerous Mode Confirmation
+// ===========================
+
+function showDangerousConfirm(directory) {
+  pendingDirectory = directory;
+  confirmNote.classList.toggle("hidden", !defaultDangerousMode);
+  confirmOverlay.classList.remove("hidden");
+  confirmDangerousBtn.focus();
+}
+
+function closeDangerousConfirm() {
+  confirmOverlay.classList.add("hidden");
+  pendingDirectory = null;
+}
+
+confirmDangerousBtn.addEventListener("click", () => {
+  const dir = pendingDirectory;
+  closeDangerousConfirm();
+  createTab(dir, null, null, { dangerousMode: true });
+});
+
+confirmNormalBtn.addEventListener("click", () => {
+  const dir = pendingDirectory;
+  closeDangerousConfirm();
+  createTab(dir);
+});
+
+confirmSettingsLink.addEventListener("click", () => {
+  closeDangerousConfirm();
+  openSettings();
+});
+
+confirmOverlay.addEventListener("click", (e) => {
+  if (e.target === confirmOverlay) {
+    const dir = pendingDirectory;
+    closeDangerousConfirm();
+    createTab(dir);
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !confirmOverlay.classList.contains("hidden")) {
+    e.preventDefault();
+    const dir = pendingDirectory;
+    closeDangerousConfirm();
+    createTab(dir);
+    return;
+  }
 });
 
 // ===========================
