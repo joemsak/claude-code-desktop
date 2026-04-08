@@ -116,15 +116,20 @@ function updateTopbar() {
   topbarPathEl.textContent = tab ? tab.directory.replace(homePath, "~") : "";
   topbarNameEl.textContent = tab ? getDisplayName(tab) : "";
 
-  // Warning/exited states
+  // Warning/exited/dangerous states
+  const topbarEl = document.getElementById("topbar");
   topbarPathEl.classList.remove("topbar-exited", "topbar-warning");
   topbarNameEl.classList.remove("topbar-exited", "topbar-warning");
+  topbarEl.classList.remove("topbar-dangerous");
   if (tab && tab.exited) {
     topbarPathEl.classList.add("topbar-exited");
     topbarNameEl.classList.add("topbar-exited");
   } else if (tab && tab._originalDir) {
     topbarPathEl.classList.add("topbar-warning");
     topbarNameEl.classList.add("topbar-warning");
+  }
+  if (tab && tab.dangerousMode) {
+    topbarEl.classList.add("topbar-dangerous");
   }
 
   // Tab position counter
@@ -191,7 +196,8 @@ function renderSidebar() {
     el.className =
       "tab-entry" +
       (tab.id === activeTabId ? " active" : "") +
-      (tab.exited ? " tab-exited" : "");
+      (tab.exited ? " tab-exited" : "") +
+      (tab.dangerousMode ? " tab-dangerous" : "");
     el.dataset.tabId = tab.id;
     el.draggable = true;
 

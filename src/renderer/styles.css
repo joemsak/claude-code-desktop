@@ -265,6 +265,22 @@ body {
   padding-left: 9px; /* 12px - 3px border to maintain alignment */
 }
 
+.tab-entry.tab-dangerous .tab-name {
+  color: var(--warning);
+}
+
+.tab-entry.tab-dangerous.active {
+  border-left-color: var(--warning);
+}
+
+.topbar-dangerous {
+  border-bottom-color: var(--warning) !important;
+}
+
+.topbar-dangerous #topbar-name {
+  color: var(--warning);
+}
+
 .tab-entry.dragging {
   opacity: 0.5;
   cursor: grabbing;
