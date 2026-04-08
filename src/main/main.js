@@ -84,7 +84,12 @@ function createWindow(sessionData) {
 
 // IPC: PTY management
 ipcMain.on("pty:spawn", (event, tabId, directory, options) => {
+  if (typeof tabId !== "string") return;
   if (typeof directory !== "string" || !path.isAbsolute(directory)) return;
+
+  const safeOptions = {
+    dangerousMode: !!(options && options.dangerousMode),
+  };
 
   ptyManager.spawn(
     tabId,
@@ -99,7 +104,7 @@ ipcMain.on("pty:spawn", (event, tabId, directory, options) => {
         event.sender.send("pty:exit", id, exitCode);
       }
     },
-    options,
+    safeOptions,
   );
 });
 
@@ -348,11 +353,9 @@ function buildMenu(defaultDangerous) {
         {
           label: "Open Claude DevTools",
           accelerator: "CmdOrCtrl+Shift+D",
+          enabled: fs.existsSync("/Applications/claude-devtools.app"),
           click: () => {
-            const appPath = "/Applications/claude-devtools.app";
-            if (fs.existsSync(appPath)) {
-              shell.openPath(appPath);
-            }
+            shell.openPath("/Applications/claude-devtools.app");
           },
         },
       ],
@@ -365,10 +368,9 @@ function buildMenu(defaultDangerous) {
 
 // App lifecycle
 app.whenReady().then(async () => {
-  createWindow(sessionStore.load() || sessionStore.DEFAULT_SESSION);
-
-  const sessionData = sessionStore.load();
-  buildMenu(sessionData?.defaultDangerousMode || false);
+  const sessionData = sessionStore.load() || sessionStore.DEFAULT_SESSION;
+  createWindow(sessionData);
+  buildMenu(sessionData.defaultDangerousMode || false);
 });
 
 app.on("window-all-closed", () => {

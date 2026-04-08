@@ -40,6 +40,7 @@ const topbarNewTabBtn = document.getElementById("topbar-new-tab");
 const emptyStateOpenBtn = document.getElementById("empty-state-open-btn");
 const emptyStateRecents = document.getElementById("empty-state-recents");
 const followIndicator = document.getElementById("follow-indicator");
+const topbarEl = document.getElementById("topbar");
 const settingsOverlay = document.getElementById("settings-overlay");
 const settingsCloseBtn = document.getElementById("settings-close");
 const settingsWorkspaceDir = document.getElementById("settings-workspace-dir");
@@ -118,7 +119,6 @@ function updateTopbar() {
   topbarNameEl.textContent = tab ? getDisplayName(tab) : "";
 
   // Warning/exited/dangerous states
-  const topbarEl = document.getElementById("topbar");
   topbarPathEl.classList.remove("topbar-exited", "topbar-warning");
   topbarNameEl.classList.remove("topbar-exited", "topbar-warning");
   topbarEl.classList.remove("topbar-dangerous");
@@ -180,7 +180,13 @@ async function renderEmptyStateRecents() {
     pathSpan.textContent = r.path.replace(homePath, "~");
     item.appendChild(pathSpan);
 
-    item.addEventListener("click", () => createTab(r.path));
+    item.addEventListener("click", () => {
+      if (defaultDangerousMode) {
+        showDangerousConfirm(r.path);
+      } else {
+        createTab(r.path);
+      }
+    });
     list.appendChild(item);
   }
   emptyStateRecents.appendChild(list);
@@ -441,7 +447,7 @@ function initSortable() {
       if (evt.oldIndex === evt.newIndex) return;
       const [moved] = tabs.splice(evt.oldIndex, 1);
       tabs.splice(evt.newIndex, 0, moved);
-      renderSidebar();
+      updateTopbar();
       scheduleSave();
     },
   });
@@ -721,16 +727,6 @@ confirmOverlay.addEventListener("click", (e) => {
   }
 });
 
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && !confirmOverlay.classList.contains("hidden")) {
-    e.preventDefault();
-    const dir = pendingDirectory;
-    closeDangerousConfirm();
-    createTab(dir);
-    return;
-  }
-});
-
 // ===========================
 // Session Persistence
 // ===========================
@@ -749,6 +745,7 @@ async function saveSessionsNow() {
     tabs: tabs.map((t) => ({
       directory: t.directory,
       customName: t.customName,
+      dangerousMode: t.dangerousMode || false,
     })),
     activeTabIndex: tabs.findIndex((t) => t.id === activeTabId),
   });
@@ -1030,10 +1027,15 @@ settingsDangerousToggle.addEventListener("change", () => {
 electronAPI.onOpenSettings(() => openSettings());
 
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && !settingsOverlay.classList.contains("hidden")) {
+  if (e.key !== "Escape") return;
+  if (!confirmOverlay.classList.contains("hidden")) {
+    e.preventDefault();
+    const dir = pendingDirectory;
+    closeDangerousConfirm();
+    createTab(dir);
+  } else if (!settingsOverlay.classList.contains("hidden")) {
     e.preventDefault();
     closeSettings();
-    return;
   }
 });
 
@@ -1083,6 +1085,7 @@ async function init() {
         tabData.directory,
         tabData.customName,
         tabData._originalDir || null,
+        { dangerousMode: tabData.dangerousMode || false },
       );
     }
     if (data.activeTabIndex >= 0 && data.activeTabIndex < tabs.length) {
