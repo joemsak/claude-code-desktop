@@ -242,12 +242,11 @@ function renderSidebar() {
     el.addEventListener("dragstart", (e) => {
       e.dataTransfer.setData("text/plain", tab.id);
       el.classList.add("dragging");
-      // Hide default ghost — we show a floating clone instead
-      const transparent = document.createElement("div");
-      transparent.style.opacity = "0";
-      document.body.appendChild(transparent);
-      e.dataTransfer.setDragImage(transparent, 0, 0);
-      requestAnimationFrame(() => transparent.remove());
+      // Hide default ghost with a 1x1 transparent GIF
+      const img = new Image();
+      img.src =
+        "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+      e.dataTransfer.setDragImage(img, 0, 0);
       // Create floating clone
       const clone = el.cloneNode(true);
       clone.id = "drag-clone";

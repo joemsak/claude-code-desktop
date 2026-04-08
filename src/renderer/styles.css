@@ -287,8 +287,12 @@ body {
 }
 
 .tab-entry.dragging {
-  opacity: 0.2;
-  cursor: grabbing;
+  height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+  overflow: hidden;
+  opacity: 0;
 }
 
 #drag-clone {
