@@ -247,8 +247,8 @@ body {
 }
 
 .tab-entry:hover::before {
-  content: "\udb80\udf5c";
-  font-family: var(--terminal-font);
+  content: "⠿";
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   position: absolute;
   left: 1px;
   top: 50%;
@@ -909,7 +909,7 @@ body {
 }
 
 #confirm-dangerous-body strong {
-  color: var(--red);
+  color: var(--error);
 }
 
 #confirm-dangerous-buttons {
@@ -920,7 +920,7 @@ body {
 
 #confirm-dangerous-btn {
   flex: 1;
-  background: var(--red);
+  background: var(--error);
   color: var(--base);
   border: none;
   border-radius: 6px;
@@ -956,7 +956,7 @@ body {
 }
 
 #confirm-settings-link {
-  color: var(--blue);
+  color: var(--accent);
   font-size: 11px;
   cursor: pointer;
   text-decoration: underline;
