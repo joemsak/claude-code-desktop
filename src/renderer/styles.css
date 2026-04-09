@@ -293,7 +293,8 @@ body {
   background: none;
   border: none;
   color: var(--subtext1);
-  font-size: 13px;
+  font-size: 18px;
+  font-weight: 300;
   height: 18px;
   line-height: 18px;
   cursor: pointer;
