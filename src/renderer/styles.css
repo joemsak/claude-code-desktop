@@ -428,7 +428,7 @@ body {
 }
 
 .empty-recents-path {
-  color: var(--surface1);
+  color: var(--surface2);
   font-size: 11px;
 }
 
@@ -495,6 +495,10 @@ body {
   background: color-mix(in srgb, var(--error) 8%, transparent);
 }
 
+#empty-state.empty-shift-dangerous .empty-recents-path {
+  color: var(--subtext0);
+}
+
 #empty-state.empty-shift-dangerous .empty-recents-item:hover {
   background: color-mix(in srgb, var(--error) 15%, var(--surface0));
 }
@@ -520,6 +524,10 @@ body {
   background: transparent;
 }
 
+#empty-state.empty-shift-standard .empty-recents-item:hover {
+  background: var(--surface0);
+}
+
 #empty-state.empty-shift-standard #empty-state-open-btn {
   background: var(--surface0);
   color: var(--text);
@@ -534,6 +542,10 @@ body {
 #empty-state.empty-default-dangerous .empty-recents-item {
   color: var(--dangerous-accent);
   background: color-mix(in srgb, var(--error) 8%, transparent);
+}
+
+#empty-state.empty-default-dangerous .empty-recents-path {
+  color: var(--subtext0);
 }
 
 #empty-state.empty-default-dangerous .empty-recents-item:hover {
