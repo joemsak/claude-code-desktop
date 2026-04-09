@@ -217,7 +217,8 @@ async function renderEmptyStateRecents() {
     item.appendChild(pathSpan);
 
     item.addEventListener("click", () => {
-      if (defaultDangerousMode) {
+      const useDangerous = shiftHeld !== defaultDangerousMode;
+      if (useDangerous) {
         showDangerousConfirm(r.path);
       } else {
         createTab(r.path);
@@ -911,9 +912,10 @@ window.addEventListener("blur", () => {
   if (shiftHeld) updateShiftState(false);
 });
 
-emptyStateOpenBtn.addEventListener("click", () =>
-  openPicker(defaultDangerousMode),
-);
+emptyStateOpenBtn.addEventListener("click", () => {
+  const useDangerous = shiftHeld !== defaultDangerousMode;
+  openPicker(useDangerous);
+});
 
 // ===========================
 // CWD Tracking

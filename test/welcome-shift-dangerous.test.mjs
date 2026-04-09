@@ -48,3 +48,15 @@ describe('welcome page shift key state tracking', () => {
     expect(_appSource).toContain('Hold <kbd>Shift</kbd> for standard mode');
   });
 });
+
+describe('welcome page click handlers respect shift state', () => {
+  it('recent item click handler checks shiftHeld to determine mode', () => {
+    // The click handler should XOR shiftHeld with defaultDangerousMode
+    expect(_appSource).toContain('shiftHeld !== defaultDangerousMode');
+  });
+
+  it('Browse button click handler XORs shiftHeld with default', () => {
+    // emptyStateOpenBtn click should use shiftHeld !== defaultDangerousMode
+    expect(_appSource).toMatch(/emptyStateOpenBtn[\s\S]*shiftHeld !== defaultDangerousMode/);
+  });
+});
