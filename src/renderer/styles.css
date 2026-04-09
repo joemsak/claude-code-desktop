@@ -204,12 +204,15 @@ body {
 .drag-handle {
   color: var(--subtext1);
   font-size: 14px;
+  line-height: 1;
   cursor: grab;
   opacity: 0;
   transition: opacity 0.2s ease;
   flex-shrink: 0;
   margin-right: 4px;
   user-select: none;
+  display: flex;
+  align-items: center;
 }
 
 .tab-entry:hover .drag-handle {
@@ -235,6 +238,10 @@ body {
   background: color-mix(in srgb, var(--error) 10%, var(--base));
 }
 
+.tab-entry.tab-dangerous:hover .tab-name {
+  color: color-mix(in srgb, var(--dangerous-accent) 70%, var(--text));
+}
+
 .tab-entry.tab-dangerous .tab-name {
   color: var(--dangerous-accent);
 }
@@ -242,6 +249,10 @@ body {
 .tab-entry.tab-dangerous.active {
   box-shadow: inset 3px 0 0 var(--dangerous-accent);
   background: color-mix(in srgb, var(--error) 12%, var(--surface0));
+}
+
+.tab-entry.tab-dangerous.active .tab-name {
+  color: color-mix(in srgb, var(--dangerous-accent) 70%, var(--text));
 }
 
 #topbar.topbar-dangerous {
@@ -289,6 +300,8 @@ body {
   margin-left: 4px;
   opacity: 0;
   transition: color 0.15s ease, opacity 0.2s ease;
+  display: flex;
+  align-items: center;
 }
 
 .close-btn:hover {
