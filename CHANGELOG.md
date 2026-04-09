@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Hold Shift on the welcome page to toggle between standard and skip-permissions mode when opening workspaces
+
 ### Fixed
 - Release workflow: `${ext}` was expanded as empty shell variable instead of electron-builder template, producing artifacts without `.pkg` extension
 
