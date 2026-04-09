@@ -180,6 +180,8 @@ function updateShiftState(pressed) {
   );
 
   if (pressed) {
+    // Remove default-dangerous so shift-standard can take effect
+    emptyStateEl.classList.remove("empty-default-dangerous");
     if (defaultDangerousMode) {
       emptyStateEl.classList.add("empty-shift-standard");
     } else {
@@ -187,6 +189,11 @@ function updateShiftState(pressed) {
     }
     emptyStateShiftHint.style.visibility = "hidden";
   } else {
+    // Restore default-dangerous if applicable
+    emptyStateEl.classList.toggle(
+      "empty-default-dangerous",
+      defaultDangerousMode,
+    );
     emptyStateShiftHint.style.visibility = "";
   }
   const labels = getModeLabels(isEffectiveDangerous());
