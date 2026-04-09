@@ -675,7 +675,7 @@ body {
 }
 
 #picker-list li .picker-path {
-  color: var(--surface1);
+  color: var(--surface2);
   font-size: 11px;
   margin-left: 8px;
   flex-shrink: 1;
