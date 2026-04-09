@@ -495,6 +495,10 @@ body {
   background: color-mix(in srgb, var(--error) 8%, transparent);
 }
 
+#empty-state.empty-shift-dangerous .empty-recents-item:hover {
+  background: color-mix(in srgb, var(--error) 15%, var(--surface0));
+}
+
 #empty-state.empty-shift-dangerous #empty-state-open-btn {
   background: color-mix(in srgb, var(--error) 15%, var(--surface0));
   color: var(--dangerous-accent);
@@ -530,6 +534,10 @@ body {
 #empty-state.empty-default-dangerous .empty-recents-item {
   color: var(--dangerous-accent);
   background: color-mix(in srgb, var(--error) 8%, transparent);
+}
+
+#empty-state.empty-default-dangerous .empty-recents-item:hover {
+  background: color-mix(in srgb, var(--error) 15%, var(--surface0));
 }
 
 #empty-state.empty-default-dangerous #empty-state-open-btn {
@@ -739,11 +747,19 @@ body {
 }
 
 #picker-modal.picker-dangerous #picker-list li {
+  color: var(--text);
+}
+
+#picker-modal.picker-dangerous #picker-list li.picker-recent {
   color: var(--dangerous-accent);
 }
 
 #picker-modal.picker-dangerous #picker-list li .picker-path {
-  color: color-mix(in srgb, var(--error) 40%, var(--surface2));
+  color: var(--surface2);
+}
+
+#picker-modal.picker-dangerous #picker-list li.picker-section-header {
+  color: color-mix(in srgb, var(--error) 50%, var(--subtext0)) !important;
 }
 
 #picker-modal.picker-dangerous #picker-list li.selected,
@@ -751,18 +767,15 @@ body {
   background: color-mix(in srgb, var(--error) 12%, var(--surface0));
 }
 
+#picker-modal.picker-dangerous #picker-browse-footer {
+  color: var(--subtext1);
+  border-top-color: color-mix(in srgb, var(--error) 30%, var(--surface0));
+}
+
 #picker-modal.picker-dangerous #picker-browse-footer.selected,
 #picker-modal.picker-dangerous #picker-browse-footer:hover {
   background: color-mix(in srgb, var(--error) 12%, var(--surface0));
-}
-
-#picker-modal.picker-dangerous #picker-list li.picker-section-header {
-  color: var(--dangerous-accent) !important;
-}
-
-#picker-modal.picker-dangerous #picker-browse-footer {
-  color: var(--dangerous-accent);
-  border-top-color: color-mix(in srgb, var(--error) 30%, var(--surface0));
+  color: var(--text);
 }
 
 /* --- Settings Overlay --- */
