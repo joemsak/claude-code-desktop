@@ -29,11 +29,13 @@ npm run release:minor   # new features (1.0.0 → 1.1.0)
 npm run release:major   # breaking changes (1.0.0 → 2.0.0)
 ```
 
+**Choosing the version:** If the release includes any new user-facing feature, it's a minor. If it's only bug fixes and polish (no new functionality), it's a patch. Major is reserved for breaking changes to session format, config, or CLI flags.
+
 This bumps package.json, commits, tags, and pushes. GitHub Actions then builds PKG installers for arm64 + x64 and publishes a GitHub Release automatically.
 
 **Always run tests before releasing:** `npm test`
 
-**Before releasing:** Move the `[Unreleased]` section in CHANGELOG.md to a new version heading. Check if README needs updating to reflect what's shipping.
+**Before releasing:** Move the `[Unreleased]` section in CHANGELOG.md to a new version heading. Check if README needs updating to reflect what's shipping. If releasing from a feature branch, merge to main first.
 
 ## Architecture
 - Electron app: main process (src/main/), preload (src/preload/), renderer (src/renderer/)

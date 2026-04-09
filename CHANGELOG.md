@@ -5,9 +5,26 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- Hold Shift on the welcome page or workspace picker to toggle between standard and skip-permissions mode
+- Hold Shift on the welcome page or workspace picker to toggle between standard and skip-permissions mode — visual transform shows which mode is active
+- Picker shows dangerous mode styling (orange border, tinted selection) when opening in skip-permissions mode
+- Welcome screen shows on startup instead of auto-opening the picker
+
+### Changed
+- Tab icons replaced with SVGs (drag handle dots, × close button) for pixel-perfect alignment
+- Smooth ease transitions added throughout the app (tabs, buttons, picker, settings, topbar)
+- Picker path text bumped from surface1 to surface2 for readability on selected items
+- Tab vertical padding increased for more comfortable spacing
 
 ### Fixed
+- Welcome screen now loads in dangerous theme when that's the default setting
+- Picker border no longer causes layout jump when toggling dangerous mode
+- Welcome screen recents have visible hover states in all modes (normal, dangerous, shift-toggled)
+- Dangerous tab hover preserves tinted background instead of snapping to neutral
+- Dangerous tab text brightens on hover and active states
+- Escape/click-outside on dangerous confirmation just closes the dialog instead of launching a tab
+- Redundant --terminal-font set removed from theme application
+- Duplicate #picker-list li CSS rule blocks merged
+- Bundled fonts now explicitly included in electron-builder files glob
 - Release workflow: `${ext}` was expanded as empty shell variable instead of electron-builder template, producing artifacts without `.pkg` extension
 
 ## [3.0.1] - 2026-04-08
