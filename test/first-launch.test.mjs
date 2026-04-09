@@ -7,12 +7,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const appSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'app.js'), 'utf-8');
 
 describe('first launch behavior', () => {
-  it('opens the directory picker when there are no saved tabs', () => {
+  it('shows the welcome screen (not the picker) when there are no saved tabs', () => {
     const initBlock = appSource.match(/async function init\(\)\s*\{[\s\S]*?\n\}/);
     expect(initBlock).not.toBeNull();
     const initCode = initBlock[0];
 
-    expect(initCode).toContain('openPicker');
+    // Should NOT auto-open picker — welcome screen is the landing page
+    expect(initCode).not.toContain('openPicker');
     expect(initCode).not.toMatch(/tabs:\s*\[\s*\{\s*directory:\s*homePath/);
   });
 

@@ -1138,7 +1138,7 @@ async function init() {
   await document.fonts.ready;
 
   if (!data.tabs || data.tabs.length === 0) {
-    openPicker();
+    // Show welcome screen — user can open picker with Cmd+T or click Browse
   } else {
     for (const tabData of data.tabs) {
       createTab(
