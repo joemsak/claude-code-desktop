@@ -263,7 +263,12 @@ function renderSidebar() {
 
     const handle = document.createElement("span");
     handle.className = "drag-handle";
-    handle.textContent = "⠿";
+    handle.innerHTML =
+      '<svg width="10" height="12" viewBox="0 0 10 12">' +
+      '<circle cx="2.5" cy="2" r="1.2"/><circle cx="7.5" cy="2" r="1.2"/>' +
+      '<circle cx="2.5" cy="6" r="1.2"/><circle cx="7.5" cy="6" r="1.2"/>' +
+      '<circle cx="2.5" cy="10" r="1.2"/><circle cx="7.5" cy="10" r="1.2"/>' +
+      "</svg>";
     el.appendChild(handle);
 
     const nameSpan = document.createElement("span");
@@ -284,7 +289,9 @@ function renderSidebar() {
 
     const closeBtn = document.createElement("button");
     closeBtn.className = "close-btn";
-    closeBtn.textContent = "\u00d7";
+    closeBtn.innerHTML =
+      '<svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"/>' +
+      '<line x1="9" y1="1" x2="1" y2="9"/></svg>';
     closeBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       closeTab(tab.id);
