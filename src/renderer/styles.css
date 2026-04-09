@@ -81,6 +81,7 @@ body {
   -webkit-app-region: drag;
   user-select: none;
   flex-shrink: 0;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 #topbar-path {
@@ -103,6 +104,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: color 0.15s ease;
 }
 
 #topbar-path.topbar-exited {
@@ -171,7 +173,7 @@ body {
   text-overflow: ellipsis;
   font-size: 13px;
   line-height: 1.4;
-  transition: background 0.1s, color 0.1s;
+  transition: background 0.15s ease, color 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -195,7 +197,7 @@ body {
 }
 
 .tab-entry:hover {
-  background: var(--base);
+  background: color-mix(in srgb, var(--surface0) 50%, var(--mantle));
   color: var(--text);
 }
 
@@ -204,7 +206,7 @@ body {
   font-size: 14px;
   cursor: grab;
   opacity: 0;
-  transition: opacity 0.1s;
+  transition: opacity 0.2s ease;
   flex-shrink: 0;
   margin-right: 4px;
   user-select: none;
@@ -218,6 +220,7 @@ body {
   background: var(--surface0);
   color: var(--text);
   box-shadow: inset 3px 0 0 var(--accent);
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
 :root {
@@ -281,6 +284,7 @@ body {
   line-height: 1;
   flex-shrink: 0;
   margin-left: 4px;
+  transition: color 0.15s ease;
 }
 
 .close-btn:hover {
@@ -339,7 +343,7 @@ body {
   cursor: col-resize;
   background: transparent;
   flex-shrink: 0;
-  transition: background 0.15s;
+  transition: background 0.15s ease;
 }
 
 #sidebar-resize-handle:hover,
@@ -407,6 +411,7 @@ body {
   border: 1px solid var(--surface0);
   border-radius: 6px;
   overflow: hidden;
+  transition: border-color 0.15s ease;
 }
 
 .empty-recents-item {
@@ -416,7 +421,7 @@ body {
   cursor: pointer;
   display: flex;
   justify-content: space-between;
-  transition: background 0.1s;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .empty-recents-item:not(:last-child) {
@@ -430,6 +435,7 @@ body {
 .empty-recents-path {
   color: var(--surface2);
   font-size: 11px;
+  transition: color 0.15s ease;
 }
 
 #empty-state-open-btn {
@@ -440,7 +446,7 @@ body {
   font-size: 13px;
   border-radius: 6px;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   width: 100%;
 }
 
@@ -477,7 +483,7 @@ body {
   color: var(--dangerous-accent);
   font-size: 10px;
   margin-top: 8px;
-  transition: opacity 0.15s;
+  transition: opacity 0.15s ease, color 0.15s ease;
 }
 
 .empty-state-shift-hint kbd {
@@ -578,7 +584,7 @@ body {
   cursor: pointer;
   z-index: 10;
   user-select: none;
-  transition: color 0.15s, opacity 0.15s, background 0.15s;
+  transition: color 0.15s ease, opacity 0.15s ease, background 0.15s ease;
   color: var(--subtext1);
   opacity: 0.7;
   background: transparent;
@@ -649,6 +655,7 @@ body {
   font-size: 14px;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   outline: none;
+  transition: border-color 0.15s ease;
 }
 
 #picker-search::placeholder {
@@ -678,7 +685,7 @@ body {
   color: var(--text);
   cursor: pointer;
   font-size: 13px;
-  transition: background 0.05s;
+  transition: background 0.15s ease, color 0.15s ease;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -698,6 +705,7 @@ body {
   color: var(--surface2);
   font-size: 11px;
   margin-left: 8px;
+  transition: color 0.15s ease;
   flex-shrink: 1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -743,7 +751,7 @@ body {
   font-size: 13px;
   border-top: 1px solid var(--surface0);
   background: var(--base);
-  transition: background 0.05s;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   flex-shrink: 0;
 }
 
@@ -830,6 +838,7 @@ body {
   cursor: pointer;
   padding: 0 4px;
   line-height: 1;
+  transition: color 0.15s ease;
 }
 
 #settings-close:hover {
@@ -883,6 +892,7 @@ body {
   font-size: 13px;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   outline: none;
+  transition: border-color 0.15s ease;
 }
 
 .settings-row input:focus {
@@ -897,7 +907,7 @@ body {
   color: var(--text);
   font-size: 13px;
   cursor: pointer;
-  transition: background 0.1s;
+  transition: background 0.15s ease;
 }
 
 #settings-browse-btn:hover {
@@ -925,6 +935,7 @@ body {
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
+  transition: border-color 0.15s ease;
 }
 
 .settings-select:focus {
@@ -941,6 +952,7 @@ body {
   font-size: 13px;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   outline: none;
+  transition: border-color 0.15s ease;
 }
 
 .settings-input:focus {
@@ -965,7 +977,7 @@ body {
   color: var(--text);
   font-size: 13px;
   cursor: pointer;
-  transition: background 0.1s;
+  transition: background 0.15s ease;
 }
 
 .settings-btn-secondary:hover {
@@ -1033,7 +1045,7 @@ body {
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.1s;
+  transition: opacity 0.15s ease, transform 0.1s ease;
 }
 
 #confirm-dangerous-btn:hover {
@@ -1049,7 +1061,7 @@ body {
   padding: 8px;
   font-size: 12px;
   cursor: pointer;
-  transition: background 0.1s;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 #confirm-normal-btn:hover {
@@ -1066,6 +1078,7 @@ body {
   font-size: 11px;
   cursor: pointer;
   text-decoration: underline;
+  transition: color 0.15s ease;
 }
 
 #confirm-settings-link:hover {
@@ -1113,7 +1126,7 @@ body {
   inset: 0;
   background: var(--surface1);
   border-radius: 10px;
-  transition: background 0.2s;
+  transition: background 0.2s ease;
 }
 
 .toggle-slider::before {
@@ -1125,7 +1138,7 @@ body {
   bottom: 2px;
   background: var(--subtext1);
   border-radius: 50%;
-  transition: transform 0.2s, background 0.2s;
+  transition: transform 0.2s ease, background 0.2s ease;
 }
 
 .toggle-switch input:checked + .toggle-slider {
