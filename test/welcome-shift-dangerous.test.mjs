@@ -50,13 +50,20 @@ describe('welcome page shift key state tracking', () => {
 });
 
 describe('welcome page click handlers respect shift state', () => {
-  it('recent item click handler checks shiftHeld to determine mode', () => {
-    // The click handler should XOR shiftHeld with defaultDangerousMode
+  it('has an isEffectiveDangerous helper for mode XOR logic', () => {
+    expect(_appSource).toContain('function isEffectiveDangerous()');
     expect(_appSource).toContain('shiftHeld !== defaultDangerousMode');
   });
 
-  it('Browse button click handler XORs shiftHeld with default', () => {
-    // emptyStateOpenBtn click should use shiftHeld !== defaultDangerousMode
-    expect(_appSource).toMatch(/emptyStateOpenBtn[\s\S]*shiftHeld !== defaultDangerousMode/);
+  it('has a getModeLabels helper for button/hint text', () => {
+    expect(_appSource).toContain('function getModeLabels(');
+  });
+
+  it('recent item click handler uses isEffectiveDangerous', () => {
+    expect(_appSource).toContain('isEffectiveDangerous()');
+  });
+
+  it('Browse button click handler uses isEffectiveDangerous', () => {
+    expect(_appSource).toMatch(/emptyStateOpenBtn[\s\S]*isEffectiveDangerous/);
   });
 });

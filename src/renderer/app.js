@@ -134,6 +134,21 @@ function updateTopbar() {
   }
 }
 
+function isEffectiveDangerous() {
+  return shiftHeld !== defaultDangerousMode;
+}
+
+function getModeLabels(isDangerous) {
+  return {
+    buttonText: isDangerous
+      ? "Browse (Skip Permissions)..."
+      : "Browse Other...",
+    shiftHint: isDangerous
+      ? "Hold <kbd>Shift</kbd> for standard mode"
+      : "Hold <kbd>Shift</kbd> to skip permissions",
+  };
+}
+
 async function updateEmptyState() {
   if (tabs.length === 0) {
     emptyStateEl.classList.remove("hidden");
@@ -144,14 +159,9 @@ async function updateEmptyState() {
       "empty-default-dangerous",
       defaultDangerousMode,
     );
-    if (defaultDangerousMode) {
-      emptyStateOpenBtn.textContent = "Browse (Skip Permissions)...";
-      emptyStateShiftHint.innerHTML = "Hold <kbd>Shift</kbd> for standard mode";
-    } else {
-      emptyStateOpenBtn.textContent = "Browse Other...";
-      emptyStateShiftHint.innerHTML =
-        "Hold <kbd>Shift</kbd> to skip permissions";
-    }
+    const labels = getModeLabels(defaultDangerousMode);
+    emptyStateOpenBtn.textContent = labels.buttonText;
+    emptyStateShiftHint.innerHTML = labels.shiftHint;
   } else {
     emptyStateEl.classList.add("hidden");
     terminalContainer.classList.remove("hidden");
@@ -171,23 +181,16 @@ function updateShiftState(pressed) {
 
   if (pressed) {
     if (defaultDangerousMode) {
-      // Default is dangerous, shift swaps to standard
       emptyStateEl.classList.add("empty-shift-standard");
-      emptyStateOpenBtn.textContent = "Browse Other...";
     } else {
-      // Default is standard, shift swaps to dangerous
       emptyStateEl.classList.add("empty-shift-dangerous");
-      emptyStateOpenBtn.textContent = "Browse (Skip Permissions)...";
     }
     emptyStateShiftHint.style.visibility = "hidden";
   } else {
-    if (defaultDangerousMode) {
-      emptyStateOpenBtn.textContent = "Browse (Skip Permissions)...";
-    } else {
-      emptyStateOpenBtn.textContent = "Browse Other...";
-    }
     emptyStateShiftHint.style.visibility = "";
   }
+  const labels = getModeLabels(isEffectiveDangerous());
+  emptyStateOpenBtn.textContent = labels.buttonText;
 }
 
 async function renderEmptyStateRecents() {
@@ -217,8 +220,7 @@ async function renderEmptyStateRecents() {
     item.appendChild(pathSpan);
 
     item.addEventListener("click", () => {
-      const useDangerous = shiftHeld !== defaultDangerousMode;
-      if (useDangerous) {
+      if (isEffectiveDangerous()) {
         showDangerousConfirm(r.path);
       } else {
         createTab(r.path);
@@ -759,9 +761,7 @@ confirmSettingsLink.addEventListener("click", () => {
 
 confirmOverlay.addEventListener("click", (e) => {
   if (e.target === confirmOverlay) {
-    const dir = pendingDirectory;
     closeDangerousConfirm();
-    createTab(dir);
   }
 });
 
@@ -913,8 +913,7 @@ window.addEventListener("blur", () => {
 });
 
 emptyStateOpenBtn.addEventListener("click", () => {
-  const useDangerous = shiftHeld !== defaultDangerousMode;
-  openPicker(useDangerous);
+  openPicker(isEffectiveDangerous());
 });
 
 // ===========================
@@ -946,10 +945,6 @@ function startCwdTracking() {
 function applyThemeToAllTerminals(theme) {
   currentTheme = theme;
   applyTheme(theme);
-  document.documentElement.style.setProperty(
-    "--terminal-font",
-    currentFontFamily,
-  );
   for (const tab of tabs) {
     tab.terminal.options.theme = theme.terminal;
   }
@@ -1077,9 +1072,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (!confirmOverlay.classList.contains("hidden")) {
     e.preventDefault();
-    const dir = pendingDirectory;
     closeDangerousConfirm();
-    createTab(dir);
   } else if (!settingsOverlay.classList.contains("hidden")) {
     e.preventDefault();
     closeSettings();

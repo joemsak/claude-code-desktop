@@ -658,6 +658,11 @@ body {
   cursor: pointer;
   font-size: 13px;
   transition: background 0.05s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  overflow: hidden;
+  min-width: 0;
 }
 
 #picker-list li.selected {
@@ -666,14 +671,6 @@ body {
 
 #picker-list li:hover {
   background: var(--surface1);
-}
-
-#picker-list li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  overflow: hidden;
-  min-width: 0;
 }
 
 #picker-list li .picker-path {
