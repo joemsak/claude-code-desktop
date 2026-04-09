@@ -743,7 +743,17 @@ body {
 }
 
 #picker-modal.picker-dangerous #picker-list li .picker-path {
-  color: color-mix(in srgb, var(--error) 30%, var(--surface1));
+  color: color-mix(in srgb, var(--error) 40%, var(--surface2));
+}
+
+#picker-modal.picker-dangerous #picker-list li.selected,
+#picker-modal.picker-dangerous #picker-list li:hover {
+  background: color-mix(in srgb, var(--error) 12%, var(--surface0));
+}
+
+#picker-modal.picker-dangerous #picker-browse-footer.selected,
+#picker-modal.picker-dangerous #picker-browse-footer:hover {
+  background: color-mix(in srgb, var(--error) 12%, var(--surface0));
 }
 
 #picker-modal.picker-dangerous #picker-list li.picker-section-header {
