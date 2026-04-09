@@ -67,3 +67,21 @@ describe('welcome page click handlers respect shift state', () => {
     expect(_appSource).toMatch(/emptyStateOpenBtn[\s\S]*isEffectiveDangerous/);
   });
 });
+
+describe('picker dangerous mode visual feedback', () => {
+  it('has updatePickerDangerousState function', () => {
+    expect(_appSource).toContain('function updatePickerDangerousState()');
+  });
+
+  it('toggles picker-dangerous class on picker modal', () => {
+    expect(_appSource).toContain('picker-dangerous');
+  });
+
+  it('has CSS for picker dangerous mode', () => {
+    expect(cssSource).toContain('#picker-modal.picker-dangerous');
+  });
+
+  it('updateShiftState toggles picker dangerous state when picker is open', () => {
+    expect(_appSource).toContain('updatePickerDangerousState()');
+  });
+});

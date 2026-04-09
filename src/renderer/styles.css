@@ -732,6 +732,28 @@ body {
   color: var(--text);
 }
 
+/* Picker dangerous mode */
+#picker-modal.picker-dangerous #picker-search {
+  border-bottom: 2px solid var(--dangerous-accent);
+}
+
+#picker-modal.picker-dangerous #picker-list li {
+  color: var(--dangerous-accent);
+}
+
+#picker-modal.picker-dangerous #picker-list li .picker-path {
+  color: color-mix(in srgb, var(--error) 30%, var(--surface1));
+}
+
+#picker-modal.picker-dangerous #picker-list li.picker-section-header {
+  color: var(--dangerous-accent) !important;
+}
+
+#picker-modal.picker-dangerous #picker-browse-footer {
+  color: var(--dangerous-accent);
+  border-top-color: color-mix(in srgb, var(--error) 30%, var(--surface0));
+}
+
 /* --- Settings Overlay --- */
 #settings-overlay {
   position: fixed;

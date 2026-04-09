@@ -31,6 +31,7 @@ const terminalContainer = document.getElementById("terminal-container");
 const pickerOverlay = document.getElementById("picker-overlay");
 const pickerSearch = document.getElementById("picker-search");
 const pickerList = document.getElementById("picker-list");
+const pickerModal = document.getElementById("picker-modal");
 const sidebarEl = document.getElementById("sidebar");
 const resizeHandle = document.getElementById("sidebar-resize-handle");
 const emptyStateEl = document.getElementById("empty-state");
@@ -170,7 +171,14 @@ async function updateEmptyState() {
 
 function updateShiftState(pressed) {
   shiftHeld = pressed;
-  // Only apply visual transform when empty state is visible
+
+  // Toggle picker dangerous state if picker is open
+  if (!pickerOverlay.classList.contains("hidden")) {
+    pendingDangerousMode = isEffectiveDangerous();
+    updatePickerDangerousState();
+  }
+
+  // Only apply empty-state visual transform when empty state is visible
   if (tabs.length > 0) return;
 
   // Clear previous shift classes
@@ -508,8 +516,13 @@ let pickerSelectedIndex = 0;
 let pendingDangerousMode = false;
 let pendingDirectory = null;
 
+function updatePickerDangerousState() {
+  pickerModal.classList.toggle("picker-dangerous", pendingDangerousMode);
+}
+
 async function openPicker(dangerousMode = false) {
   pendingDangerousMode = dangerousMode;
+  updatePickerDangerousState();
   const [workspaceDirs, recentWorkspaces] = await Promise.all([
     electronAPI.listWorkspaceDirs(),
     electronAPI.getRecentWorkspaces(),
@@ -545,6 +558,7 @@ async function openPicker(dangerousMode = false) {
 
 function closePicker() {
   pickerOverlay.classList.add("hidden");
+  pickerModal.classList.remove("picker-dangerous");
   const footer = document.getElementById("picker-browse-footer");
   if (footer) footer.remove();
   updateEmptyState();
@@ -670,7 +684,6 @@ function renderPickerList(filter) {
       pickerSelectedIndex = browseIdx;
       updatePickerSelection();
     });
-    const pickerModal = document.getElementById("picker-modal");
     pickerModal.appendChild(footer);
   }
 }
