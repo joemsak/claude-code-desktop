@@ -197,7 +197,7 @@ body {
 }
 
 .tab-entry:hover {
-  background: color-mix(in srgb, var(--surface0) 50%, var(--mantle));
+  background: var(--base);
   color: var(--text);
 }
 
@@ -274,7 +274,6 @@ body {
 }
 
 .close-btn {
-  display: none;
   background: none;
   border: none;
   color: var(--subtext1);
@@ -284,7 +283,8 @@ body {
   line-height: 1;
   flex-shrink: 0;
   margin-left: 4px;
-  transition: color 0.15s ease;
+  opacity: 0;
+  transition: color 0.15s ease, opacity 0.2s ease;
 }
 
 .close-btn:hover {
@@ -296,7 +296,7 @@ body {
 }
 
 .tab-entry:hover .close-btn {
-  display: block;
+  opacity: 1;
 }
 
 .rename-input {
