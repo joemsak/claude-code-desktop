@@ -146,10 +146,11 @@ async function updateEmptyState() {
     );
     if (defaultDangerousMode) {
       emptyStateOpenBtn.textContent = "Browse (Skip Permissions)...";
-      emptyStateShiftHint.textContent = "Hold Shift for standard mode";
+      emptyStateShiftHint.innerHTML = "Hold <kbd>Shift</kbd> for standard mode";
     } else {
       emptyStateOpenBtn.textContent = "Browse Other...";
-      emptyStateShiftHint.textContent = "Hold Shift to skip permissions";
+      emptyStateShiftHint.innerHTML =
+        "Hold <kbd>Shift</kbd> to skip permissions";
     }
   } else {
     emptyStateEl.classList.add("hidden");

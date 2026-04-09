@@ -44,7 +44,7 @@ describe('welcome page shift key state tracking', () => {
   });
 
   it('updates button text and hint text based on shift/default state', () => {
-    expect(_appSource).toContain('Hold Shift to skip permissions');
-    expect(_appSource).toContain('Hold Shift for standard mode');
+    expect(_appSource).toContain('Hold <kbd>Shift</kbd> to skip permissions');
+    expect(_appSource).toContain('Hold <kbd>Shift</kbd> for standard mode');
   });
 });
