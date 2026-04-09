@@ -473,6 +473,80 @@ body {
   border: 1px solid var(--surface1);
 }
 
+.empty-state-shift-hint {
+  color: var(--dangerous-accent);
+  font-size: 10px;
+  margin-top: 8px;
+  transition: opacity 0.15s;
+}
+
+.empty-state-shift-hint kbd {
+  background: var(--surface0);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 9px;
+  color: var(--dangerous-accent);
+  border: 1px solid color-mix(in srgb, var(--error) 30%, var(--surface1));
+}
+
+/* Shift-held dangerous transform */
+#empty-state.empty-shift-dangerous .empty-recents-item {
+  color: var(--dangerous-accent);
+  background: color-mix(in srgb, var(--error) 8%, transparent);
+}
+
+#empty-state.empty-shift-dangerous #empty-state-open-btn {
+  background: color-mix(in srgb, var(--error) 15%, var(--surface0));
+  color: var(--dangerous-accent);
+  border-color: color-mix(in srgb, var(--error) 30%, var(--surface1));
+}
+
+#empty-state.empty-shift-dangerous .empty-state-shift-hint {
+  opacity: 0;
+}
+
+#empty-state.empty-shift-dangerous .empty-state-shortcuts {
+  color: var(--subtext0);
+  font-size: 11px;
+}
+
+/* Shift-held standard transform (when dangerous is default) */
+#empty-state.empty-shift-standard .empty-recents-item {
+  color: var(--accent);
+  background: transparent;
+}
+
+#empty-state.empty-shift-standard #empty-state-open-btn {
+  background: var(--surface0);
+  color: var(--text);
+  border-color: var(--surface1);
+}
+
+#empty-state.empty-shift-standard .empty-state-shift-hint {
+  opacity: 0;
+}
+
+/* Default dangerous appearance (when dangerous is the default mode) */
+#empty-state.empty-default-dangerous .empty-recents-item {
+  color: var(--dangerous-accent);
+  background: color-mix(in srgb, var(--error) 8%, transparent);
+}
+
+#empty-state.empty-default-dangerous #empty-state-open-btn {
+  background: color-mix(in srgb, var(--error) 15%, var(--surface0));
+  color: var(--dangerous-accent);
+  border-color: color-mix(in srgb, var(--error) 30%, var(--surface1));
+}
+
+#empty-state.empty-default-dangerous .empty-state-shift-hint {
+  color: var(--accent);
+}
+
+#empty-state.empty-default-dangerous .empty-state-shift-hint kbd {
+  color: var(--accent);
+  border-color: var(--surface1);
+}
+
 /* --- Follow Indicator --- */
 #follow-indicator {
   position: absolute;
