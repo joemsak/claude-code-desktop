@@ -1114,13 +1114,13 @@ async function init() {
 
   sidebarWidth = data.sidebarWidth || 200;
   sidebarEl.style.width = `${sidebarWidth}px`;
-  updateEmptyState();
 
-  // Load theme and font settings on startup
+  // Load settings before updating empty state so dangerous mode is known
   const startupSettings = await electronAPI.loadSettings();
   currentFontFamily = startupSettings.fontFamily || currentFontFamily;
   currentFontSize = startupSettings.fontSize || currentFontSize;
   defaultDangerousMode = startupSettings.defaultDangerousMode || false;
+  updateEmptyState();
   const customThemes = await electronAPI.listCustomThemes();
   currentTheme = getThemeByName(
     startupSettings.theme || DEFAULT_THEME_NAME,
