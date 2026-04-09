@@ -231,6 +231,10 @@ body {
   background: color-mix(in srgb, var(--error) 8%, transparent);
 }
 
+.tab-entry.tab-dangerous:hover {
+  background: color-mix(in srgb, var(--error) 10%, var(--base));
+}
+
 .tab-entry.tab-dangerous .tab-name {
   color: var(--dangerous-accent);
 }
