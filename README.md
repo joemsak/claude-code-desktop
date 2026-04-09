@@ -8,9 +8,13 @@ A native macOS terminal multiplexer for [Claude Code](https://docs.anthropic.com
 
 Open multiple Claude Code sessions side-by-side in a tabbed interface. Each tab spawns an independent terminal running `claude` in your chosen directory. Switch between tabs with **Cmd+1–9** or **Cmd+Shift+[** / **Cmd+Shift+]**.
 
+### Welcome screen
+
+On startup (with no open tabs), a welcome screen shows your recent workspaces for one-click access. Press **Cmd+T** or click "Browse" to open the workspace picker. Hold **Shift** to toggle between standard and skip-permissions mode — the welcome screen visually transforms to show which mode is active.
+
 ### Workspace picker
 
-When you create a new tab (**Cmd+T**), a picker lists directories from `~/workspace/`. Your 5 most recently used workspaces appear at the top for quick access. Type to fuzzy-filter (e.g. "ccd" matches "claude-code-desktop"), use arrow keys to navigate, or click "Browse..." to open any directory on disk.
+When you create a new tab (**Cmd+T**), a picker lists directories from `~/workspace/`. Your 5 most recently used workspaces appear at the top for quick access. Type to fuzzy-filter (e.g. "ccd" matches "claude-code-desktop"), use arrow keys to navigate, or click "Browse..." to open any directory on disk. Hold **Shift** while the picker is open to toggle between standard and dangerous mode.
 
 ### Session persistence
 

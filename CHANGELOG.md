@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-04-09
+
 ### Added
 - Hold Shift on the welcome page or workspace picker to toggle between standard and skip-permissions mode — visual transform shows which mode is active
 - Picker shows dangerous mode styling (orange border, tinted selection) when opening in skip-permissions mode
