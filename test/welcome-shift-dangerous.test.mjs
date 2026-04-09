@@ -17,3 +17,34 @@ describe('welcome page shift-dangerous hint', () => {
     expect(cssSource).toContain('.empty-state-shift-hint');
   });
 });
+
+describe('welcome page shift key state tracking', () => {
+  it('app.js tracks shiftHeld state', () => {
+    expect(_appSource).toContain('let shiftHeld = false');
+  });
+
+  it('app.js has a DOM ref for the shift hint element', () => {
+    expect(_appSource).toContain('getElementById("empty-state-shift-hint")');
+  });
+
+  it('app.js adds keydown/keyup listeners for Shift', () => {
+    expect(_appSource).toContain('updateShiftState');
+  });
+
+  it('applies empty-shift-dangerous class when shift activates dangerous', () => {
+    expect(_appSource).toContain('empty-shift-dangerous');
+  });
+
+  it('applies empty-shift-standard class when shift activates standard', () => {
+    expect(_appSource).toContain('empty-shift-standard');
+  });
+
+  it('applies empty-default-dangerous class when dangerous is the default', () => {
+    expect(_appSource).toContain('empty-default-dangerous');
+  });
+
+  it('updates button text and hint text based on shift/default state', () => {
+    expect(_appSource).toContain('Hold Shift to skip permissions');
+    expect(_appSource).toContain('Hold Shift for standard mode');
+  });
+});

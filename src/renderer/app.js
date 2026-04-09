@@ -23,6 +23,7 @@ let currentFontFamily =
   '"MesloLGS Nerd Font", "JetBrainsMono Nerd Font", Menlo, Monaco, "Courier New", monospace';
 let currentFontSize = 14;
 let defaultDangerousMode = false;
+let shiftHeld = false;
 
 // --- DOM refs ---
 const tabListEl = document.getElementById("tab-list");
@@ -37,6 +38,7 @@ const topbarPathEl = document.getElementById("topbar-path");
 const topbarNameEl = document.getElementById("topbar-name");
 const emptyStateOpenBtn = document.getElementById("empty-state-open-btn");
 const emptyStateRecents = document.getElementById("empty-state-recents");
+const emptyStateShiftHint = document.getElementById("empty-state-shift-hint");
 const followIndicator = document.getElementById("follow-indicator");
 const topbarEl = document.getElementById("topbar");
 const settingsOverlay = document.getElementById("settings-overlay");
@@ -137,9 +139,53 @@ async function updateEmptyState() {
     emptyStateEl.classList.remove("hidden");
     terminalContainer.classList.add("hidden");
     await renderEmptyStateRecents();
+    // Apply default-dangerous styling and hint text
+    emptyStateEl.classList.toggle(
+      "empty-default-dangerous",
+      defaultDangerousMode,
+    );
+    if (defaultDangerousMode) {
+      emptyStateOpenBtn.textContent = "Browse (Skip Permissions)...";
+      emptyStateShiftHint.textContent = "Hold Shift for standard mode";
+    } else {
+      emptyStateOpenBtn.textContent = "Browse Other...";
+      emptyStateShiftHint.textContent = "Hold Shift to skip permissions";
+    }
   } else {
     emptyStateEl.classList.add("hidden");
     terminalContainer.classList.remove("hidden");
+  }
+}
+
+function updateShiftState(pressed) {
+  shiftHeld = pressed;
+  // Only apply visual transform when empty state is visible
+  if (tabs.length > 0) return;
+
+  // Clear previous shift classes
+  emptyStateEl.classList.remove(
+    "empty-shift-dangerous",
+    "empty-shift-standard",
+  );
+
+  if (pressed) {
+    if (defaultDangerousMode) {
+      // Default is dangerous, shift swaps to standard
+      emptyStateEl.classList.add("empty-shift-standard");
+      emptyStateOpenBtn.textContent = "Browse Other...";
+    } else {
+      // Default is standard, shift swaps to dangerous
+      emptyStateEl.classList.add("empty-shift-dangerous");
+      emptyStateOpenBtn.textContent = "Browse (Skip Permissions)...";
+    }
+    emptyStateShiftHint.style.visibility = "hidden";
+  } else {
+    if (defaultDangerousMode) {
+      emptyStateOpenBtn.textContent = "Browse (Skip Permissions)...";
+    } else {
+      emptyStateOpenBtn.textContent = "Browse Other...";
+    }
+    emptyStateShiftHint.style.visibility = "";
   }
 }
 
@@ -850,6 +896,18 @@ followIndicator.addEventListener("click", () => {
     updateFollowIndicator();
     tab.terminal.focus();
   }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Shift") updateShiftState(true);
+});
+
+document.addEventListener("keyup", (e) => {
+  if (e.key === "Shift") updateShiftState(false);
+});
+
+window.addEventListener("blur", () => {
+  if (shiftHeld) updateShiftState(false);
 });
 
 emptyStateOpenBtn.addEventListener("click", () =>
