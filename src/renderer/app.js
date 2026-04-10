@@ -1,14 +1,16 @@
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
-import {
-  builtinThemes,
-  getThemeByName,
-  applyTheme,
-  DEFAULT_THEME_NAME,
-} from "./themes.js";
-import { fuzzyMatch, fuzzyScore } from "./fuzzy.js";
+import { getThemeByName, applyTheme, DEFAULT_THEME_NAME } from "./themes.js";
 import Sortable from "sortablejs";
+import { createPicker } from "./picker.js";
+import { createSettings } from "./settings.js";
+import {
+  basename,
+  getDisplayName as getDisplayNamePure,
+  filterED3,
+  isEffectiveDangerous as isEffectiveDangerousPure,
+} from "./utils.js";
 
 const { electronAPI } = window;
 
@@ -95,19 +97,8 @@ function refitActiveTerminal() {
   electronAPI.resizePty(tab.id, tab.terminal.cols, tab.terminal.rows);
 }
 
-function basename(dir) {
-  return dir.split("/").pop() || dir;
-}
-
 function getDisplayName(tab) {
-  if (tab.customName) return tab.customName;
-  const base = basename(tab.directory);
-  const sameNameTabs = tabs.filter(
-    (t) => !t.customName && basename(t.directory) === base,
-  );
-  if (sameNameTabs.length <= 1) return base;
-  const index = sameNameTabs.indexOf(tab);
-  return index === 0 ? base : `${base} (${index + 1})`;
+  return getDisplayNamePure(tab, tabs);
 }
 
 // ===========================
@@ -136,7 +127,7 @@ function updateTopbar() {
 }
 
 function isEffectiveDangerous() {
-  return shiftHeld !== defaultDangerousMode;
+  return isEffectiveDangerousPure(shiftHeld, defaultDangerousMode);
 }
 
 function getModeLabels(isDangerous) {
@@ -162,7 +153,7 @@ async function updateEmptyState() {
     );
     const labels = getModeLabels(defaultDangerousMode);
     emptyStateOpenBtn.textContent = labels.buttonText;
-    emptyStateShiftHint.innerHTML = labels.shiftHint;
+    emptyStateShiftHint.innerHTML = labels.shiftHint; // Safe: shiftHint is hardcoded in getModeLabels(), never user-derived
   } else {
     emptyStateEl.classList.add("hidden");
     terminalContainer.classList.remove("hidden");
@@ -174,8 +165,7 @@ function updateShiftState(pressed) {
 
   // Toggle picker dangerous state if picker is open
   if (!pickerOverlay.classList.contains("hidden")) {
-    pendingDangerousMode = isEffectiveDangerous();
-    updatePickerDangerousState();
+    picker.updateDangerousState(isEffectiveDangerous());
   }
 
   // Only apply empty-state visual transform when empty state is visible
@@ -260,6 +250,8 @@ function renderSidebar() {
       (tab.exited ? " tab-exited" : "") +
       (tab.dangerousMode ? " tab-dangerous" : "");
     el.dataset.tabId = tab.id;
+    el.setAttribute("role", "tab");
+    el.setAttribute("aria-selected", tab.id === activeTabId ? "true" : "false");
 
     const handle = document.createElement("span");
     handle.className = "drag-handle";
@@ -289,6 +281,7 @@ function renderSidebar() {
 
     const closeBtn = document.createElement("button");
     closeBtn.className = "close-btn";
+    closeBtn.setAttribute("aria-label", "Close tab");
     closeBtn.innerHTML =
       '<svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"/>' +
       '<line x1="9" y1="1" x2="1" y2="9"/></svg>';
@@ -518,239 +511,22 @@ function initSortable() {
 // Directory Picker
 // ===========================
 
-let pickerDirs = [];
-let pickerSelectedIndex = 0;
-let pendingDangerousMode = false;
 let pendingDirectory = null;
 
-function updatePickerDangerousState() {
-  pickerModal.classList.toggle("picker-dangerous", pendingDangerousMode);
-}
-
-async function openPicker(dangerousMode = false) {
-  pendingDangerousMode = dangerousMode;
-  updatePickerDangerousState();
-  const [workspaceDirs, recentWorkspaces] = await Promise.all([
-    electronAPI.listWorkspaceDirs(),
-    electronAPI.getRecentWorkspaces(),
-  ]);
-
-  const recentPaths = new Set();
-  const recentItems = [];
-  for (const r of recentWorkspaces.slice(0, 5)) {
-    recentItems.push({ name: basename(r.path), path: r.path, isRecent: true });
-    recentPaths.add(r.path);
-  }
-
-  const allItems = workspaceDirs
-    .filter((d) => !recentPaths.has(d.path))
-    .map((d) => ({ name: d.name, path: d.path }));
-
-  pickerDirs = [
-    ...recentItems,
-    ...(recentItems.length > 0
-      ? [{ name: "---", path: null, isSeparator: true }]
-      : []),
-    { name: "~ (Home)", path: homePath, isHome: true },
-    ...allItems,
-    { name: "Browse...", path: null, isBrowse: true },
-  ];
-
-  pickerSearch.value = "";
-  pickerSelectedIndex = 0;
-  renderPickerList("");
-  pickerOverlay.classList.remove("hidden");
-  pickerSearch.focus();
-}
-
-function closePicker() {
-  pickerOverlay.classList.add("hidden");
-  pickerModal.classList.remove("picker-dangerous");
-  const footer = document.getElementById("picker-browse-footer");
-  if (footer) footer.remove();
-  updateEmptyState();
-  const tab = getActiveTab();
-  if (tab) tab.terminal.focus();
-}
-
-function getFilteredDirs(filter) {
-  if (!filter) return pickerDirs;
-  const seen = new Set();
-  const scored = [];
-  const browseItem = pickerDirs.find((d) => d.isBrowse);
-  for (const d of pickerDirs) {
-    if (d.isSeparator || d.isBrowse) continue;
-    if (!fuzzyMatch(d.name, filter)) continue;
-    if (d.path && seen.has(d.path)) continue;
-    if (d.path) seen.add(d.path);
-    scored.push({ dir: d, score: fuzzyScore(d.name, filter) });
-  }
-  scored.sort((a, b) => b.score - a.score);
-  const result = scored.map((s) => s.dir);
-  if (browseItem) result.push(browseItem);
-  return result;
-}
-
-function updatePickerSelection() {
-  let idx = 0;
-  pickerList.querySelectorAll("li").forEach((li) => {
-    if (
-      li.classList.contains("picker-separator") ||
-      li.classList.contains("picker-section-header")
-    )
-      return;
-    li.classList.toggle("selected", idx === pickerSelectedIndex);
-    idx++;
-  });
-  // Update sticky Browse... footer selection
-  const footer = document.getElementById("picker-browse-footer");
-  if (footer) {
-    footer.classList.toggle("selected", idx === pickerSelectedIndex);
-  }
-}
-
-function renderPickerList(filter) {
-  const filtered = getFilteredDirs(filter);
-  pickerList.innerHTML = "";
-
-  // Remove existing sticky footer if any
-  const existingFooter = document.getElementById("picker-browse-footer");
-  if (existingFooter) existingFooter.remove();
-
-  // Separate Browse... from the rest
-  const browseItem = filtered.find((d) => d.isBrowse);
-  const listItems = filtered.filter((d) => !d.isBrowse);
-
-  const selectableCount =
-    listItems.filter((d) => !d.isSeparator).length + (browseItem ? 1 : 0);
-  if (pickerSelectedIndex >= selectableCount)
-    pickerSelectedIndex = Math.max(0, selectableCount - 1);
-
-  let inRecents = true;
-  let headerShown = false;
-  let allHeaderShown = false;
-  let selectableIndex = 0;
-  listItems.forEach((dir) => {
-    if (dir.isSeparator) {
-      inRecents = false;
-      return;
-    }
-
-    // Section headers (only when not filtering)
-    if (!filter) {
-      if (inRecents && dir.isRecent && !headerShown) {
-        headerShown = true;
-        const header = document.createElement("li");
-        header.className = "picker-section-header";
-        header.textContent = "Recent";
-        pickerList.appendChild(header);
-      }
-      if (!inRecents && !dir.isBrowse && !dir.isHome && !allHeaderShown) {
-        allHeaderShown = true;
-        const header = document.createElement("li");
-        header.className = "picker-section-header";
-        header.textContent = "All Workspaces";
-        pickerList.appendChild(header);
-      }
-    }
-
-    const idx = selectableIndex++;
-    const li = document.createElement("li");
-    if (dir.isRecent) li.classList.add("picker-recent");
-    if (dir.isHome) li.classList.add("picker-home");
-    li.classList.toggle("selected", idx === pickerSelectedIndex);
-
-    const nameSpan = document.createElement("span");
-    nameSpan.textContent = dir.name;
-    li.appendChild(nameSpan);
-
-    if (dir.path && !dir.isHome && !dir.isBrowse) {
-      const pathSpan = document.createElement("span");
-      pathSpan.className = "picker-path";
-      pathSpan.textContent = dir.path.replace(homePath, "~");
-      li.appendChild(pathSpan);
-    }
-
-    li.addEventListener("click", () => selectPickerItem(dir));
-    li.addEventListener("mouseenter", () => {
-      pickerSelectedIndex = idx;
-      updatePickerSelection();
-    });
-    pickerList.appendChild(li);
-  });
-
-  // Render Browse... as sticky footer
-  if (browseItem) {
-    const browseIdx = selectableIndex++;
-    const footer = document.createElement("div");
-    footer.id = "picker-browse-footer";
-    footer.className = browseIdx === pickerSelectedIndex ? "selected" : "";
-    footer.textContent = "Browse\u2026";
-    footer.addEventListener("click", () => selectPickerItem(browseItem));
-    footer.addEventListener("mouseenter", () => {
-      pickerSelectedIndex = browseIdx;
-      updatePickerSelection();
-    });
-    pickerModal.appendChild(footer);
-  }
-}
-
-async function selectPickerItem(dir) {
-  closePicker();
-  let directory;
-  if (dir.isBrowse) {
-    directory = await electronAPI.openDirectoryDialog();
-    if (!directory) return;
-  } else {
-    directory = dir.path;
-  }
-  if (pendingDangerousMode) {
-    showDangerousConfirm(directory);
-  } else {
-    createTab(directory);
-  }
-}
-
-pickerSearch.addEventListener("input", () => {
-  pickerSelectedIndex = 0;
-  renderPickerList(pickerSearch.value);
-});
-
-pickerSearch.addEventListener("keydown", (e) => {
-  const selectable = getFilteredDirs(pickerSearch.value).filter(
-    (d) => !d.isSeparator,
-  );
-  if (e.key === "ArrowDown") {
-    e.preventDefault();
-    pickerSelectedIndex = Math.min(
-      pickerSelectedIndex + 1,
-      selectable.length - 1,
-    );
-    updatePickerSelection();
-  } else if (e.key === "ArrowUp") {
-    e.preventDefault();
-    pickerSelectedIndex = Math.max(pickerSelectedIndex - 1, 0);
-    updatePickerSelection();
-  } else if (e.key === "Enter") {
-    e.preventDefault();
-    if (selectable[pickerSelectedIndex]) {
-      selectPickerItem(selectable[pickerSelectedIndex]);
-    }
-  } else if (e.key === "Tab") {
-    e.preventDefault();
-    if (selectable[pickerSelectedIndex]) {
-      pickerSearch.value = selectable[pickerSelectedIndex].name;
-      pickerSelectedIndex = 0;
-      renderPickerList(pickerSearch.value);
-    }
-  } else if (e.key === "Escape") {
-    e.preventDefault();
-    closePicker();
-  }
-});
-
-pickerOverlay.addEventListener("click", (e) => {
-  if (e.target === pickerOverlay) closePicker();
+const picker = createPicker({
+  dom: {
+    overlay: pickerOverlay,
+    search: pickerSearch,
+    list: pickerList,
+    modal: pickerModal,
+  },
+  electronAPI,
+  basename,
+  getHomePath: () => homePath,
+  getActiveTab,
+  onSelect: (directory) => createTab(directory),
+  onSelectDangerous: (directory) => showDangerousConfirm(directory),
+  onClose: () => updateEmptyState(),
 });
 
 // ===========================
@@ -783,7 +559,7 @@ confirmNormalBtn.addEventListener("click", () => {
 
 confirmSettingsLink.addEventListener("click", () => {
   closeDangerousConfirm();
-  openSettings();
+  settings.open();
 });
 
 confirmOverlay.addEventListener("click", (e) => {
@@ -823,14 +599,8 @@ async function saveSessionsNow() {
 electronAPI.onPtyData((tabId, data) => {
   const tab = tabs.find((t) => t.id === tabId);
   if (!tab) return;
-  // Strip ED3 when paired with ED2 (the TUI repaint pattern \x1b[2J\x1b[3J).
-  // Claude's TUI sends this combo during streaming repaints, and the ED3 resets
-  // xterm's viewportY to 0 (scrolls to top). Standalone ED3 (e.g. from `clear`)
-  // is preserved.
-  const ESC = "\x1b";
-  const ED2_ED3 = new RegExp(ESC + "\\[2J" + ESC + "\\[3J", "g");
-  const filtered = data.replace(ED2_ED3, ESC + "[2J");
-  tab.terminal.write(filtered);
+  // Strip ED3 when paired with ED2 — see filterED3 in utils.js
+  tab.terminal.write(filterED3(data));
 });
 
 electronAPI.onPtyExit((tabId, _exitCode) => {
@@ -849,8 +619,8 @@ electronAPI.onPtyExit((tabId, _exitCode) => {
 // Menu Events
 // ===========================
 
-electronAPI.onNewTab(() => openPicker(defaultDangerousMode));
-electronAPI.onNewTabDangerous(() => openPicker(!defaultDangerousMode));
+electronAPI.onNewTab(() => picker.open(defaultDangerousMode));
+electronAPI.onNewTabDangerous(() => picker.open(!defaultDangerousMode));
 electronAPI.onCloseTab(() => {
   if (activeTabId) closeTab(activeTabId);
 });
@@ -940,7 +710,7 @@ window.addEventListener("blur", () => {
 });
 
 emptyStateOpenBtn.addEventListener("click", () => {
-  openPicker(isEffectiveDangerous());
+  picker.open(isEffectiveDangerous());
 });
 
 // ===========================
@@ -994,115 +764,57 @@ function applyFontToAllTerminals() {
 // Settings
 // ===========================
 
-async function openSettings() {
-  const settings = await electronAPI.loadSettings();
-  settingsWorkspaceDir.value = settings.workspaceDir || "";
-
-  // Populate theme dropdown
-  const customThemes = await electronAPI.listCustomThemes();
-  settingsThemeSelect.innerHTML = "";
-  for (const theme of builtinThemes) {
-    const opt = document.createElement("option");
-    opt.value = theme.name;
-    opt.textContent = theme.name;
-    settingsThemeSelect.appendChild(opt);
-  }
-  if (customThemes.length > 0) {
-    const sep = document.createElement("option");
-    sep.disabled = true;
-    sep.textContent = "--- Custom ---";
-    settingsThemeSelect.appendChild(sep);
-    for (const theme of customThemes) {
-      const opt = document.createElement("option");
-      opt.value = theme.name;
-      opt.textContent = theme.name;
-      settingsThemeSelect.appendChild(opt);
-    }
-  }
-  settingsThemeSelect.value = settings.theme || DEFAULT_THEME_NAME;
-
-  // Font settings
-  settingsFontFamily.value = settings.fontFamily || currentFontFamily;
-  settingsFontSize.value = settings.fontSize || currentFontSize;
-  settingsDangerousToggle.checked = settings.defaultDangerousMode || false;
-
-  settingsOverlay.classList.remove("hidden");
-  settingsThemeSelect.focus();
-}
-
-function closeSettings() {
-  settingsOverlay.classList.add("hidden");
-  const tab = getActiveTab();
-  if (tab) tab.terminal.focus();
-}
-
-async function saveSettingsValue(key, value) {
-  await electronAPI.saveSettings({ [key]: value });
-}
-
-settingsCloseBtn.addEventListener("click", closeSettings);
-settingsOverlay.addEventListener("click", (e) => {
-  if (e.target === settingsOverlay) closeSettings();
-});
-
-settingsWorkspaceDir.addEventListener("change", () => {
-  saveSettingsValue("workspaceDir", settingsWorkspaceDir.value);
-});
-
-settingsBrowseBtn.addEventListener("click", async () => {
-  const dir = await electronAPI.openDirectoryDialog();
-  if (dir) {
-    settingsWorkspaceDir.value = dir;
-    saveSettingsValue("workspaceDir", dir);
-  }
-});
-
-settingsThemeSelect.addEventListener("change", async () => {
-  const name = settingsThemeSelect.value;
-  const customThemes = await electronAPI.listCustomThemes();
-  const theme = getThemeByName(name, customThemes);
-  applyThemeToAllTerminals(theme);
-  await electronAPI.saveSettings({
-    theme: name,
-    themeBaseColor: theme.chrome.base,
-  });
-});
-
-settingsFontFamily.addEventListener("change", () => {
-  currentFontFamily = settingsFontFamily.value;
-  applyFontToAllTerminals();
-  saveSettingsValue("fontFamily", currentFontFamily);
-});
-
-settingsFontSize.addEventListener("change", () => {
-  const size = parseInt(settingsFontSize.value, 10);
-  if (size >= 8 && size <= 32) {
-    currentFontSize = size;
+const settings = createSettings({
+  dom: {
+    overlay: settingsOverlay,
+    closeBtn: settingsCloseBtn,
+    workspaceDir: settingsWorkspaceDir,
+    browseBtn: settingsBrowseBtn,
+    themeSelect: settingsThemeSelect,
+    fontFamily: settingsFontFamily,
+    fontSize: settingsFontSize,
+    openThemes: settingsOpenThemes,
+    dangerousToggle: settingsDangerousToggle,
+  },
+  electronAPI,
+  getActiveTab,
+  getState: () => ({
+    fontFamily: currentFontFamily,
+    fontSize: currentFontSize,
+    dangerousMode: defaultDangerousMode,
+  }),
+  onThemeChange: (theme) => applyThemeToAllTerminals(theme),
+  onFontChange: ({ fontFamily, fontSize }) => {
+    if (fontFamily !== undefined) currentFontFamily = fontFamily;
+    if (fontSize !== undefined) currentFontSize = fontSize;
     applyFontToAllTerminals();
-    saveSettingsValue("fontSize", size);
-  }
+  },
+  onDangerousModeChange: (enabled) => {
+    defaultDangerousMode = enabled;
+    electronAPI.saveSettings({ defaultDangerousMode: enabled });
+    electronAPI.rebuildMenu(enabled);
+  },
 });
-
-settingsOpenThemes.addEventListener("click", () => {
-  electronAPI.openThemesFolder();
-});
-
-settingsDangerousToggle.addEventListener("change", () => {
-  defaultDangerousMode = settingsDangerousToggle.checked;
-  saveSettingsValue("defaultDangerousMode", defaultDangerousMode);
-  electronAPI.rebuildMenu(defaultDangerousMode);
-});
-
-electronAPI.onOpenSettings(() => openSettings());
 
 document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+    if (!confirmOverlay.classList.contains("hidden")) {
+      e.preventDefault();
+      const target =
+        document.activeElement === confirmDangerousBtn
+          ? confirmNormalBtn
+          : confirmDangerousBtn;
+      target.focus();
+    }
+    return;
+  }
   if (e.key !== "Escape") return;
   if (!confirmOverlay.classList.contains("hidden")) {
     e.preventDefault();
     closeDangerousConfirm();
   } else if (!settingsOverlay.classList.contains("hidden")) {
     e.preventDefault();
-    closeSettings();
+    settings.close();
   }
 });
 

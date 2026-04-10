@@ -151,7 +151,11 @@ ipcMain.handle("sessions:load", () => {
 // IPC: Workspace tracking
 ipcMain.handle("workspace:track", (_event, dirPath) => {
   if (typeof dirPath !== "string" || !path.isAbsolute(dirPath)) return;
-  sessionStore.trackWorkspace(dirPath);
+  try {
+    sessionStore.trackWorkspace(dirPath);
+  } catch {
+    /* best-effort tracking */
+  }
 });
 
 ipcMain.handle("workspace:recent", () => {

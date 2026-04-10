@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const htmlSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'index.html'), 'utf-8');
 const appSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'app.js'), 'utf-8');
+const pickerSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'picker.js'), 'utf-8');
 const cssSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'styles.css'), 'utf-8');
 
 describe('dangerous mode confirmation modal', () => {
@@ -30,11 +31,16 @@ describe('dangerous mode confirmation modal', () => {
     expect(appSource).toContain('function showDangerousConfirm');
   });
 
-  it('picker selection checks pendingDangerousMode before creating tab', () => {
-    expect(appSource).toContain('pendingDangerousMode');
+  it('picker selection checks dangerous mode before creating tab', () => {
+    expect(pickerSource).toContain('dangerousMode');
   });
 
   it('escape key on confirmation modal triggers normal launch', () => {
     expect(appSource).toMatch(/confirm.*Escape|Escape.*confirm/s);
+  });
+
+  it('arrow keys toggle focus between confirm buttons', () => {
+    expect(appSource).toMatch(/ArrowLeft|ArrowRight/);
+    expect(appSource).toMatch(/confirm-dangerous-btn.*confirm-normal-btn|confirmDangerousBtn.*confirmNormalBtn/s);
   });
 });

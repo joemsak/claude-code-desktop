@@ -8,8 +8,8 @@ const mainSource = fs.readFileSync(
   path.join(__dirname, "..", "src", "main", "main.js"),
   "utf-8",
 );
-const appSource = fs.readFileSync(
-  path.join(__dirname, "..", "src", "renderer", "app.js"),
+const pickerSource = fs.readFileSync(
+  path.join(__dirname, "..", "src", "renderer", "picker.js"),
   "utf-8",
 );
 
@@ -31,8 +31,8 @@ describe("workspace picker ignores dot directories", () => {
 describe("home directory picker styling", () => {
   it("applies a distinct CSS class to the home item", () => {
     // The ~ (Home) item should get a picker-home class for distinct styling
-    const renderMatch = appSource.match(
-      /function renderPickerList\(filter\)\s*\{[\s\S]*?\n\}/,
+    const renderMatch = pickerSource.match(
+      /function renderList\(filter\)\s*\{[\s\S]*?\n {2}\}/,
     );
     expect(renderMatch).not.toBeNull();
     expect(renderMatch[0]).toContain("picker-home");

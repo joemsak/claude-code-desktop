@@ -4,54 +4,52 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const appSource = fs.readFileSync(
-  path.join(__dirname, "..", "src", "renderer", "app.js"),
+const pickerSource = fs.readFileSync(
+  path.join(__dirname, "..", "src", "renderer", "picker.js"),
   "utf-8",
 );
 
 describe("picker Tab key autocomplete", () => {
   it("handles Tab key in the picker keydown listener", () => {
     // Tab must be handled to prevent default browser focus behavior
-    const keydownBlock = appSource.match(
-      /pickerSearch\.addEventListener\("keydown"[\s\S]*?\n\}\);/,
+    const keydownBlock = pickerSource.match(
+      /search\.addEventListener\("keydown"[\s\S]*?\n {2}\}\);/,
     );
     expect(keydownBlock).not.toBeNull();
     expect(keydownBlock[0]).toContain('"Tab"');
   });
 
   it("prevents default on Tab to stop focus from moving", () => {
-    const keydownBlock = appSource.match(
-      /pickerSearch\.addEventListener\("keydown"[\s\S]*?\n\}\);/,
+    const keydownBlock = pickerSource.match(
+      /search\.addEventListener\("keydown"[\s\S]*?\n {2}\}\);/,
     );
-    // Find the Tab handling section
     const tabSection = keydownBlock[0].match(
-      /e\.key\s*===\s*"Tab"[\s\S]*?(?=\}\s*else|\}\s*\n\})/,
+      /e\.key\s*===\s*"Tab"[\s\S]*?(?=\}\s*else|\}\s*\n\s*\})/,
     );
     expect(tabSection).not.toBeNull();
     expect(tabSection[0]).toContain("preventDefault");
   });
 
   it("fills the search input with the selected item name on Tab", () => {
-    const keydownBlock = appSource.match(
-      /pickerSearch\.addEventListener\("keydown"[\s\S]*?\n\}\);/,
+    const keydownBlock = pickerSource.match(
+      /search\.addEventListener\("keydown"[\s\S]*?\n {2}\}\);/,
     );
     const tabSection = keydownBlock[0].match(
-      /e\.key\s*===\s*"Tab"[\s\S]*?(?=\}\s*else|\}\s*\n\})/,
+      /e\.key\s*===\s*"Tab"[\s\S]*?(?=\}\s*else|\}\s*\n\s*\})/,
     );
     expect(tabSection).not.toBeNull();
-    // Should set the search input value to the selected item's name
-    expect(tabSection[0]).toContain("pickerSearch.value");
+    expect(tabSection[0]).toContain("search.value");
     expect(tabSection[0]).toContain(".name");
   });
 
   it("re-renders the picker list after Tab autocomplete", () => {
-    const keydownBlock = appSource.match(
-      /pickerSearch\.addEventListener\("keydown"[\s\S]*?\n\}\);/,
+    const keydownBlock = pickerSource.match(
+      /search\.addEventListener\("keydown"[\s\S]*?\n {2}\}\);/,
     );
     const tabSection = keydownBlock[0].match(
-      /e\.key\s*===\s*"Tab"[\s\S]*?(?=\}\s*else|\}\s*\n\})/,
+      /e\.key\s*===\s*"Tab"[\s\S]*?(?=\}\s*else|\}\s*\n\s*\})/,
     );
     expect(tabSection).not.toBeNull();
-    expect(tabSection[0]).toContain("renderPickerList");
+    expect(tabSection[0]).toContain("renderList");
   });
 });

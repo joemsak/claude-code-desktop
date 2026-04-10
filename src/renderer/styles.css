@@ -441,7 +441,7 @@ body {
 }
 
 .empty-recents-path {
-  color: var(--surface2);
+  color: var(--subtext0);
   font-size: 11px;
   transition: color 0.15s ease;
 }
@@ -710,7 +710,7 @@ body {
 }
 
 #picker-list li .picker-path {
-  color: var(--surface2);
+  color: var(--subtext0);
   font-size: 11px;
   margin-left: 8px;
   transition: color 0.15s ease;
@@ -783,7 +783,7 @@ body {
 }
 
 #picker-modal.picker-dangerous #picker-list li .picker-path {
-  color: var(--surface2);
+  color: var(--subtext0);
 }
 
 #picker-modal.picker-dangerous #picker-list li.picker-section-header {

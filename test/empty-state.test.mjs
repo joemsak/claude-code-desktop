@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const htmlSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'index.html'), 'utf-8');
 const appSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'app.js'), 'utf-8');
+const pickerSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'picker.js'), 'utf-8');
 
 describe('empty state improvements', () => {
   it('has a recent workspaces list in the empty state', () => {
@@ -24,10 +25,10 @@ describe('empty state improvements', () => {
 
 describe('picker improvements', () => {
   it('has section headers for recent and all workspaces', () => {
-    expect(appSource).toContain('picker-section-header');
+    expect(pickerSource).toContain('picker-section-header');
   });
 
   it('shows directory paths alongside names in picker', () => {
-    expect(appSource).toContain('picker-path');
+    expect(pickerSource).toContain('picker-path');
   });
 });

@@ -7,6 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const htmlSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'index.html'), 'utf-8');
 const cssSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'styles.css'), 'utf-8');
 const _appSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'app.js'), 'utf-8');
+const pickerSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'picker.js'), 'utf-8');
 
 describe('welcome page shift-dangerous hint', () => {
   it('has a shift-hint element in the empty state HTML', () => {
@@ -52,7 +53,7 @@ describe('welcome page shift key state tracking', () => {
 describe('welcome page click handlers respect shift state', () => {
   it('has an isEffectiveDangerous helper for mode XOR logic', () => {
     expect(_appSource).toContain('function isEffectiveDangerous()');
-    expect(_appSource).toContain('shiftHeld !== defaultDangerousMode');
+    expect(_appSource).toContain('isEffectiveDangerousPure(shiftHeld, defaultDangerousMode)');
   });
 
   it('has a getModeLabels helper for button/hint text', () => {
@@ -69,12 +70,12 @@ describe('welcome page click handlers respect shift state', () => {
 });
 
 describe('picker dangerous mode visual feedback', () => {
-  it('has updatePickerDangerousState function', () => {
-    expect(_appSource).toContain('function updatePickerDangerousState()');
+  it('has updateDangerousState function in picker module', () => {
+    expect(pickerSource).toContain('function updateDangerousState(');
   });
 
   it('toggles picker-dangerous class on picker modal', () => {
-    expect(_appSource).toContain('picker-dangerous');
+    expect(pickerSource).toContain('picker-dangerous');
   });
 
   it('has CSS for picker dangerous mode', () => {
@@ -82,6 +83,6 @@ describe('picker dangerous mode visual feedback', () => {
   });
 
   it('updateShiftState toggles picker dangerous state when picker is open', () => {
-    expect(_appSource).toContain('updatePickerDangerousState()');
+    expect(_appSource).toContain('picker.updateDangerousState(');
   });
 });

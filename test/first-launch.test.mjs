@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const appSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'app.js'), 'utf-8');
+const pickerSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer', 'picker.js'), 'utf-8');
 
 describe('first launch behavior', () => {
   it('shows the welcome screen (not the picker) when there are no saved tabs', () => {
@@ -13,16 +14,16 @@ describe('first launch behavior', () => {
     const initCode = initBlock[0];
 
     // Should NOT auto-open picker — welcome screen is the landing page
-    expect(initCode).not.toContain('openPicker');
+    expect(initCode).not.toContain('picker.open');
     expect(initCode).not.toMatch(/tabs:\s*\[\s*\{\s*directory:\s*homePath/);
   });
 
-  it('closePicker never auto-creates tabs', () => {
-    const closeBlock = appSource.match(/function closePicker\(\)\s*\{[\s\S]*?\n\}/);
+  it('close function never auto-creates tabs', () => {
+    const closeBlock = pickerSource.match(/function close\(\)\s*\{[\s\S]*?\n {2}\}/);
     expect(closeBlock).not.toBeNull();
     const closeCode = closeBlock[0];
 
-    // Should NOT create tabs — just close the overlay and show empty state
+    // Should NOT create tabs — just close the overlay and call onClose
     expect(closeCode).not.toContain('createTab');
   });
 

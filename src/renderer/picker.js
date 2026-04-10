@@ -1,0 +1,265 @@
+import { fuzzyMatch, fuzzyScore } from "./fuzzy.js";
+
+/**
+ * Creates a directory picker controller.
+ * @param {Object} deps
+ * @param {Object} deps.dom - DOM element references
+ * @param {Object} deps.electronAPI - Electron IPC bridge
+ * @param {Function} deps.basename - Path basename utility
+ * @param {Function} deps.getHomePath - Returns current home path
+ * @param {Function} deps.getActiveTab - Returns currently active tab
+ * @param {Function} deps.onSelect - Called with (directory) for normal launch
+ * @param {Function} deps.onSelectDangerous - Called with (directory) for dangerous launch
+ * @param {Function} deps.onClose - Called when picker closes (e.g. to update empty state)
+ */
+export function createPicker({
+  dom,
+  electronAPI,
+  basename,
+  getHomePath,
+  getActiveTab,
+  onSelect,
+  onSelectDangerous,
+  onClose,
+}) {
+  const { overlay, search, list, modal } = dom;
+
+  let pickerDirs = [];
+  let pickerSelectedIndex = 0;
+  let dangerousMode = false;
+
+  function updateDangerousState(isDangerous) {
+    dangerousMode = isDangerous;
+    modal.classList.toggle("picker-dangerous", dangerousMode);
+  }
+
+  async function open(isDangerous = false) {
+    dangerousMode = isDangerous;
+    updateDangerousState(isDangerous);
+    const [workspaceDirs, recentWorkspaces] = await Promise.all([
+      electronAPI.listWorkspaceDirs(),
+      electronAPI.getRecentWorkspaces(),
+    ]);
+
+    const homePath = getHomePath();
+    const recentPaths = new Set();
+    const recentItems = [];
+    for (const r of recentWorkspaces.slice(0, 5)) {
+      recentItems.push({
+        name: basename(r.path),
+        path: r.path,
+        isRecent: true,
+      });
+      recentPaths.add(r.path);
+    }
+
+    const allItems = workspaceDirs
+      .filter((d) => !recentPaths.has(d.path))
+      .map((d) => ({ name: d.name, path: d.path }));
+
+    pickerDirs = [
+      ...recentItems,
+      ...(recentItems.length > 0
+        ? [{ name: "---", path: null, isSeparator: true }]
+        : []),
+      { name: "~ (Home)", path: homePath, isHome: true },
+      ...allItems,
+      { name: "Browse...", path: null, isBrowse: true },
+    ];
+
+    search.value = "";
+    pickerSelectedIndex = 0;
+    renderList("");
+    overlay.classList.remove("hidden");
+    search.focus();
+  }
+
+  function close() {
+    overlay.classList.add("hidden");
+    modal.classList.remove("picker-dangerous");
+    const footer = document.getElementById("picker-browse-footer");
+    if (footer) footer.remove();
+    onClose();
+    const tab = getActiveTab();
+    if (tab) tab.terminal.focus();
+  }
+
+  function getFilteredDirs(filter) {
+    if (!filter) return pickerDirs;
+    const seen = new Set();
+    const scored = [];
+    const browseItem = pickerDirs.find((d) => d.isBrowse);
+    for (const d of pickerDirs) {
+      if (d.isSeparator || d.isBrowse) continue;
+      if (!fuzzyMatch(d.name, filter)) continue;
+      if (d.path && seen.has(d.path)) continue;
+      if (d.path) seen.add(d.path);
+      scored.push({ dir: d, score: fuzzyScore(d.name, filter) });
+    }
+    scored.sort((a, b) => b.score - a.score);
+    const result = scored.map((s) => s.dir);
+    if (browseItem) result.push(browseItem);
+    return result;
+  }
+
+  function updateSelection() {
+    let idx = 0;
+    list.querySelectorAll("li").forEach((li) => {
+      if (
+        li.classList.contains("picker-separator") ||
+        li.classList.contains("picker-section-header")
+      )
+        return;
+      li.classList.toggle("selected", idx === pickerSelectedIndex);
+      idx++;
+    });
+    const footer = document.getElementById("picker-browse-footer");
+    if (footer) {
+      footer.classList.toggle("selected", idx === pickerSelectedIndex);
+    }
+  }
+
+  function renderList(filter) {
+    const filtered = getFilteredDirs(filter);
+    list.innerHTML = "";
+
+    const existingFooter = document.getElementById("picker-browse-footer");
+    if (existingFooter) existingFooter.remove();
+
+    const browseItem = filtered.find((d) => d.isBrowse);
+    const listItems = filtered.filter((d) => !d.isBrowse);
+
+    const selectableCount =
+      listItems.filter((d) => !d.isSeparator).length + (browseItem ? 1 : 0);
+    if (pickerSelectedIndex >= selectableCount)
+      pickerSelectedIndex = Math.max(0, selectableCount - 1);
+
+    const homePath = getHomePath();
+    let inRecents = true;
+    let headerShown = false;
+    let allHeaderShown = false;
+    let selectableIndex = 0;
+    listItems.forEach((dir) => {
+      if (dir.isSeparator) {
+        inRecents = false;
+        return;
+      }
+
+      if (!filter) {
+        if (inRecents && dir.isRecent && !headerShown) {
+          headerShown = true;
+          const header = document.createElement("li");
+          header.className = "picker-section-header";
+          header.textContent = "Recent";
+          list.appendChild(header);
+        }
+        if (!inRecents && !dir.isBrowse && !dir.isHome && !allHeaderShown) {
+          allHeaderShown = true;
+          const header = document.createElement("li");
+          header.className = "picker-section-header";
+          header.textContent = "All Workspaces";
+          list.appendChild(header);
+        }
+      }
+
+      const idx = selectableIndex++;
+      const li = document.createElement("li");
+      if (dir.isRecent) li.classList.add("picker-recent");
+      if (dir.isHome) li.classList.add("picker-home");
+      li.classList.toggle("selected", idx === pickerSelectedIndex);
+
+      const nameSpan = document.createElement("span");
+      nameSpan.textContent = dir.name;
+      li.appendChild(nameSpan);
+
+      if (dir.path && !dir.isHome && !dir.isBrowse) {
+        const pathSpan = document.createElement("span");
+        pathSpan.className = "picker-path";
+        pathSpan.textContent = dir.path.replace(homePath, "~");
+        li.appendChild(pathSpan);
+      }
+
+      li.addEventListener("click", () => selectItem(dir));
+      li.addEventListener("mouseenter", () => {
+        pickerSelectedIndex = idx;
+        updateSelection();
+      });
+      list.appendChild(li);
+    });
+
+    if (browseItem) {
+      const browseIdx = selectableIndex++;
+      const footer = document.createElement("div");
+      footer.id = "picker-browse-footer";
+      footer.className = browseIdx === pickerSelectedIndex ? "selected" : "";
+      footer.textContent = "Browse\u2026";
+      footer.addEventListener("click", () => selectItem(browseItem));
+      footer.addEventListener("mouseenter", () => {
+        pickerSelectedIndex = browseIdx;
+        updateSelection();
+      });
+      modal.appendChild(footer);
+    }
+  }
+
+  async function selectItem(dir) {
+    close();
+    let directory;
+    if (dir.isBrowse) {
+      directory = await electronAPI.openDirectoryDialog();
+      if (!directory) return;
+    } else {
+      directory = dir.path;
+    }
+    if (dangerousMode) {
+      onSelectDangerous(directory);
+    } else {
+      onSelect(directory);
+    }
+  }
+
+  // Wire up DOM events
+  search.addEventListener("input", () => {
+    pickerSelectedIndex = 0;
+    renderList(search.value);
+  });
+
+  search.addEventListener("keydown", (e) => {
+    const selectable = getFilteredDirs(search.value).filter(
+      (d) => !d.isSeparator,
+    );
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      pickerSelectedIndex = Math.min(
+        pickerSelectedIndex + 1,
+        selectable.length - 1,
+      );
+      updateSelection();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      pickerSelectedIndex = Math.max(pickerSelectedIndex - 1, 0);
+      updateSelection();
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (selectable[pickerSelectedIndex]) {
+        selectItem(selectable[pickerSelectedIndex]);
+      }
+    } else if (e.key === "Tab") {
+      e.preventDefault();
+      if (selectable[pickerSelectedIndex]) {
+        search.value = selectable[pickerSelectedIndex].name;
+        pickerSelectedIndex = 0;
+        renderList(search.value);
+      }
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      close();
+    }
+  });
+
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) close();
+  });
+
+  return { open, close, updateDangerousState };
+}
