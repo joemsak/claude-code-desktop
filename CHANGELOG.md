@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Arrow key navigation between buttons in the dangerous mode confirmation dialog
+- ARIA attributes on all modals (role=dialog, aria-modal), tab list (role=tablist), and close buttons (aria-label)
+- Behavioral tests for pure utility functions (basename, getDisplayName, filterED3, isEffectiveDangerous)
+- tsconfig.json for incremental TypeScript adoption (allowJs enabled)
+
+### Changed
+- Extracted directory picker into `picker.js` module (factory pattern with dependency injection)
+- Extracted settings UI into `settings.js` module (factory pattern with callbacks)
+- Extracted pure functions into `utils.js` module (basename, getDisplayName, filterED3, isEffectiveDangerous)
+- Simplified ESLint renderer config from explicit file list to glob pattern
+- app.js reduced from 1,176 to 877 lines
+
+### Fixed
+- `--surface2` CSS variable was undefined in all themes, causing invisible text on picker paths and empty state recents (now uses `--subtext0`)
+- `fuzzy.js` missing from ESLint renderer ESM config
+- `trackWorkspace` IPC handler could throw on corrupted session file (now wrapped in try/catch)
+
 ## [3.1.0] - 2026-04-09
 
 ### Added
