@@ -31,10 +31,57 @@ export function createPicker({
   let dangerousMode = false;
   let cloneCandidate = null;
   let parseToken = 0;
+  let mode = "normal";
+  const SEARCH_PLACEHOLDER_NORMAL =
+    search.getAttribute("placeholder") || "Search workspace...";
+  const SEARCH_PLACEHOLDER_URL = "Paste a git URL and press Enter";
 
   function updateDangerousState(isDangerous) {
     dangerousMode = isDangerous;
     modal.classList.toggle("picker-dangerous", dangerousMode);
+  }
+
+  function clearInlineError() {
+    const err = document.getElementById("picker-url-error");
+    if (err) err.remove();
+  }
+
+  function showInlineError(message) {
+    clearInlineError();
+    const err = document.createElement("div");
+    err.id = "picker-url-error";
+    err.textContent = message;
+    modal.insertBefore(err, list);
+  }
+
+  function removeFooters() {
+    const browseFooter = document.getElementById("picker-browse-footer");
+    if (browseFooter) browseFooter.remove();
+    const cloneFooter = document.getElementById("picker-clone-footer");
+    if (cloneFooter) cloneFooter.remove();
+  }
+
+  function enterUrlMode() {
+    mode = "url";
+    search.dataset.mode = "url";
+    search.setAttribute("placeholder", SEARCH_PLACEHOLDER_URL);
+    search.value = "";
+    cloneCandidate = null;
+    list.innerHTML = "";
+    removeFooters();
+    clearInlineError();
+    search.focus();
+  }
+
+  function exitUrlMode() {
+    mode = "normal";
+    search.dataset.mode = "normal";
+    search.setAttribute("placeholder", SEARCH_PLACEHOLDER_NORMAL);
+    search.value = "";
+    cloneCandidate = null;
+    clearInlineError();
+    renderList("");
+    search.focus();
   }
 
   async function open(isDangerous = false) {
@@ -82,8 +129,11 @@ export function createPicker({
   function close() {
     overlay.classList.add("hidden");
     modal.classList.remove("picker-dangerous");
-    const footer = document.getElementById("picker-browse-footer");
-    if (footer) footer.remove();
+    removeFooters();
+    clearInlineError();
+    mode = "normal";
+    search.dataset.mode = "normal";
+    search.setAttribute("placeholder", SEARCH_PLACEHOLDER_NORMAL);
     onClose();
     const tab = getActiveTab();
     if (tab) tab.terminal.focus();
@@ -229,6 +279,12 @@ export function createPicker({
       });
       modal.appendChild(footer);
     }
+
+    const cloneFooter = document.createElement("div");
+    cloneFooter.id = "picker-clone-footer";
+    cloneFooter.textContent = "Clone repo…";
+    cloneFooter.addEventListener("click", () => enterUrlMode());
+    modal.appendChild(cloneFooter);
   }
 
   async function selectItem(dir) {
@@ -270,13 +326,40 @@ export function createPicker({
 
   // Wire up DOM events
   search.addEventListener("input", async () => {
+    if (mode === "url") return;
     pickerSelectedIndex = 0;
     const value = search.value;
     await refreshCloneCandidate(value);
     renderList(value);
   });
 
-  search.addEventListener("keydown", (e) => {
+  search.addEventListener("keydown", async (e) => {
+    if (mode === "url") {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        exitUrlMode();
+        return;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const value = search.value.trim();
+        if (!value) return;
+        const parsed = electronAPI.parseGitUrl
+          ? await electronAPI.parseGitUrl(value)
+          : { valid: false };
+        if (parsed && parsed.valid) {
+          clearInlineError();
+          close();
+          if (onClone) onClone(parsed.url);
+        } else {
+          showInlineError("Not a valid git URL");
+        }
+        return;
+      }
+      clearInlineError();
+      return;
+    }
+
     const selectable = getFilteredDirs(search.value).filter(
       (d) => !d.isSeparator,
     );
