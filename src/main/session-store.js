@@ -95,7 +95,31 @@ function createStore(homeDir) {
     fs.writeFileSync(sessionFile, JSON.stringify(data, null, 2));
   }
 
-  return { load, save, trackWorkspace, DEFAULT_SESSION };
+  function removeRecentWorkspace(dirPath) {
+    let data;
+    try {
+      data = JSON.parse(fs.readFileSync(sessionFile, "utf-8"));
+    } catch {
+      return;
+    }
+    if (!Array.isArray(data.recentWorkspaces)) return;
+    const filtered = data.recentWorkspaces.filter((r) => r.path !== dirPath);
+    if (filtered.length === data.recentWorkspaces.length) return;
+    data.recentWorkspaces = filtered;
+    try {
+      fs.writeFileSync(sessionFile, JSON.stringify(data, null, 2));
+    } catch {
+      /* best-effort */
+    }
+  }
+
+  return {
+    load,
+    save,
+    trackWorkspace,
+    removeRecentWorkspace,
+    DEFAULT_SESSION,
+  };
 }
 
 // Default instance for production use

@@ -61,6 +61,93 @@ export function createPicker({
     if (cloneFooter) cloneFooter.remove();
   }
 
+  function canDeleteDir(dir) {
+    return !!(
+      dir &&
+      dir.path &&
+      !dir.isHome &&
+      !dir.isBrowse &&
+      !dir.isClone &&
+      !dir.isSeparator
+    );
+  }
+
+  function closeContextMenu() {
+    const existing = document.getElementById("picker-context-menu");
+    if (existing) existing.remove();
+    document.removeEventListener("click", closeContextMenu, true);
+    document.removeEventListener("keydown", onContextMenuKey, true);
+  }
+
+  function onContextMenuKey(e) {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      closeContextMenu();
+    }
+  }
+
+  async function removeRecent(dir) {
+    if (!electronAPI.removeRecentWorkspace) return;
+    await electronAPI.removeRecentWorkspace(dir.path);
+    await refreshPickerDirs();
+    renderList(search.value);
+  }
+
+  async function trashWorkspaceDir(dir) {
+    if (!electronAPI.trashWorkspace) return;
+    const confirmed = window.confirm(`Move “${dir.name}” to the Trash?`);
+    if (!confirmed) return;
+    await electronAPI.trashWorkspace(dir.path);
+    await refreshPickerDirs();
+    renderList(search.value);
+  }
+
+  function showContextMenu(dir, x, y) {
+    if (!canDeleteDir(dir)) return;
+    closeContextMenu();
+    const menu = document.createElement("div");
+    menu.id = "picker-context-menu";
+    menu.style.left = `${x}px`;
+    menu.style.top = `${y}px`;
+
+    if (dir.isRecent) {
+      const removeItem = document.createElement("div");
+      removeItem.className = "picker-context-item";
+      removeItem.textContent = "Remove from recents";
+      removeItem.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        closeContextMenu();
+        await removeRecent(dir);
+      });
+      menu.appendChild(removeItem);
+    }
+
+    const trashItem = document.createElement("div");
+    trashItem.className = "picker-context-item picker-context-item-danger";
+    trashItem.innerHTML =
+      'Move to Trash <span class="picker-context-shortcut">⌘⌫</span>';
+    trashItem.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      closeContextMenu();
+      await trashWorkspaceDir(dir);
+    });
+    menu.appendChild(trashItem);
+
+    document.body.appendChild(menu);
+    // Clamp to viewport
+    const rect = menu.getBoundingClientRect();
+    if (rect.right > window.innerWidth) {
+      menu.style.left = `${window.innerWidth - rect.width - 4}px`;
+    }
+    if (rect.bottom > window.innerHeight) {
+      menu.style.top = `${window.innerHeight - rect.height - 4}px`;
+    }
+    setTimeout(() => {
+      document.addEventListener("click", closeContextMenu, true);
+      document.addEventListener("keydown", onContextMenuKey, true);
+    }, 0);
+  }
+
   function enterUrlMode() {
     mode = "url";
     search.dataset.mode = "url";
@@ -84,9 +171,7 @@ export function createPicker({
     search.focus();
   }
 
-  async function open(isDangerous = false) {
-    dangerousMode = isDangerous;
-    updateDangerousState(isDangerous);
+  async function refreshPickerDirs() {
     const [workspaceDirs, recentWorkspaces] = await Promise.all([
       electronAPI.listWorkspaceDirs(),
       electronAPI.getRecentWorkspaces(),
@@ -117,6 +202,12 @@ export function createPicker({
       ...allItems,
       { name: "Browse...", path: null, isBrowse: true },
     ];
+  }
+
+  async function open(isDangerous = false) {
+    dangerousMode = isDangerous;
+    updateDangerousState(isDangerous);
+    await refreshPickerDirs();
 
     search.value = "";
     pickerSelectedIndex = 0;
@@ -131,6 +222,7 @@ export function createPicker({
     modal.classList.remove("picker-dangerous");
     removeFooters();
     clearInlineError();
+    closeContextMenu();
     mode = "normal";
     search.dataset.mode = "normal";
     search.setAttribute("placeholder", SEARCH_PLACEHOLDER_NORMAL);
@@ -263,6 +355,12 @@ export function createPicker({
         pickerSelectedIndex = idx;
         updateSelection();
       });
+      if (canDeleteDir(dir)) {
+        li.addEventListener("contextmenu", (e) => {
+          e.preventDefault();
+          showContextMenu(dir, e.clientX, e.clientY);
+        });
+      }
       list.appendChild(li);
     });
 
@@ -363,6 +461,14 @@ export function createPicker({
     const selectable = getFilteredDirs(search.value).filter(
       (d) => !d.isSeparator,
     );
+    if (e.key === "Backspace" && e.metaKey) {
+      const target = selectable[pickerSelectedIndex];
+      if (canDeleteDir(target)) {
+        e.preventDefault();
+        await trashWorkspaceDir(target);
+      }
+      return;
+    }
     if (e.key === "ArrowDown") {
       e.preventDefault();
       pickerSelectedIndex = Math.min(

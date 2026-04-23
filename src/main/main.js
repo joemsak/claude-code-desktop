@@ -15,6 +15,10 @@ const {
   createGitParseUrlHandler,
   createGitCloneHandler,
 } = require("./git-clone-handlers");
+const {
+  createTrashWorkspaceHandler,
+  createRemoveRecentWorkspaceHandler,
+} = require("./workspace-delete-handlers");
 
 let mainWindow;
 
@@ -207,6 +211,21 @@ ipcMain.handle(
   createGitCloneHandler({
     ptyManager,
     getWorkspaceDir: getConfiguredWorkspaceDir,
+  }),
+);
+
+// IPC: Workspace deletion
+ipcMain.handle(
+  "workspace:remove-recent",
+  createRemoveRecentWorkspaceHandler({
+    removeRecentWorkspace: (p) => sessionStore.removeRecentWorkspace(p),
+  }),
+);
+ipcMain.handle(
+  "workspace:trash",
+  createTrashWorkspaceHandler({
+    trashItem: (p) => shell.trashItem(p),
+    removeRecentWorkspace: (p) => sessionStore.removeRecentWorkspace(p),
   }),
 );
 

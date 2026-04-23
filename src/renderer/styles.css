@@ -845,6 +845,45 @@ body {
   color: var(--blue);
 }
 
+#picker-context-menu {
+  position: fixed;
+  min-width: 180px;
+  background: var(--surface0);
+  border: 1px solid var(--surface2);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  padding: 4px 0;
+  z-index: 200;
+  font-size: 13px;
+  color: var(--text);
+}
+
+#picker-context-menu .picker-context-item {
+  padding: 6px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+#picker-context-menu .picker-context-item:hover {
+  background: var(--surface1);
+}
+
+#picker-context-menu .picker-context-item-danger {
+  color: var(--red, #e78284);
+}
+
+#picker-context-menu .picker-context-item-danger:hover {
+  background: color-mix(in srgb, var(--red, #e78284) 18%, var(--surface1));
+}
+
+#picker-context-menu .picker-context-shortcut {
+  color: var(--subtext0);
+  font-size: 11px;
+}
+
 /* Picker dangerous mode */
 #picker-modal.picker-dangerous #picker-search {
   border-bottom: 2px solid var(--dangerous-accent);

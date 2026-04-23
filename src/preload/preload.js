@@ -52,6 +52,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
   cloneRepo: ({ tabId, url, dangerousMode }) =>
     ipcRenderer.invoke("git:clone", { tabId, url, dangerousMode }),
 
+  // Workspace deletion
+  removeRecentWorkspace: (dirPath) =>
+    ipcRenderer.invoke("workspace:remove-recent", dirPath),
+  trashWorkspace: (dirPath) => ipcRenderer.invoke("workspace:trash", dirPath),
+
   // Utility
   getHomePath: () => ipcRenderer.invoke("util:home-path"),
   getWindowBounds: () => ipcRenderer.invoke("util:window-bounds"),
