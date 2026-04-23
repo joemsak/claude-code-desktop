@@ -11,6 +11,10 @@ const fs = require("fs");
 const os = require("os");
 const ptyManager = require("./pty-manager");
 const sessionStore = require("./session-store");
+const {
+  createGitParseUrlHandler,
+  createGitCloneHandler,
+} = require("./git-clone-handlers");
 
 let mainWindow;
 
@@ -190,6 +194,21 @@ ipcMain.handle("dirs:open-dialog", async () => {
   if (result.canceled || result.filePaths.length === 0) return null;
   return result.filePaths[0];
 });
+
+// IPC: Git clone
+function getConfiguredWorkspaceDir() {
+  const data = sessionStore.load() || sessionStore.DEFAULT_SESSION;
+  return data.workspaceDir || sessionStore.DEFAULT_SESSION.workspaceDir;
+}
+
+ipcMain.handle("git:parse-url", createGitParseUrlHandler());
+ipcMain.handle(
+  "git:clone",
+  createGitCloneHandler({
+    ptyManager,
+    getWorkspaceDir: getConfiguredWorkspaceDir,
+  }),
+);
 
 // IPC: Settings
 ipcMain.handle("settings:load", () => {
