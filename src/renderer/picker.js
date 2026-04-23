@@ -10,6 +10,7 @@ import { fuzzyMatch, fuzzyScore } from "./fuzzy.js";
  * @param {Function} deps.getActiveTab - Returns currently active tab
  * @param {Function} deps.onSelect - Called with (directory) for normal launch
  * @param {Function} deps.onSelectDangerous - Called with (directory) for dangerous launch
+ * @param {Function} deps.onClone - Called with (url) when user picks a clone-URL action
  * @param {Function} deps.onClose - Called when picker closes (e.g. to update empty state)
  */
 export function createPicker({
@@ -20,6 +21,7 @@ export function createPicker({
   getActiveTab,
   onSelect,
   onSelectDangerous,
+  onClone,
   onClose,
 }) {
   const { overlay, search, list, modal } = dom;
@@ -27,6 +29,8 @@ export function createPicker({
   let pickerDirs = [];
   let pickerSelectedIndex = 0;
   let dangerousMode = false;
+  let cloneCandidate = null;
+  let parseToken = 0;
 
   function updateDangerousState(isDangerous) {
     dangerousMode = isDangerous;
@@ -69,6 +73,7 @@ export function createPicker({
 
     search.value = "";
     pickerSelectedIndex = 0;
+    cloneCandidate = null;
     renderList("");
     overlay.classList.remove("hidden");
     search.focus();
@@ -85,7 +90,12 @@ export function createPicker({
   }
 
   function getFilteredDirs(filter) {
-    if (!filter) return pickerDirs;
+    const cloneItem = cloneCandidate
+      ? { isClone: true, url: cloneCandidate.url, name: cloneCandidate.name }
+      : null;
+    if (!filter) {
+      return cloneItem ? [cloneItem, ...pickerDirs] : pickerDirs;
+    }
     const seen = new Set();
     const scored = [];
     const browseItem = pickerDirs.find((d) => d.isBrowse);
@@ -99,7 +109,7 @@ export function createPicker({
     scored.sort((a, b) => b.score - a.score);
     const result = scored.map((s) => s.dir);
     if (browseItem) result.push(browseItem);
-    return result;
+    return cloneItem ? [cloneItem, ...result] : result;
   }
 
   function updateSelection() {
@@ -142,6 +152,25 @@ export function createPicker({
     listItems.forEach((dir) => {
       if (dir.isSeparator) {
         inRecents = false;
+        return;
+      }
+
+      if (dir.isClone) {
+        const idx = selectableIndex++;
+        const li = document.createElement("li");
+        li.classList.add("picker-clone");
+        li.classList.toggle("selected", idx === pickerSelectedIndex);
+
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = `⎘  Clone ${dir.name} into workspace`;
+        li.appendChild(nameSpan);
+
+        li.addEventListener("click", () => selectItem(dir));
+        li.addEventListener("mouseenter", () => {
+          pickerSelectedIndex = idx;
+          updateSelection();
+        });
+        list.appendChild(li);
         return;
       }
 
@@ -203,6 +232,11 @@ export function createPicker({
   }
 
   async function selectItem(dir) {
+    if (dir.isClone) {
+      close();
+      if (onClone) onClone(dir.url);
+      return;
+    }
     close();
     let directory;
     if (dir.isBrowse) {
@@ -218,10 +252,28 @@ export function createPicker({
     }
   }
 
+  async function refreshCloneCandidate(value) {
+    const token = ++parseToken;
+    if (!value || !electronAPI.parseGitUrl) {
+      cloneCandidate = null;
+      return;
+    }
+    try {
+      const result = await electronAPI.parseGitUrl(value);
+      if (token !== parseToken) return;
+      cloneCandidate = result && result.valid ? result : null;
+    } catch {
+      if (token !== parseToken) return;
+      cloneCandidate = null;
+    }
+  }
+
   // Wire up DOM events
-  search.addEventListener("input", () => {
+  search.addEventListener("input", async () => {
     pickerSelectedIndex = 0;
-    renderList(search.value);
+    const value = search.value;
+    await refreshCloneCandidate(value);
+    renderList(value);
   });
 
   search.addEventListener("keydown", (e) => {
