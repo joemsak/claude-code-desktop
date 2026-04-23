@@ -10,7 +10,6 @@ function createManager(ptyModule, execModule, preSpawnHook) {
   const ptys = new Map();
 
   function spawn(tabId, directory, onData, onExit, options) {
-    const shell = process.env.SHELL || "/bin/zsh";
     const cleanEnv = Object.fromEntries(
       Object.entries({ ...process.env, HOME: os.homedir() }).filter(
         ([k]) => !k.startsWith("npm_config_") && !k.startsWith("npm_"),
@@ -19,18 +18,36 @@ function createManager(ptyModule, execModule, preSpawnHook) {
 
     cleanEnv.COLORTERM = "truecolor";
 
-    onPreSpawn(cleanEnv);
-
-    const flag =
-      options && options.dangerousMode ? " --dangerously-skip-permissions" : "";
-    const cmd = `source ~/.zshrc 2>/dev/null; exec claude${flag}`;
-    const ptyProcess = ptyLib.spawn(shell, ["-l", "-c", cmd], {
-      name: "xterm-256color",
-      cols: 80,
-      rows: 24,
-      cwd: directory,
-      env: cleanEnv,
-    });
+    const customCommand = options && options.command;
+    let ptyProcess;
+    if (customCommand && customCommand.type === "git-clone") {
+      ptyProcess = ptyLib.spawn(
+        "git",
+        ["clone", customCommand.url, customCommand.name],
+        {
+          name: "xterm-256color",
+          cols: 80,
+          rows: 24,
+          cwd: directory,
+          env: cleanEnv,
+        },
+      );
+    } else {
+      onPreSpawn(cleanEnv);
+      const shell = process.env.SHELL || "/bin/zsh";
+      const flag =
+        options && options.dangerousMode
+          ? " --dangerously-skip-permissions"
+          : "";
+      const cmd = `source ~/.zshrc 2>/dev/null; exec claude${flag}`;
+      ptyProcess = ptyLib.spawn(shell, ["-l", "-c", cmd], {
+        name: "xterm-256color",
+        cols: 80,
+        rows: 24,
+        cwd: directory,
+        env: cleanEnv,
+      });
+    }
 
     ptyProcess.onData((data) => onData(tabId, data));
     ptyProcess.onExit(({ exitCode }) => {
