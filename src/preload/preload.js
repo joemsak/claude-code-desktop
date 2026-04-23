@@ -47,6 +47,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
   trackWorkspace: (dirPath) => ipcRenderer.invoke("workspace:track", dirPath),
   getRecentWorkspaces: () => ipcRenderer.invoke("workspace:recent"),
 
+  // Git clone
+  parseGitUrl: (url) => ipcRenderer.invoke("git:parse-url", url),
+  cloneRepo: ({ tabId, url, dangerousMode }) =>
+    ipcRenderer.invoke("git:clone", { tabId, url, dangerousMode }),
+
   // Utility
   getHomePath: () => ipcRenderer.invoke("util:home-path"),
   getWindowBounds: () => ipcRenderer.invoke("util:window-bounds"),
