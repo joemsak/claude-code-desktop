@@ -13,6 +13,7 @@ function makeDeps(overrides = {}) {
     renderRetryBanner: vi.fn(),
     clearRetryBanner: vi.fn(),
     closeTab: vi.fn(),
+    openExistingDir: vi.fn(),
     ...overrides,
   };
 }
@@ -120,5 +121,22 @@ describe('createCloneOrchestrator', () => {
     const tabId = await orch.clone('file:///etc/passwd', {});
     expect(tabId).toBeUndefined();
     expect(deps.createCloningTab).not.toHaveBeenCalled();
+  });
+
+  it('clone(): when target already exists, opens it and skips the clone tab', async () => {
+    deps.electronAPI.cloneRepo.mockResolvedValue({
+      ok: true,
+      alreadyExists: true,
+      name: 'foo',
+      path: '/w/foo',
+    });
+    const result = await orch.clone('git@github.com:joemsak/foo.git', {
+      dangerousMode: true,
+    });
+    expect(deps.openExistingDir).toHaveBeenCalledWith('/w/foo', {
+      dangerousMode: true,
+    });
+    expect(deps.createCloningTab).not.toHaveBeenCalled();
+    expect(result).toBeUndefined();
   });
 });

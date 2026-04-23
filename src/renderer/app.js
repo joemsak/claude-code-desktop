@@ -577,6 +577,8 @@ const cloneOrchestrator = createCloneOrchestrator({
   renderRetryBanner: renderCloneRetryBanner,
   clearRetryBanner: clearCloneRetryBanner,
   closeTab,
+  openExistingDir: (dir, { dangerousMode }) =>
+    createTab(dir, null, null, { dangerousMode: !!dangerousMode }),
 });
 
 const picker = createPicker({

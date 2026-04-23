@@ -5,6 +5,7 @@ export function createCloneOrchestrator({
   renderRetryBanner,
   clearRetryBanner,
   closeTab,
+  openExistingDir,
 }) {
   const cloningTabs = new Map();
 
@@ -12,6 +13,10 @@ export function createCloneOrchestrator({
     const tabId = crypto.randomUUID();
     const result = await electronAPI.cloneRepo({ tabId, url, dangerousMode });
     if (!result || !result.ok) return undefined;
+    if (result.alreadyExists) {
+      if (openExistingDir) openExistingDir(result.path, { dangerousMode });
+      return undefined;
+    }
     cloningTabs.set(tabId, {
       url,
       dangerousMode,

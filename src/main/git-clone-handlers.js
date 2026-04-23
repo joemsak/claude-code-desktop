@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs");
 const { parseGitUrl } = require("./git-url");
 
 function createGitParseUrlHandler() {
@@ -9,7 +10,11 @@ function createGitParseUrlHandler() {
   };
 }
 
-function createGitCloneHandler({ ptyManager, getWorkspaceDir }) {
+function createGitCloneHandler({
+  ptyManager,
+  getWorkspaceDir,
+  pathExists = (p) => fs.existsSync(p),
+}) {
   return (event, payload) => {
     if (!payload || typeof payload !== "object") {
       return { ok: false, error: "Invalid payload" };
@@ -23,6 +28,15 @@ function createGitCloneHandler({ ptyManager, getWorkspaceDir }) {
       return { ok: false, error: "Not a valid git URL" };
     }
     const workspaceDir = getWorkspaceDir();
+    const targetPath = path.join(workspaceDir, parsed.name);
+    if (pathExists(targetPath)) {
+      return {
+        ok: true,
+        alreadyExists: true,
+        name: parsed.name,
+        path: targetPath,
+      };
+    }
     ptyManager.spawn(
       tabId,
       workspaceDir,
@@ -48,7 +62,7 @@ function createGitCloneHandler({ ptyManager, getWorkspaceDir }) {
     return {
       ok: true,
       name: parsed.name,
-      path: path.join(workspaceDir, parsed.name),
+      path: targetPath,
     };
   };
 }

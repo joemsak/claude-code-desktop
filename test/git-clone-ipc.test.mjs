@@ -11,6 +11,7 @@ function makeDeps(overrides = {}) {
   return {
     ptyManager: { spawn: vi.fn() },
     getWorkspaceDir: () => '/Users/joe/workspace',
+    pathExists: () => false,
     send: vi.fn(),
     ...overrides,
   };
@@ -120,5 +121,23 @@ describe('git:clone handler', () => {
     );
     const opts = deps.ptyManager.spawn.mock.calls[0][4];
     expect(opts.dangerousMode).toBe(true);
+  });
+
+  it('returns alreadyExists and does not spawn when target dir exists', () => {
+    const deps = makeDeps({
+      pathExists: (p) => p === '/Users/joe/workspace/foo',
+    });
+    const handler = createGitCloneHandler(deps);
+    const result = handler(
+      { sender: { isDestroyed: () => false, send: vi.fn() } },
+      { tabId: 'tab-1', url: 'git@github.com:joemsak/foo.git' },
+    );
+    expect(result).toEqual({
+      ok: true,
+      alreadyExists: true,
+      name: 'foo',
+      path: '/Users/joe/workspace/foo',
+    });
+    expect(deps.ptyManager.spawn).not.toHaveBeenCalled();
   });
 });
