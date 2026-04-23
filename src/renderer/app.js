@@ -5,6 +5,7 @@ import { getThemeByName, applyTheme, DEFAULT_THEME_NAME } from "./themes.js";
 import Sortable from "sortablejs";
 import { createPicker } from "./picker.js";
 import { createSettings } from "./settings.js";
+import { createCloneOrchestrator } from "./clone-flow.js";
 import {
   basename,
   getDisplayName as getDisplayNamePure,
@@ -327,7 +328,7 @@ function createTab(
   originalDir = null,
   options = {},
 ) {
-  const id = crypto.randomUUID();
+  const id = options.tabId || crypto.randomUUID();
   const terminal = new Terminal({
     theme: currentTheme
       ? currentTheme.terminal
@@ -383,10 +384,12 @@ function createTab(
     electronAPI.writePty(id, data);
   });
 
-  electronAPI.spawnPty(id, directory, {
-    dangerousMode: !!options.dangerousMode,
-  });
-  electronAPI.trackWorkspace(directory);
+  if (!options.skipSpawn) {
+    electronAPI.spawnPty(id, directory, {
+      dangerousMode: !!options.dangerousMode,
+    });
+    electronAPI.trackWorkspace(directory);
+  }
   updateEmptyState();
   switchTab(id);
   // Delayed refit for first tab after empty state (container was display:none)
@@ -513,6 +516,69 @@ function initSortable() {
 
 let pendingDirectory = null;
 
+function createCloningTabForOrchestrator(tabId, name) {
+  createTab(`Cloning ${name}…`, `Cloning ${name}…`, null, {
+    tabId,
+    skipSpawn: true,
+  });
+}
+
+function respawnTabInDir(tabId, newDir, { dangerousMode }) {
+  const tab = tabs.find((t) => t.id === tabId);
+  if (!tab) return;
+  tab.directory = newDir;
+  tab.customName = null;
+  tab._originalDir = null;
+  tab.dangerousMode = !!dangerousMode;
+  tab.exited = false;
+  tab.terminal.clear();
+  electronAPI.spawnPty(tabId, newDir, { dangerousMode: !!dangerousMode });
+  renderSidebar();
+  updateTopbar();
+  scheduleSave();
+}
+
+function renderCloneRetryBanner(tabId, retry, closeFn) {
+  const tab = tabs.find((t) => t.id === tabId);
+  if (!tab) return;
+  clearCloneRetryBanner(tabId);
+  const banner = document.createElement("div");
+  banner.className = "clone-retry-banner";
+  banner.dataset.tabId = tabId;
+
+  const label = document.createElement("span");
+  label.textContent = "Clone failed";
+  banner.appendChild(label);
+
+  const retryBtn = document.createElement("button");
+  retryBtn.textContent = "Retry";
+  retryBtn.addEventListener("click", () => retry());
+  banner.appendChild(retryBtn);
+
+  const closeBtn = document.createElement("button");
+  closeBtn.textContent = "Close tab";
+  closeBtn.addEventListener("click", () => closeFn());
+  banner.appendChild(closeBtn);
+
+  tab.wrapper.insertBefore(banner, tab.wrapper.firstChild);
+}
+
+function clearCloneRetryBanner(tabId) {
+  const tab = tabs.find((t) => t.id === tabId);
+  if (!tab) return;
+  const existing = tab.wrapper.querySelector(".clone-retry-banner");
+  if (existing) existing.remove();
+}
+
+const cloneOrchestrator = createCloneOrchestrator({
+  electronAPI,
+  createCloningTab: createCloningTabForOrchestrator,
+  respawnInDir: respawnTabInDir,
+  renderRetryBanner: renderCloneRetryBanner,
+  clearRetryBanner: clearCloneRetryBanner,
+  closeTab,
+});
+
 const picker = createPicker({
   dom: {
     overlay: pickerOverlay,
@@ -526,6 +592,8 @@ const picker = createPicker({
   getActiveTab,
   onSelect: (directory) => createTab(directory),
   onSelectDangerous: (directory) => showDangerousConfirm(directory),
+  onClone: (url) =>
+    cloneOrchestrator.clone(url, { dangerousMode: isEffectiveDangerous() }),
   onClose: () => updateEmptyState(),
 });
 
@@ -603,7 +671,8 @@ electronAPI.onPtyData((tabId, data) => {
   tab.terminal.write(filterED3(data));
 });
 
-electronAPI.onPtyExit((tabId, _exitCode) => {
+electronAPI.onPtyExit((tabId, exitCode) => {
+  if (cloneOrchestrator.handlePtyExit(tabId, exitCode)) return;
   const tab = tabs.find((t) => t.id === tabId);
   if (tab) {
     tab.exited = true;

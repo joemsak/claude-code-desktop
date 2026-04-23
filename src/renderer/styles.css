@@ -629,6 +629,42 @@ body {
   height: 100%;
 }
 
+.clone-retry-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 8px 16px;
+  background: color-mix(in srgb, var(--red, #e78284) 18%, var(--base));
+  color: var(--text);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 5;
+  border-bottom: 1px solid color-mix(in srgb, var(--red, #e78284) 40%, var(--surface0));
+}
+
+.clone-retry-banner span {
+  flex: 1;
+  font-weight: 500;
+}
+
+.clone-retry-banner button {
+  background: var(--surface1);
+  color: var(--text);
+  border: 1px solid var(--surface2);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.clone-retry-banner button:hover {
+  background: var(--surface2);
+}
+
 /* --- Directory Picker Overlay --- */
 #picker-overlay {
   position: fixed;
