@@ -16,6 +16,10 @@ On startup (with no open tabs), a welcome screen shows your recent workspaces fo
 
 When you create a new tab (**Cmd+T**), a picker lists directories from `~/workspace/`. Your 5 most recently used workspaces appear at the top for quick access. Type to fuzzy-filter (e.g. "ccd" matches "claude-code-desktop"), use arrow keys to navigate, or click "Browse..." to open any directory on disk. Hold **Shift** while the picker is open to toggle between standard and dangerous mode.
 
+Paste a git URL into the search to clone it into your workspace directory and open it automatically, or pick **Clone repo…** from the footer for a dedicated URL entry mode. If the target folder already exists, the existing workspace opens instead of re-cloning.
+
+**Right-click** (or Cmd-click) a workspace row for "Remove from recents" / "Move to Trash". **Cmd+⌫** on the selected row trashes it directly. Trashed folders go to the system Trash (reversible).
+
 ### Session persistence
 
 All open tabs, their directories, custom names, sidebar width, and window position are saved automatically when you quit. On next launch, everything is restored exactly as you left it. If a saved directory no longer exists, the tab falls back to your home directory and shows a warning indicator.

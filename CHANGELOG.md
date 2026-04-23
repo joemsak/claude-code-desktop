@@ -4,9 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-04-23
+
 ### Added
 - Delete workspaces from the picker: right-click (or Cmd-click) a row for "Remove from recents" / "Move to Trash", or press Cmd+⌫ on the selected row to trash it directly. Trashing uses the system Trash (reversible).
-- Clone a git repo from the workspace picker. Paste a git URL into the picker search, or pick the new "Clone repo…" footer action. Clones into the configured workspace directory and auto-opens the repo on success; shows a Retry / Close tab banner on failure.
+- Clone a git repo from the workspace picker. Paste a git URL into the picker search, or pick the new "Clone repo…" footer action. Clones into the configured workspace directory and auto-opens the repo on success; shows a Retry / Close tab banner on failure. If the target folder already exists, the existing workspace opens instead.
+
+## [3.2.0] - 2026-04-09
+
+### Added
 - Arrow key navigation between buttons in the dangerous mode confirmation dialog
 - ARIA attributes on all modals (role=dialog, aria-modal), tab list (role=tablist), and close buttons (aria-label)
 - Behavioral tests for pure utility functions (basename, getDisplayName, filterED3, isEffectiveDangerous)
