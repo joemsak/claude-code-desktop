@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Workspace picker no longer duplicates the "Clone repo…" footer on each keystroke (footer would stack up and cover the UI, and persist across close/reopen).
+
 ## [3.3.0] - 2026-04-23
 
 ### Added

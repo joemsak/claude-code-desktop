@@ -55,10 +55,9 @@ export function createPicker({
   }
 
   function removeFooters() {
-    const browseFooter = document.getElementById("picker-browse-footer");
-    if (browseFooter) browseFooter.remove();
-    const cloneFooter = document.getElementById("picker-clone-footer");
-    if (cloneFooter) cloneFooter.remove();
+    modal
+      .querySelectorAll("#picker-browse-footer, #picker-clone-footer")
+      .forEach((el) => el.remove());
   }
 
   function canDeleteDir(dir) {
@@ -274,9 +273,7 @@ export function createPicker({
   function renderList(filter) {
     const filtered = getFilteredDirs(filter);
     list.innerHTML = "";
-
-    const existingFooter = document.getElementById("picker-browse-footer");
-    if (existingFooter) existingFooter.remove();
+    removeFooters();
 
     const browseItem = filtered.find((d) => d.isBrowse);
     const listItems = filtered.filter((d) => !d.isBrowse);
