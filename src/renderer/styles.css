@@ -1224,6 +1224,16 @@ body {
   align-items: center;
 }
 
+.settings-dependent-row {
+  margin-top: 10px;
+  transition: opacity 0.15s ease;
+}
+
+.settings-dependent-row.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 .settings-toggle-label {
   flex: 1;
   min-width: 0;

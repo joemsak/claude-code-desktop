@@ -10,6 +10,7 @@ import { builtinThemes, getThemeByName, DEFAULT_THEME_NAME } from "./themes.js";
  * @param {Function} deps.onThemeChange - Called with (theme) when theme changes
  * @param {Function} deps.onFontChange - Called with ({ fontFamily, fontSize }) when font changes
  * @param {Function} deps.onDangerousModeChange - Called with (enabled) when dangerous mode toggle changes
+ * @param {Function} deps.onSkipConfirmChange - Called with (enabled) when skip-confirm toggle changes
  */
 export function createSettings({
   dom,
@@ -19,6 +20,7 @@ export function createSettings({
   onThemeChange,
   onFontChange,
   onDangerousModeChange,
+  onSkipConfirmChange,
 }) {
   const {
     overlay,
@@ -30,6 +32,8 @@ export function createSettings({
     fontSize,
     openThemes,
     dangerousToggle,
+    skipConfirmToggle,
+    skipConfirmRow,
   } = dom;
 
   async function open() {
@@ -64,6 +68,8 @@ export function createSettings({
     fontFamily.value = settings.fontFamily || state.fontFamily;
     fontSize.value = settings.fontSize || state.fontSize;
     dangerousToggle.checked = settings.defaultDangerousMode || false;
+    skipConfirmToggle.checked = settings.skipDangerousConfirm || false;
+    skipConfirmRow.classList.toggle("disabled", !dangerousToggle.checked);
 
     overlay.classList.remove("hidden");
     themeSelect.focus();
@@ -126,7 +132,16 @@ export function createSettings({
   });
 
   dangerousToggle.addEventListener("change", () => {
+    skipConfirmRow.classList.toggle("disabled", !dangerousToggle.checked);
+    if (!dangerousToggle.checked) {
+      skipConfirmToggle.checked = false;
+      onSkipConfirmChange(false);
+    }
     onDangerousModeChange(dangerousToggle.checked);
+  });
+
+  skipConfirmToggle.addEventListener("change", () => {
+    onSkipConfirmChange(skipConfirmToggle.checked);
   });
 
   electronAPI.onOpenSettings(() => open());

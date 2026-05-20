@@ -26,6 +26,7 @@ let currentFontFamily =
   '"MesloLGS Nerd Font", "JetBrainsMono Nerd Font", Menlo, Monaco, "Courier New", monospace';
 let currentFontSize = 14;
 let defaultDangerousMode = false;
+let skipDangerousConfirm = false;
 let shiftHeld = false;
 
 // --- DOM refs ---
@@ -55,6 +56,12 @@ const settingsFontSize = document.getElementById("settings-font-size");
 const settingsOpenThemes = document.getElementById("settings-open-themes");
 const settingsDangerousToggle = document.getElementById(
   "settings-dangerous-toggle",
+);
+const settingsSkipConfirmToggle = document.getElementById(
+  "settings-skip-confirm-toggle",
+);
+const settingsSkipConfirmRow = document.getElementById(
+  "settings-skip-confirm-row",
 );
 const confirmOverlay = document.getElementById("confirm-dangerous-overlay");
 const confirmDangerousBtn = document.getElementById("confirm-dangerous-btn");
@@ -604,6 +611,10 @@ const picker = createPicker({
 // ===========================
 
 function showDangerousConfirm(directory) {
+  if (skipDangerousConfirm && defaultDangerousMode) {
+    createTab(directory, null, null, { dangerousMode: true });
+    return;
+  }
   pendingDirectory = directory;
   confirmNote.classList.toggle("hidden", !defaultDangerousMode);
   confirmOverlay.classList.remove("hidden");
@@ -846,6 +857,8 @@ const settings = createSettings({
     fontSize: settingsFontSize,
     openThemes: settingsOpenThemes,
     dangerousToggle: settingsDangerousToggle,
+    skipConfirmToggle: settingsSkipConfirmToggle,
+    skipConfirmRow: settingsSkipConfirmRow,
   },
   electronAPI,
   getActiveTab,
@@ -864,6 +877,10 @@ const settings = createSettings({
     defaultDangerousMode = enabled;
     electronAPI.saveSettings({ defaultDangerousMode: enabled });
     electronAPI.rebuildMenu(enabled);
+  },
+  onSkipConfirmChange: (enabled) => {
+    skipDangerousConfirm = enabled;
+    electronAPI.saveSettings({ skipDangerousConfirm: enabled });
   },
 });
 
@@ -910,6 +927,7 @@ async function init() {
   currentFontFamily = startupSettings.fontFamily || currentFontFamily;
   currentFontSize = startupSettings.fontSize || currentFontSize;
   defaultDangerousMode = startupSettings.defaultDangerousMode || false;
+  skipDangerousConfirm = startupSettings.skipDangerousConfirm || false;
   updateEmptyState();
   const customThemes = await electronAPI.listCustomThemes();
   currentTheme = getThemeByName(

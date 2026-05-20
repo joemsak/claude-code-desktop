@@ -239,6 +239,7 @@ ipcMain.handle("settings:load", () => {
     fontFamily: data.fontFamily || sessionStore.DEFAULT_SESSION.fontFamily,
     fontSize: data.fontSize || sessionStore.DEFAULT_SESSION.fontSize,
     defaultDangerousMode: data.defaultDangerousMode || false,
+    skipDangerousConfirm: data.skipDangerousConfirm || false,
   };
 });
 
@@ -266,6 +267,9 @@ ipcMain.handle("settings:save", (_event, settings) => {
   }
   if (typeof settings.defaultDangerousMode === "boolean") {
     data.defaultDangerousMode = settings.defaultDangerousMode;
+  }
+  if (typeof settings.skipDangerousConfirm === "boolean") {
+    data.skipDangerousConfirm = settings.skipDangerousConfirm;
   }
   sessionStore.save(data);
 });
