@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- New "Skip Launch Confirmation" setting: when dangerous mode is your default, enable this to bypass the "Skip Permission Prompts?" dialog and open workspaces directly. The toggle is disabled and resets when dangerous mode is turned off.
+
 ### Fixed
 - Workspace picker no longer duplicates the "Clone repo…" footer on each keystroke (footer would stack up and cover the UI, and persist across close/reopen).
 
