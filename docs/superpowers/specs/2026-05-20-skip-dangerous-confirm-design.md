@@ -23,7 +23,7 @@ Add a setting that lets users bypass the confirmation dialog when dangerous mode
 Add a toggle row beneath the existing `settings-dangerous-toggle` row:
 
 ```html
-<div class="settings-toggle-row">
+<div class="settings-toggle-row" id="settings-skip-confirm-row">
   <div class="settings-toggle-label">
     <label class="settings-label">Skip Launch Confirmation</label>
     <p class="settings-hint">Skip the confirmation dialog when dangerous mode is your default</p>
@@ -35,11 +35,14 @@ Add a toggle row beneath the existing `settings-dangerous-toggle` row:
 </div>
 ```
 
+The row is visually disabled (opacity + pointer-events: none) when `defaultDangerousMode` is off. When `defaultDangerousMode` is toggled off, `skipDangerousConfirm` is also set to `false` in both UI and persisted settings.
+
 ### `src/renderer/settings.js`
 
-- Accept `skipConfirmToggle` in `dom` and `onSkipConfirmChange` callback.
-- On `open()`: set `skipConfirmToggle.checked = settings.skipDangerousConfirm || false`.
-- On `change`: call `onSkipConfirmChange(skipConfirmToggle.checked)`.
+- Accept `skipConfirmToggle` and `skipConfirmRow` in `dom`, and `onSkipConfirmChange` callback.
+- On `open()`: set `skipConfirmToggle.checked = settings.skipDangerousConfirm || false`; apply disabled state based on `settings.defaultDangerousMode`.
+- On `dangerousToggle` change: enable/disable `skipConfirmRow` accordingly; if dangerous mode is turned off, uncheck `skipConfirmToggle` and call `onSkipConfirmChange(false)`.
+- On `skipConfirmToggle` change: call `onSkipConfirmChange(skipConfirmToggle.checked)`.
 
 ### `src/renderer/app.js`
 
@@ -57,3 +60,5 @@ Add a toggle row beneath the existing `settings-dangerous-toggle` row:
 - **No bypass when not default**: `skipDangerousConfirm = true` + `defaultDangerousMode = false` → dialog shown.
 - **No bypass when setting off**: `skipDangerousConfirm = false` + `defaultDangerousMode = true` → dialog shown.
 - **Default state**: `skipDangerousConfirm` defaults to `false`.
+- **UI disabled state**: `skipConfirmRow` is disabled/grayed when `defaultDangerousMode` is off; enabled when on.
+- **Auto-clear**: turning off `defaultDangerousMode` resets `skipDangerousConfirm` to `false` in both UI and persisted settings.
