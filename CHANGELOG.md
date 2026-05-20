@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-05-20
+
 ### Added
 - New "Skip Launch Confirmation" setting: when dangerous mode is your default, enable this to bypass the "Skip Permission Prompts?" dialog and open workspaces directly. The toggle is disabled and resets when dangerous mode is turned off.
 
