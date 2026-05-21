@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.5.0] - 2026-05-21
+
 ### Added
 - Workspace picker now shows a `~/workspace` shortcut below the home shortcut, but only if that directory exists on disk.
 - Home shortcut label now shows the real directory name (e.g. `joseph.sak`) instead of the hardcoded `~ (Home)` string.
