@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Workspace picker now shows a `~/workspace` shortcut below the home shortcut, but only if that directory exists on disk.
+- Home shortcut label now shows the real directory name (e.g. `joseph.sak`) instead of the hardcoded `~ (Home)` string.
+- Home path is now resolved via `$HOME` + `fs.realpathSync` so it always points to the real directory, never a symlink.
+
 ## [3.4.0] - 2026-05-20
 
 ### Added

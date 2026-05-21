@@ -315,7 +315,27 @@ ipcMain.handle("themes:open-folder", () => {
 });
 
 // IPC: Utility
-ipcMain.handle("util:home-path", () => os.homedir());
+ipcMain.handle("util:home-path", () => {
+  const raw = process.env.HOME || os.homedir();
+  try {
+    return fs.realpathSync(raw);
+  } catch {
+    return raw;
+  }
+});
+
+ipcMain.handle("util:workspace-path", () => {
+  const raw = process.env.HOME || os.homedir();
+  const home = (() => {
+    try {
+      return fs.realpathSync(raw);
+    } catch {
+      return raw;
+    }
+  })();
+  const workspacePath = path.join(home, "workspace");
+  return fs.existsSync(workspacePath) ? workspacePath : null;
+});
 
 ipcMain.handle("util:open-external", (_event, url) => {
   if (typeof url === "string" && /^https?:\/\//.test(url)) {

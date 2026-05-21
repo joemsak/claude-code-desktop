@@ -59,6 +59,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // Utility
   getHomePath: () => ipcRenderer.invoke("util:home-path"),
+  getWorkspacePath: () => ipcRenderer.invoke("util:workspace-path"),
   getWindowBounds: () => ipcRenderer.invoke("util:window-bounds"),
   openExternal: (url) => ipcRenderer.invoke("util:open-external", url),
 });

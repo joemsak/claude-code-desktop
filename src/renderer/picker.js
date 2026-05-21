@@ -65,6 +65,7 @@ export function createPicker({
       dir &&
       dir.path &&
       !dir.isHome &&
+      !dir.isWorkspace &&
       !dir.isBrowse &&
       !dir.isClone &&
       !dir.isSeparator
@@ -177,6 +178,9 @@ export function createPicker({
     ]);
 
     const homePath = getHomePath();
+    const workspacePath = electronAPI.getWorkspacePath
+      ? await electronAPI.getWorkspacePath()
+      : null;
     const recentPaths = new Set();
     const recentItems = [];
     for (const r of recentWorkspaces.slice(0, 5)) {
@@ -192,12 +196,25 @@ export function createPicker({
       .filter((d) => !recentPaths.has(d.path))
       .map((d) => ({ name: d.name, path: d.path }));
 
+    const pinnedItems = [
+      { name: basename(homePath), path: homePath, isHome: true },
+      ...(workspacePath
+        ? [
+            {
+              name: basename(workspacePath),
+              path: workspacePath,
+              isWorkspace: true,
+            },
+          ]
+        : []),
+    ];
+
     pickerDirs = [
       ...recentItems,
       ...(recentItems.length > 0
         ? [{ name: "---", path: null, isSeparator: true }]
         : []),
-      { name: "~ (Home)", path: homePath, isHome: true },
+      ...pinnedItems,
       ...allItems,
       { name: "Browse...", path: null, isBrowse: true },
     ];
@@ -321,7 +338,13 @@ export function createPicker({
           header.textContent = "Recent";
           list.appendChild(header);
         }
-        if (!inRecents && !dir.isBrowse && !dir.isHome && !allHeaderShown) {
+        if (
+          !inRecents &&
+          !dir.isBrowse &&
+          !dir.isHome &&
+          !dir.isWorkspace &&
+          !allHeaderShown
+        ) {
           allHeaderShown = true;
           const header = document.createElement("li");
           header.className = "picker-section-header";
@@ -333,14 +356,14 @@ export function createPicker({
       const idx = selectableIndex++;
       const li = document.createElement("li");
       if (dir.isRecent) li.classList.add("picker-recent");
-      if (dir.isHome) li.classList.add("picker-home");
+      if (dir.isHome || dir.isWorkspace) li.classList.add("picker-home");
       li.classList.toggle("selected", idx === pickerSelectedIndex);
 
       const nameSpan = document.createElement("span");
       nameSpan.textContent = dir.name;
       li.appendChild(nameSpan);
 
-      if (dir.path && !dir.isHome && !dir.isBrowse) {
+      if (dir.path && !dir.isHome && !dir.isWorkspace && !dir.isBrowse) {
         const pathSpan = document.createElement("span");
         pathSpan.className = "picker-path";
         pathSpan.textContent = dir.path.replace(homePath, "~");
