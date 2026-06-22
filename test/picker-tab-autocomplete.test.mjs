@@ -52,4 +52,15 @@ describe("picker Tab key autocomplete", () => {
     expect(tabSection).not.toBeNull();
     expect(tabSection[0]).toContain("renderList");
   });
+
+  it("skips tab completion for Browse items", () => {
+    const keydownBlock = pickerSource.match(
+      /search\.addEventListener\("keydown"[\s\S]*?\n {2}\}\);/,
+    );
+    const tabSection = keydownBlock[0].match(
+      /e\.key\s*===\s*"Tab"[\s\S]*?(?=\}\s*else|\}\s*\n\s*\})/,
+    );
+    expect(tabSection).not.toBeNull();
+    expect(tabSection[0]).toContain("isBrowse");
+  });
 });

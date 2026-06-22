@@ -249,7 +249,12 @@ export function createPicker({
 
   function getFilteredDirs(filter) {
     const cloneItem = cloneCandidate
-      ? { isClone: true, url: cloneCandidate.url, name: cloneCandidate.name }
+      ? {
+          isClone: true,
+          url: cloneCandidate.url,
+          name: cloneCandidate.name,
+          pending: cloneCandidate.pending,
+        }
       : null;
     if (!filter) {
       return cloneItem ? [cloneItem, ...pickerDirs] : pickerDirs;
@@ -318,7 +323,9 @@ export function createPicker({
         li.classList.toggle("selected", idx === pickerSelectedIndex);
 
         const nameSpan = document.createElement("span");
-        nameSpan.textContent = `⎘  Clone ${dir.name} into workspace`;
+        nameSpan.textContent = dir.pending
+          ? `⎘  ${dir.name}`
+          : `⎘  Clone ${dir.name} into workspace`;
         li.appendChild(nameSpan);
 
         li.addEventListener("click", () => selectItem(dir));
@@ -407,6 +414,7 @@ export function createPicker({
 
   async function selectItem(dir) {
     if (dir.isClone) {
+      if (dir.pending) return;
       close();
       if (onClone) onClone(dir.url);
       return;
@@ -435,7 +443,13 @@ export function createPicker({
     try {
       const result = await electronAPI.parseGitUrl(value);
       if (token !== parseToken) return;
-      cloneCandidate = result && result.valid ? result : null;
+      if (result && result.valid) {
+        cloneCandidate = result;
+      } else if (/^[a-zA-Z0-9_-][\w.-]*\/$/.test(value.trim())) {
+        cloneCandidate = { pending: true, name: value.trim() };
+      } else {
+        cloneCandidate = null;
+      }
     } catch {
       if (token !== parseToken) return;
       cloneCandidate = null;
@@ -507,8 +521,9 @@ export function createPicker({
       }
     } else if (e.key === "Tab") {
       e.preventDefault();
-      if (selectable[pickerSelectedIndex]) {
-        search.value = selectable[pickerSelectedIndex].name;
+      const target = selectable[pickerSelectedIndex];
+      if (target && !target.isBrowse) {
+        search.value = target.name;
         pickerSelectedIndex = 0;
         renderList(search.value);
       }

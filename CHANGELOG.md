@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.6.0] - 2026-06-22
+
+### Added
+- Workspace picker shows a pending GitHub shorthand hint (`⎘  org/`) as soon as a slash is typed; upgrades to a full "Clone repo into workspace" action once `org/repo` is complete.
+
+### Fixed
+- Tab no longer autocompletes "Browse…" into the picker search box.
+- Browse option stays highlighted (selectable via Enter) when typing yields zero directory matches.
+
 ## [3.5.0] - 2026-05-21
 
 ### Added
