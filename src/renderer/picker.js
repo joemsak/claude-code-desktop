@@ -226,8 +226,10 @@ export function createPicker({
     await refreshPickerDirs();
 
     search.value = "";
-    pickerSelectedIndex = 0;
     cloneCandidate = null;
+    const selectable = getFilteredDirs("").filter((d) => !d.isSeparator);
+    const workspaceIdx = selectable.findIndex((d) => d.isWorkspace);
+    pickerSelectedIndex = workspaceIdx >= 0 ? workspaceIdx : 0;
     renderList("");
     overlay.classList.remove("hidden");
     search.focus();

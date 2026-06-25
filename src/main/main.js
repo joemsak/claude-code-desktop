@@ -57,6 +57,17 @@ function createWindow(sessionData) {
     ) {
       mainWindow.webContents.toggleDevTools();
     }
+    if (
+      input.type === "keyDown" &&
+      input.key === "n" &&
+      input.meta &&
+      !input.alt &&
+      !input.shift &&
+      !input.control
+    ) {
+      event.preventDefault();
+      mainWindow.webContents.send("menu:new-tab");
+    }
   });
 
   mainWindow.on("close", async (event) => {

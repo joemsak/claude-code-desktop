@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.7.0] - 2026-06-25
+
+### Added
+- Cmd+N is now an alias for Cmd+T (open new tab picker).
+- Picker pre-selects the `~/workspace` item on open — press Enter to jump straight in, or start typing to filter.
+
 ## [3.6.0] - 2026-06-22
 
 ### Added
